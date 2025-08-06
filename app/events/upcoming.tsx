@@ -1,33 +1,55 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEventsStore } from '@/store/events-store';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
-import EventCard from '@/components/EventCard';
+import React from "react";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useEventsStore } from "@/store/events-store";
+import Colors from "@/constants/Colors";
+import Header from "@/components/Header";
+import EventCard from "@/components/EventCard";
 
 export default function UpcomingEventsScreen() {
   const router = useRouter();
-  const { allEvents } = useEventsStore();
+  const { allEvents, fetchAll, loading, error } = useEventsStore();
+
+  React.useEffect(() => {
+    // Load events on mount
+    fetchAll().catch(() => void 0);
+  }, [fetchAll]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <Header title="Upcoming Events" showBack />
-      
-      <ScrollView 
+
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {allEvents.map((event) => (
-          <TouchableOpacity 
-            key={event.id}
-            onPress={() => router.push(`/event/${event.id}`)}
-          >
-            <EventCard event={event} />
-          </TouchableOpacity>
-        ))}
+        {loading
+          ? null
+          : allEvents.map((event) => {
+              const cardEvent = {
+                id: event.id,
+                title: event.title,
+                location: event.location,
+                image:
+                  event.image ??
+                  (event.imageUrl ? { uri: event.imageUrl } : undefined),
+                price: event.price ?? 0,
+                booked: event.booked ?? false,
+                category: event.category,
+                date: event.date,
+              } as any;
+
+              return (
+                <TouchableOpacity
+                  key={event.id}
+                  onPress={() => router.push(`/event/${event.id}`)}
+                >
+                  <EventCard event={cardEvent} />
+                </TouchableOpacity>
+              );
+            })}
       </ScrollView>
     </SafeAreaView>
   );
