@@ -1,18 +1,16 @@
+import { clearToken, getToken as readToken } from "@/lib/authToken";
 import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  isAxiosError,
+    AxiosError,
+    AxiosInstance,
+    AxiosRequestConfig,
+    isAxiosError,
 } from "axios";
 import * as Linking from "expo-linking";
-import { getToken as readToken, clearToken } from "@/lib/authToken";
-import { Platform } from "react-native";
+import { PRODUCTION_CONFIG } from "./production";
 
 const RUNTIME_BASE =
   process.env.EXPO_PUBLIC_API_URL ||
-  (Platform?.OS === "android"
-    ? "http://10.0.2.2:3000"
-    : "http://localhost:3000");
+  PRODUCTION_CONFIG.API_BASE_URL;
 
 export const API_BASE_URL = RUNTIME_BASE;
 
@@ -53,8 +51,8 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
       Accept: "application/json",
       "Content-Type": "application/json",
     },
-    // Reasonable mobile timeout
-    timeout: 15000,
+    // Production timeout - increased for render.com
+    timeout: PRODUCTION_CONFIG.API_TIMEOUT,
   });
 
   // Request: inject token
@@ -79,6 +77,8 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
     (response: any) => response,
     async (error: any) => {
       const err = normalizeError(error) as Error & { status?: number };
+      
+      // Handle specific error cases for production
       if (err?.status === 401) {
         // Clear token and optionally route to login
         try {
@@ -93,7 +93,14 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
           // Fire-and-forget; it's okay if it fails in background
           Linking.openURL(url).catch(() => {});
         } catch {}
+      } else if (err?.status === 503 || err?.status === 502) {
+        // Handle backend maintenance or temporary issues
+        console.warn('Backend temporarily unavailable:', err.message);
+      } else if (err?.status >= 500) {
+        // Handle server errors
+        console.error('Server error:', err.message);
       }
+      
       throw err;
     }
   );

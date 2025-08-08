@@ -11,7 +11,12 @@
     "lint": "expo lint",
     "doctor": "expo doctor",
     "clean": "rimraf node_modules package-lock.json",
-    "reset-project": "node ./scripts/reset-project.js"
+    "reset-project": "node ./scripts/reset-project.js",
+    "build:android": "expo build:android",
+    "build:ios": "expo build:ios",
+    "build:web": "expo build:web",
+    "prebuild": "expo prebuild",
+    "eject": "expo eject"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
