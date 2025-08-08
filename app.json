@@ -28,10 +28,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/lex-logo.svg",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#e6007e"
         }
       ]
     ],
