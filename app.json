@@ -4,7 +4,7 @@
     "slug": "agura",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/lex-logo.svg",
+    "icon": "./assets/images/icon.png",
     "scheme": "agura",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/lex-logo.svg",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#e6007e"
       },
       "edgeToEdgeEnabled": true,
