@@ -8,7 +8,11 @@ import Header from '@/components/Header';
 
 export default function TicketNamesScreen() {
   const router = useRouter();
-  const { id, count } = useLocalSearchParams<{ id?: string; count?: string }>();
+  const { id, count, categoryId } = useLocalSearchParams<{
+    id?: string;
+    count?: string;
+    categoryId?: string;
+  }>();
   const [ticketCount, setTicketCount] = useState(Math.max(1, parseInt(count || '1', 10)));
   const [names, setNames] = useState<string[]>(Array(Math.max(1, parseInt(count || '1', 10))).fill(''));
 
@@ -41,12 +45,16 @@ export default function TicketNamesScreen() {
   };
 
   const handleProceed = () => {
-    // Proceed to payment (implement navigation as needed)
-    router.push(`/event/${id}/payment?count=${ticketCount}&names=${encodeURIComponent(names.join(','))}`);
+    // Forward categoryId so payment can complete purchase
+    const qs = new URLSearchParams();
+    qs.set("count", String(ticketCount));
+    qs.set("names", names.join(","));
+    if (categoryId) qs.set("categoryId", String(categoryId));
+    router.push(`/event/${id}/payment?${qs.toString()}`);
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <Header showLogo showProfile showSearch />
       {/* Back and Title */}
       <View style={styles.titleRow}>
@@ -57,7 +65,7 @@ export default function TicketNamesScreen() {
       </View>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.inputsContainer}>
           {/* Ticket Quantity Selector */}
@@ -89,12 +97,16 @@ export default function TicketNamesScreen() {
               placeholder={`Ticket ${idx + 1} names`}
               placeholderTextColor={Colors.textSecondary}
               value={names[idx]}
-              onChangeText={value => handleNameChange(idx, value)}
+              onChangeText={(value) => handleNameChange(idx, value)}
             />
           ))}
         </View>
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.nextBtn} onPress={handleProceed} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.nextBtn}
+            onPress={handleProceed}
+            activeOpacity={0.85}
+          >
             <Text style={styles.nextBtnText}>Proceed to Payment</Text>
           </TouchableOpacity>
         </View>
@@ -109,9 +121,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 8,
@@ -119,7 +131,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 0.5,
   },
   logoFirst: {
@@ -129,8 +141,8 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
   iconCircle: {
@@ -138,29 +150,29 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     backgroundColor: Colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginHorizontal: 2,
   },
   profileCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginLeft: 8,
     borderWidth: 2,
     borderColor: Colors.card,
     backgroundColor: Colors.textSecondary,
   },
   profileImg: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
     backgroundColor: Colors.textSecondary,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 8,
     marginBottom: 16,
     paddingHorizontal: 16,
@@ -171,7 +183,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.text,
   },
   inputsContainer: {
@@ -226,20 +238,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 32,
     paddingTop: 16,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   nextBtn: {
     backgroundColor: Colors.primary,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
-    width: Dimensions.get('window').width - 32,
-    alignSelf: 'center',
+    width: Dimensions.get("window").width - 32,
+    alignSelf: "center",
   },
   nextBtnText: {
     color: Colors.text,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

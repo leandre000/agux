@@ -1,23 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
-import { Camera } from 'lucide-react-native';
-import { useAuthStore } from '@/store/auth-store';
-import Colors from '@/constants/Colors';
-import Button from '@/components/Button';
-import Input from '@/components/Input';
-import Header from '@/components/Header';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+import { useAuthStore } from "@/store/auth-store";
+import Colors from "@/constants/Colors";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
+import Header from "@/components/Header";
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
   const { updateUser } = useAuthStore();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState('');
+  const [validationError, setValidationError] = useState("");
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -34,20 +39,20 @@ export default function ProfileSetupScreen() {
 
   const validateForm = () => {
     if (!firstName || !lastName) {
-      setValidationError('Please fill in all fields');
+      setValidationError("Please fill in all fields");
       return false;
     }
-    setValidationError('');
+    setValidationError("");
     return true;
   };
 
   const handleNext = () => {
     if (!validateForm()) return;
     updateUser({
-      username: firstName + ' ' + lastName,
+      username: firstName + " " + lastName,
       profileImage: profileImage || undefined,
     });
-    router.push('/profile/categories');
+    router.push("/profile/categories");
   };
 
   return (
@@ -57,12 +62,12 @@ export default function ProfileSetupScreen() {
         <Text style={styles.description}>
           Please fill in with your personal information
         </Text>
-        <TouchableOpacity style={styles.profileImageContainer} onPress={pickImage}>
+        <TouchableOpacity
+          style={styles.profileImageContainer}
+          onPress={pickImage}
+        >
           {profileImage ? (
-            <Image
-              source={{ uri: profileImage }}
-              style={styles.profileImage}
-            />
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
           ) : (
             <View style={styles.profileImagePlaceholder} />
           )}
@@ -80,14 +85,9 @@ export default function ProfileSetupScreen() {
             value={lastName}
             onChangeText={setLastName}
             error={validationError}
-
           />
         </View>
-        <Button
-          title="Next"
-          onPress={handleNext}
-          style={styles.nextButton}
-        />
+        <Button title="Next" onPress={handleNext} style={styles.nextButton} />
       </View>
     </SafeAreaView>
   );
@@ -103,16 +103,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
     paddingBottom: 40,
-    alignItems: 'center',
+    alignItems: "center",
   },
   description: {
     fontSize: 15,
     color: Colors.textSecondary,
     marginBottom: 32,
-    textAlign: 'center',
+    textAlign: "center",
   },
   profileImageContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   profileImage: {
@@ -131,19 +131,19 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginTop: 12,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 32,
-    
+
     paddingRight: 16,
   },
   nextButton: {
-    width: '100%',
+    width: "100%",
     borderRadius: 28,
     paddingVertical: 14,
     backgroundColor: Colors.primary,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 });
