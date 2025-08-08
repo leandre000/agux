@@ -1,0 +1,69 @@
+GETTING STARTED WITH AGURA
+===========================
+
+1. Clone the repository and enter the directory:
+   git clone <your-repo-url>
+   cd agura
+
+2. Install all dependencies (including native and dev dependencies):
+   npm install
+
+3. (Optional but recommended) Check for any issues with dependencies or setup:
+   npx expo-doctor
+   # This runs expo doctor to check for environment and dependency issues.
+
+4. (Optional) Analyze installed packages and their versions:
+   npm list --depth=0
+   # Shows a flat list of all installed packages and their versions.
+
+5. (Optional) Clean the project if you run into issues:
+   npm run clean
+   npm install
+   # Removes node_modules and lock file, then reinstalls everything.
+
+6. Start the project (choose your platform):
+   # For all platforms (Expo Dev Tools):
+   npm run dev
+   # Android:
+   npm run android
+   # iOS (Mac only):
+   npm run ios
+   # Web:
+   npm run web
+
+7. (Optional) Lint the codebase:
+   npm run lint
+
+
+TROUBLESHOOTING NON-ZERO EXIT ERRORS
+====================================
+If you or your boss encounter a 'non-zero exit code' or similar error during 'npm install' or when starting the project:
+
+1. Run the clean script to remove old dependencies and lock files:
+   npm run clean
+
+2. Reinstall all dependencies:
+   npm install
+
+3. Try starting the project again:
+   npm run dev
+
+If the error persists, ensure you are using a supported version of Node.js (preferably the latest LTS) and that you have a stable internet connection. If you still have issues, please contact the project maintainer for support.
+
+
+FIXING EXPO DOCTOR ISSUES
+=========================
+If you see warnings about outdated dependencies or image dimensions:
+
+1. For dependency issues, run:
+   npm install @react-native-async-storage/async-storage@2.1.2 react-native-svg@15.11.2
+
+2. For image dimension warnings (icon.png and adaptive-icon.png):
+   - These are warnings only and won't prevent the app from running
+   - The images should ideally be square (e.g., 1024x1024) for best compatibility
+   - You can replace them with properly sized images if needed
+
+3. After fixing issues, run again:
+   npx expo-doctor
+
+The app will work fine even with these warnings, but fixing them ensures optimal compatibility. 
