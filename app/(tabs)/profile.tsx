@@ -1,26 +1,39 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/auth-store';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { Bell, ChevronRight, CreditCard, HelpCircle, LogOut, Settings } from 'lucide-react-native';
+import React from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, Settings, CreditCard, Bell, HelpCircle } from 'lucide-react-native';
-import { useAuthStore } from '@/store/auth-store';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
-
 
 interface ProfileOptionProps {
   icon: React.ReactNode;
   title: string;
+  subtitle?: string;
   onPress: () => void;
+  showChevron?: boolean;
+  destructive?: boolean;
 }
 
-const ProfileOption: React.FC<ProfileOptionProps> = ({ icon, title, onPress }) => (
-  <TouchableOpacity style={styles.optionContainer} onPress={onPress}>
+const ProfileOption: React.FC<ProfileOptionProps> = ({ 
+  icon, 
+  title, 
+  subtitle, 
+  onPress, 
+  showChevron = true,
+  destructive = false 
+}) => (
+  <TouchableOpacity style={styles.optionContainer} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.optionIconContainer}>
       {icon}
     </View>
-    <Text style={styles.optionTitle}>{title}</Text>
+    <View style={styles.optionContent}>
+      <Text style={[styles.optionTitle, destructive && styles.destructiveText]}>{title}</Text>
+      {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
+    </View>
+    {showChevron && <ChevronRight size={20} color={Colors.textSecondary} />}
   </TouchableOpacity>
 );
 
@@ -29,9 +42,34 @@ export default function ProfileScreen() {
   const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
-    
-    router.push('/onboarding');
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/onboarding');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
+
+  const handleSettings = () => router.push('/profile/settings');
+  const handlePaymentMethods = () => router.push('/profile/payment-methods');
+  const handleNotifications = () => router.push('/profile/notifications');
+  const handleHelpSupport = () => router.push('/profile/help-support');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -64,31 +102,38 @@ export default function ProfileScreen() {
           <ProfileOption
             icon={<Settings size={24} color={Colors.text} />}
             title="Account Settings"
-            onPress={() => {}}
+            subtitle="Manage your profile and preferences"
+            onPress={handleSettings}
           />
 
           <ProfileOption
             icon={<CreditCard size={24} color={Colors.text} />}
             title="Payment Methods"
-            onPress={() => {}}
+            subtitle="Manage your payment options"
+            onPress={handlePaymentMethods}
           />
 
           <ProfileOption
             icon={<Bell size={24} color={Colors.text} />}
             title="Notifications"
-            onPress={() => {}}
+            subtitle="Configure notification preferences"
+            onPress={handleNotifications}
           />
 
           <ProfileOption
             icon={<HelpCircle size={24} color={Colors.text} />}
             title="Help & Support"
-            onPress={() => {}}
+            subtitle="Get help and contact support"
+            onPress={handleHelpSupport}
           />
+
+          <View style={styles.separator} />
 
           <ProfileOption
             icon={<LogOut size={24} color={Colors.error} />}
             title="Logout"
             onPress={handleLogout}
+            destructive
           />
         </View>
       </ScrollView>
@@ -165,8 +210,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
+  optionContent: {
+    flex: 1,
+  },
   optionTitle: {
     fontSize: 16,
     color: Colors.text,
+    fontWeight: '500',
+  },
+  optionSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  destructiveText: {
+    color: Colors.error,
+  },
+  separator: {
+    height: 20,
   },
 });

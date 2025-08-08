@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/auth-store';
-import Colors from '@/constants/Colors';
-import Button from '@/components/Button';
-import Input from '@/components/Input';
-import Header from '@/components/Header';
-import SocialLoginButton from '@/components/SocialLoginButton';
 import AuthLayout from '@/components/AuthLayout';
+import Button from '@/components/Button';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import SocialLoginButton from '@/components/SocialLoginButton';
+import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/auth-store';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterEmailScreen() {
   const router = useRouter();
@@ -43,8 +43,10 @@ export default function RegisterEmailScreen() {
 
     if (!password) {
       errors.password = 'Please enter a password';
-    } else if (password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      errors.password = 'Password must contain uppercase, lowercase, and number';
     }
 
     setValidationErrors(errors);

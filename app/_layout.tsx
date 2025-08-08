@@ -1,11 +1,9 @@
-import React from 'react';
-import { Provider } from 'react-redux';
-import store from '@/store';
-import { StatusBar } from 'expo-status-bar';
+import Colors from '@/constants/Colors';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Colors from '@/constants/Colors';
 
 export default function RootLayout() {
   const content = (
@@ -31,6 +29,11 @@ export default function RootLayout() {
         <Stack.Screen name="auth/verification" />
         <Stack.Screen name="profile/setup" />
         <Stack.Screen name="profile/categories" />
+        <Stack.Screen name="profile/settings" />
+        <Stack.Screen name="profile/change-password" />
+        <Stack.Screen name="profile/payment-methods" />
+        <Stack.Screen name="profile/notifications" />
+        <Stack.Screen name="profile/help-support" />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
         <Stack.Screen name="events/user" />
       </Stack>
