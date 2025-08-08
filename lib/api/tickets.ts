@@ -2,7 +2,6 @@ import { apiGet, apiPost, apiPut } from "@/config/api";
 
 export interface PurchaseTicketsBody {
   categoryId: string;
-  seatIds: string[];
 }
 export interface PurchaseTicketsResponse {
   message?: string;
@@ -15,7 +14,6 @@ export interface TicketDTO {
   id?: string | number;
   event_id?: string;
   category_id?: string;
-  seat_id?: string;
   qr_code?: string;
   used?: boolean;
   refunded?: boolean;

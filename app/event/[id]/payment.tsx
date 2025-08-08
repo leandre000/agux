@@ -1,19 +1,19 @@
 import Header from "@/components/Header";
 import Colors from "@/constants/Colors";
+import { TicketsAPI } from "@/lib/api";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { TicketsAPI } from "@/lib/api";
 
 const PAYMENT_METHODS = [
   {
@@ -55,25 +55,12 @@ export default function PaymentScreen() {
   const total = subtotal + fee;
 
   async function handlePurchase() {
-    if (!categoryId) {
-      Alert.alert(
-        "Missing category",
-        "Ticket category is required to purchase."
-      );
-      return;
-    }
-    // In a real app, we would also pass the chosen seatIds. They were reserved in seats.tsx and should be stored globally or in params.
-    // For a minimal working flow, navigate here with seatIds param from the seats screen when proceeding.
-    const rawSeatIds = (params as any).seatIds as string | undefined;
-    const seatIds = rawSeatIds ? rawSeatIds.split(",").filter(Boolean) : [];
-    if (seatIds.length === 0) {
-      Alert.alert("No seats selected", "Please select seats again.");
-      return;
-    }
-
     setSubmitting(true);
     try {
-      await TicketsAPI.purchaseTickets({ categoryId, seatIds });
+      // Simplified purchase without seat selection
+      await TicketsAPI.purchaseTickets({ 
+        categoryId: categoryId || "default"
+      });
       router.push(
         `/event/${
           params.id

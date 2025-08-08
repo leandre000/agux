@@ -193,7 +193,7 @@ export default function EventDetailScreen() {
               {!booked && !event.booked && (
                 <TouchableOpacity
                   style={styles.buyBtn}
-                  onPress={() => router.push(`/event/${id}/seats`)}
+                  onPress={() => router.push(`/event/${id}/payment?count=1&ticketType=${encodeURIComponent(ticket.type)}&seatPrice=${ticket.price.replace('$', '')}`)}
                 >
                   <Text style={styles.buyBtnText}>Buy</Text>
                 </TouchableOpacity>

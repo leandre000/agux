@@ -17,11 +17,10 @@ import Header from "@/components/Header";
 
 export default function TicketNamesScreen() {
   const router = useRouter();
-  const { id, count, categoryId, seatIds } = useLocalSearchParams<{
+  const { id, count, categoryId } = useLocalSearchParams<{
     id?: string;
     count?: string;
     categoryId?: string;
-    seatIds?: string; // forwarded from seats screen
   }>();
   const ticketCount = Math.max(1, parseInt(count || "1", 10));
   const [names, setNames] = useState<string[]>(Array(ticketCount).fill(""));
@@ -33,12 +32,11 @@ export default function TicketNamesScreen() {
   };
 
   const handleProceed = () => {
-    // Forward seatIds and categoryId so payment can complete purchase
+    // Forward categoryId so payment can complete purchase
     const qs = new URLSearchParams();
     qs.set("count", String(ticketCount));
     qs.set("names", names.join(","));
     if (categoryId) qs.set("categoryId", String(categoryId));
-    if (seatIds) qs.set("seatIds", String(seatIds));
     router.push(`/event/${id}/payment?${qs.toString()}`);
   };
 
