@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Plus, Minus } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Header from '@/components/Header';
@@ -9,8 +9,30 @@ import Header from '@/components/Header';
 export default function TicketNamesScreen() {
   const router = useRouter();
   const { id, count } = useLocalSearchParams<{ id?: string; count?: string }>();
-  const ticketCount = Math.max(1, parseInt(count || '1', 10));
-  const [names, setNames] = useState<string[]>(Array(ticketCount).fill(''));
+  const [ticketCount, setTicketCount] = useState(Math.max(1, parseInt(count || '1', 10)));
+  const [names, setNames] = useState<string[]>(Array(Math.max(1, parseInt(count || '1', 10))).fill(''));
+
+  // Update names array when ticket count changes
+  useEffect(() => {
+    setNames(prevNames => {
+      const newNames = [...prevNames];
+      if (ticketCount > newNames.length) {
+        // Add more names
+        while (newNames.length < ticketCount) {
+          newNames.push('');
+        }
+      } else if (ticketCount < newNames.length) {
+        // Remove extra names
+        newNames.splice(ticketCount);
+      }
+      return newNames;
+    });
+  }, [ticketCount]);
+
+  const handleTicketCountChange = (increment: boolean) => {
+    const newCount = increment ? ticketCount + 1 : Math.max(1, ticketCount - 1);
+    setTicketCount(newCount);
+  };
 
   const handleNameChange = (idx: number, value: string) => {
     const newNames = [...names];
@@ -38,6 +60,28 @@ export default function TicketNamesScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.inputsContainer}>
+          {/* Ticket Quantity Selector */}
+          <View style={styles.quantityContainer}>
+            <Text style={styles.quantityLabel}>Number of Tickets</Text>
+            <View style={styles.quantitySelector}>
+              <TouchableOpacity 
+                style={styles.quantityBtn} 
+                onPress={() => handleTicketCountChange(false)}
+                disabled={ticketCount <= 1}
+              >
+                <Minus size={20} color={ticketCount <= 1 ? Colors.textSecondary : Colors.text} />
+              </TouchableOpacity>
+              <Text style={styles.quantityText}>{ticketCount}</Text>
+              <TouchableOpacity 
+                style={styles.quantityBtn} 
+                onPress={() => handleTicketCountChange(true)}
+              >
+                <Plus size={20} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Ticket Name Inputs */}
           {Array.from({ length: ticketCount }).map((_, idx) => (
             <TextInput
               key={idx}
@@ -134,6 +178,40 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     gap: 16,
+  },
+  quantityContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 8,
+  },
+  quantityLabel: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  quantitySelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quantityBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.card,
+  },
+  quantityText: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+    minWidth: 40,
+    textAlign: 'center',
   },
   input: {
     backgroundColor: Colors.card,
