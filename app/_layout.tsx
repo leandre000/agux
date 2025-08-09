@@ -8,7 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 export default function RootLayout() {
   const content = (
     <>
-      <StatusBar style="light" backgroundColor={Colors.background} />
+      <StatusBar style="light" backgroundColor="#e6007e" />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -43,5 +43,5 @@ export default function RootLayout() {
   if (Platform.OS === 'web') {
     return content;
   }
-  return <GestureHandlerRootView style={{ flex: 1 }}>{content}</GestureHandlerRootView>;
+  return <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#e6007e' }}>{content}</GestureHandlerRootView>;
 }

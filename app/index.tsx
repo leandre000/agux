@@ -30,7 +30,7 @@ export default function SplashScreen() {
         <View style={styles.container}>
             {/* Pink/Magenta gradient background matching the screenshot */}
             <LinearGradient
-                colors={['#e91e63', '#c2185b', '#8e0038', '#ad1457']}
+                colors={['#e6007e', '#d81b60', '#c2185b', '#ad1457']}
                 style={styles.background}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
