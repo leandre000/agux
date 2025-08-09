@@ -56,13 +56,18 @@ export default function EventMenuScreen() {
   ];
 
   const handleOrderItem = (item: any) => {
-    // Navigate to orders screen or add to cart
-    router.push(`/event/${id}/orders?itemId=${item.id}`);
+    // Navigate to food detail screen
+    router.push(`/event/${id}/food-detail?itemId=${item.id}`);
   };
 
   // Menu Item Component
   const MenuItem = ({ item }: { item: any }) => (
-    <View style={styles.menuItem}>
+    <TouchableOpacity 
+      style={styles.menuItem}
+      onPress={() => handleOrderItem(item)}
+      disabled={!item.inStock}
+      activeOpacity={0.8}
+    >
       <Image source={item.image} style={styles.menuItemImage} />
       <View style={styles.menuItemContent}>
         <Text style={styles.menuItemName}>{item.name}</Text>
@@ -72,19 +77,15 @@ export default function EventMenuScreen() {
             <Text style={styles.starIcon}>⭐</Text>
             <Text style={styles.ratingText}>{item.rating}+</Text>
           </View>
-          <TouchableOpacity 
-            style={[styles.orderButton, !item.inStock && styles.orderButtonDisabled]}
-            onPress={() => handleOrderItem(item)}
-            disabled={!item.inStock}
-          >
+          <View style={[styles.orderButton, !item.inStock && styles.orderButtonDisabled]}>
             <Text style={styles.orderButtonText}>
               {item.inStock ? 'Order' : 'Out of Stock'}
             </Text>
-          </TouchableOpacity>
+          </View>
         </View>
       </View>
       {!item.inStock && <View style={styles.outOfStockOverlay} />}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
