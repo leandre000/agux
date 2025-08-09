@@ -124,6 +124,13 @@ export default function LoginScreen() {
             style={styles.loginButton}
           />
 
+          <Button
+            title="Continue with Google"
+            onPress={handleGoogleLogin}
+            style={[styles.loginButton, styles.googleButton]}
+            textStyle={styles.googleButtonText}
+          />
+
           <View style={styles.signupContainer}>
             <Text style={styles.signupText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => router.push("/auth/register")}>
@@ -183,6 +190,15 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     paddingVertical: 16,
     marginBottom: 24,
+  },
+  googleButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#666",
+    marginBottom: 32,
+  },
+  googleButtonText: {
+    color: "#fff",
   },
   signupContainer: {
     flexDirection: "row",

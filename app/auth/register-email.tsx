@@ -16,10 +16,12 @@ export default function RegisterEmailScreen() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [validationErrors, setValidationErrors] = useState({
     email: '',
     phone: '',
     password: '',
+    name: '',
   });
 
   const validateForm = () => {
@@ -27,7 +29,14 @@ export default function RegisterEmailScreen() {
       email: '',
       phone: '',
       password: '',
+      name: '',
     };
+
+    if (!name) {
+      errors.name = 'Please enter your name';
+    } else if (name.length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+    }
 
     if (!email) {
       errors.email = 'Please enter your email';
@@ -50,14 +59,19 @@ export default function RegisterEmailScreen() {
     }
 
     setValidationErrors(errors);
-    return !errors.email && !errors.phone && !errors.password;
+    return !errors.email && !errors.phone && !errors.password && !errors.name;
   };
 
   const handleSignUp = async () => {
     if (!validateForm()) return;
 
     try {
-      await register({ email, phone, password });
+      await register({ 
+        email, 
+        phone, 
+        password, 
+        username: name
+      });
       router.push('/auth/verification');
     } catch (error) {
       // Error handled in the store
@@ -78,6 +92,14 @@ export default function RegisterEmailScreen() {
       <Header title="Register with Email" showBack />
       <View style={styles.content}>
         <View style={styles.inputContainer}>
+          <Input
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            error={validationErrors.name}
+            autoCapitalize="words"
+          />
+
           <Input
             placeholder="Email"
             value={email}
