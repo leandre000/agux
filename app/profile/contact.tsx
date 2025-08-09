@@ -1,13 +1,14 @@
-import Header from '@/components/Header';
-import Colors from '@/constants/Colors';
-import { useAuthStore } from '@/store/auth-store';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { Bell, ChevronRight, CreditCard, HelpCircle, LogOut, Settings, User, Phone } from 'lucide-react-native';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ChevronLeft, User, Settings, HelpCircle, Phone, LogOut } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import Colors from '@/constants/Colors';
+import Header from '@/components/Header';
+import { useAuthStore } from '@/store/auth-store';
+import { Alert } from 'react-native';
 
 interface ProfileOptionProps {
   icon: React.ReactNode;
@@ -29,11 +30,11 @@ const ProfileOption: React.FC<ProfileOptionProps> = ({
       {icon}
     </View>
     <Text style={[styles.optionTitle, destructive && styles.destructiveText]}>{title}</Text>
-    {showChevron && <ChevronRight size={20} color={Colors.text} />}
+    {showChevron && !destructive && <Text style={styles.chevron}>›</Text>}
   </TouchableOpacity>
 );
 
-export default function ProfileScreen() {
+export default function ProfileWithLogoutScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
 
@@ -44,10 +45,38 @@ export default function ProfileScreen() {
     profileImage: user?.profileImage || require('@/assets/images/profile.jpg'),
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/onboarding');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleMyAccount = () => router.push('/profile/setup');
   const handleSettings = () => router.push('/profile/settings');
   const handleHelpCenter = () => router.push('/profile/help-support');
-  const handleContact = () => router.push('/profile/contact');
+  const handleContact = () => {
+    // This is the contact screen, so we can show contact info or go back
+    router.back();
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -97,6 +126,12 @@ export default function ProfileScreen() {
             title="Contact"
             onPress={handleContact}
           />
+        </View>
+
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -185,5 +220,24 @@ const styles = StyleSheet.create({
   },
   destructiveText: {
     color: Colors.error,
+  },
+  chevron: {
+    fontSize: 20,
+    color: Colors.text,
+    fontWeight: '300',
+  },
+  logoutContainer: {
+    paddingBottom: 32,
+  },
+  logoutButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 25,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
