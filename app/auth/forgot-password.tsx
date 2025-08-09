@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "@/store/auth-store";
-import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
-import Input from "@/components/Input";
 import Header from "@/components/Header";
-import AuthLayout from "@/components/AuthLayout";
+import Input from "@/components/Input";
+import Colors from "@/constants/Colors";
+import { useAuthStore } from "@/store/auth-store";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React, { useState } from "react";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -38,54 +38,79 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <AuthLayout>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <Header title="Forgot Password" showBack />
+      
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email to receive a password reset link.
+          Enter your phone number or email to receive the{"\n"}resettion code for account recovery
         </Text>
+        
         <View style={styles.inputContainer}>
           <Input
-            placeholder="Email"
+            placeholder="Phone Number or Gmail"
             value={identifier}
             onChangeText={setIdentifier}
             error={validationError}
             autoCapitalize="none"
             keyboardType="email-address"
+            style={styles.input}
           />
         </View>
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        
+        {error && <Text style={styles.errorText}>{error}</Text>}
+        
         <Button
-          title="Send Reset Link"
+          title="Send Verification Code"
           onPress={handleSendCode}
           loading={isLoading}
           style={styles.sendButton}
         />
       </View>
-    </AuthLayout>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
   content: {
     flex: 1,
-    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 40,
   },
   description: {
     fontSize: 14,
-    color: Colors.textSecondary,
-    marginBottom: 24,
+    color: "#aaa",
+    marginBottom: 32,
     lineHeight: 20,
+    textAlign: "center",
   },
   inputContainer: {
     width: "100%",
+    marginBottom: 32,
+  },
+  input: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 0,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: "#fff",
   },
   errorText: {
     color: Colors.error,
-    marginTop: 16,
+    marginBottom: 16,
     textAlign: "center",
   },
   sendButton: {
-    marginTop: 32,
+    backgroundColor: "#E6007E",
+    borderRadius: 25,
+    paddingVertical: 16,
   },
 });
