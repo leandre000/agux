@@ -1,19 +1,20 @@
-import Header from "@/components/Header";
-import Colors from "@/constants/Colors";
-import { TicketsAPI } from "@/lib/api";
-import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ChevronLeft } from "lucide-react-native";
+import { StatusBar } from "expo-status-bar";
+import { Image } from "expo-image";
+import Colors from "@/constants/Colors";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import Header from "@/components/Header";
+import { TicketsAPI } from "@/lib/api";
 
 const PAYMENT_METHODS = [
   {
@@ -31,43 +32,29 @@ export default function PaymentScreen() {
     id?: string;
     count?: string;
     names?: string;
-    phone?: string;
-    ticketType?: string;
-    seatPrice?: string;
-    categoryId?: string;
+    seats?: string;
   }>();
 
-  // Inputs
   const seatCount = Math.max(1, parseInt(params.count || "1", 10));
-  const categoryId = params.categoryId; // must be passed from previous screen when category pricing is chosen
-  const ticketType = params.ticketType || "Tickets";
-  const names = params.names || "";
-  const phone = params.phone || "";
-  const seatPrice = parseInt(params.seatPrice || "0", 10) || 0;
+  const names = params.names ? params.names.split(',') : [];
+  const ticketPrice = 1000; // Mock price per ticket
+  const subtotal = seatCount * ticketPrice;
+  const total = subtotal;
 
   const [selectedMethod, setSelectedMethod] = useState<string | null>(
     PAYMENT_METHODS[0].key
   );
   const [submitting, setSubmitting] = useState(false);
 
-  const subtotal = seatCount * seatPrice;
-  const fee = 20;
-  const total = subtotal + fee;
-
   async function handlePurchase() {
+    if (!selectedMethod) return;
+    
     setSubmitting(true);
     try {
-      // Simplified purchase without seat selection
-      await TicketsAPI.purchaseTickets({ 
-        categoryId: categoryId || "default"
-      });
-      router.push(
-        `/event/${
-          params.id
-        }/confirmation?count=${seatCount}&ticketType=${encodeURIComponent(
-          ticketType
-        )}&amount=${total}`
-      );
+      // Mock API call - replace with actual backend integration
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      router.push(`/event/${params.id}/confirmation?count=${seatCount}&amount=${total}`);
     } catch (e: any) {
       Alert.alert(
         "Purchase failed",
@@ -80,106 +67,94 @@ export default function PaymentScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
+      <StatusBar style="light" />
       <Header showLogo showProfile showSearch />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ChevronLeft size={24} color={Colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Ticket Payment</Text>
+      </View>
+
       <ScrollView
+        style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back and Title */}
-        <View style={styles.titleRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backBtn}
-          >
-            <ChevronLeft size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.pageTitle}>Ticket Payment</Text>
-        </View>
-
         {/* Ticket Summary */}
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>
-            {ticketType} ({seatCount})
-          </Text>
-          <TouchableOpacity>
-            <Text style={styles.changeText}>Change</Text>
-          </TouchableOpacity>
+        <View style={styles.summarySection}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Vvip Tickets ({seatCount})</Text>
+            <TouchableOpacity>
+              <Text style={styles.changeText}>Change</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {names.length > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Mike Peter</Text>
+              <TouchableOpacity>
+                <Text style={styles.changeText}>Change</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>+254 984652971</Text>
+            <TouchableOpacity>
+              <Text style={styles.changeText}>Change</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        {names ? (
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{names}</Text>
-            <TouchableOpacity>
-              <Text style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {phone ? (
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{phone}</Text>
-            <TouchableOpacity>
-              <Text style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
 
         {/* Payment Methods */}
-        <Text style={styles.paymentTitle}>Payment</Text>
-        <View style={styles.paymentMethodsRow}>
-          <TouchableOpacity style={styles.addMethodBtn}>
-            <Text style={styles.addMethodPlus}>+</Text>
+        <Text style={styles.sectionTitle}>Payment</Text>
+        <View style={styles.paymentMethodsContainer}>
+          <TouchableOpacity style={styles.addMethodButton}>
+            <Text style={styles.addMethodText}>+</Text>
           </TouchableOpacity>
+          
           {PAYMENT_METHODS.map((method) => (
             <TouchableOpacity
               key={method.key}
               style={[
-                styles.methodBtn,
-                selectedMethod === method.key && styles.methodBtnSelected,
+                styles.methodButton,
+                selectedMethod === method.key && styles.methodButtonSelected,
               ]}
               onPress={() => setSelectedMethod(method.key)}
-              activeOpacity={0.85}
             >
-              <Image
-                source={method.icon}
-                style={
-                  method.key === "mtn"
-                    ? [styles.methodIcon, styles.mtnIcon]
-                    : styles.methodIcon
-                }
-              />
+              <Image source={method.icon} style={styles.methodIcon} />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Divider */}
-        <View style={styles.divider} />
-
-        {/* Subtotal and Total */}
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabel}>Subtotal</Text>
-          <Text style={styles.totalsValue}>{subtotal} Rwf</Text>
-        </View>
-        <View style={styles.totalsRow}>
-          <Text style={styles.totalsLabelTotal}>Total</Text>
-          <Text style={styles.totalsValueTotal}>{total} Rwf</Text>
-        </View>
-
-        {/* Proceed Button */}
-        <View style={styles.buttonWrap}>
-          <TouchableOpacity
-            style={[
-              styles.payBtn,
-              (!selectedMethod || submitting) && styles.payBtnDisabled,
-            ]}
-            disabled={!selectedMethod || submitting}
-            activeOpacity={0.85}
-            onPress={handlePurchase}
-          >
-            <Text style={styles.payBtnText}>
-              {submitting ? "Processing..." : "Proceed to Payment"}
-            </Text>
-          </TouchableOpacity>
+        {/* Pricing */}
+        <View style={styles.pricingSection}>
+          <View style={styles.pricingRow}>
+            <Text style={styles.pricingLabel}>Subtotal</Text>
+            <Text style={styles.pricingValue}>{subtotal} Rwf</Text>
+          </View>
+          <View style={styles.pricingRow}>
+            <Text style={styles.pricingLabelTotal}>Total</Text>
+            <Text style={styles.pricingValueTotal}>{total} Rwf</Text>
+          </View>
         </View>
       </ScrollView>
+
+      {/* Bottom button */}
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity
+          style={[styles.payButton, (!selectedMethod || submitting) && styles.payButtonDisabled]}
+          onPress={handlePurchase}
+          disabled={!selectedMethod || submitting}
+        >
+          <Text style={styles.payButtonText}>
+            {submitting ? "Processing..." : "Proceed to Payment"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -189,177 +164,140 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  scrollContent: {
-    paddingBottom: 32,
-    paddingHorizontal: 0,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 24,
-    paddingHorizontal: 16,
+  backButton: {
+    marginRight: 16,
+    padding: 8,
   },
-  backBtn: {
-    marginRight: 8,
-    padding: 4,
-  },
-  backArrow: {
+  headerTitle: {
     color: Colors.text,
-    fontSize: 24,
-    fontWeight: "bold",
-    marginRight: 2,
-  },
-  pageTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.text,
+    fontWeight: 'bold',
   },
-  paymentTitle: {
-    color: Colors.text,
-    fontWeight: "bold",
-    fontSize: 22,
-    marginHorizontal: 16,
-    marginTop: 32,
-    marginBottom: 18,
-    letterSpacing: 0.2,
+  content: {
+    flex: 1,
   },
-  paymentMethodsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginBottom: 36,
-    marginTop: 0,
-    minHeight: 64,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
   },
-  addMethodBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  addMethodPlus: {
-    color: Colors.primary,
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  methodBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: "transparent",
-    overflow: "hidden",
-  },
-  methodBtnSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: "rgba(230,0,126,0.1)",
-  },
-  methodIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    resizeMode: "contain",
-  },
-  mtnIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignSelf: "center",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.card,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    marginTop: 0,
+  summarySection: {
+    marginBottom: 32,
   },
   summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    marginTop: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   summaryLabel: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: "500",
-    letterSpacing: 0.1,
+    fontWeight: '500',
   },
   changeText: {
     color: Colors.primary,
-    fontWeight: "bold",
-    fontSize: 15,
-    letterSpacing: 0.1,
+    fontSize: 14,
+    fontWeight: '600',
   },
-  totalsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginBottom: 8,
-    marginTop: 0,
-  },
-  totalsLabel: {
+  sectionTitle: {
     color: Colors.text,
-    fontSize: 15,
-    fontWeight: "400",
-    letterSpacing: 0.1,
-  },
-  totalsValue: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: "500",
-    letterSpacing: 0.1,
-  },
-  totalsLabelTotal: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: "bold",
-    letterSpacing: 0.2,
-  },
-  totalsValueTotal: {
-    color: Colors.primary,
-    fontSize: 28,
-    fontWeight: "bold",
-    letterSpacing: 0.2,
-  },
-  buttonWrap: {
-    marginTop: 32,
-    marginBottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  payBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    width: "90%",
-    alignSelf: "center",
-    marginTop: 0,
-    marginBottom: 0,
-    elevation: 2,
-  },
-  payBtnDisabled: {
-    opacity: 0.6,
-  },
-  payBtnText: {
-    color: Colors.text,
-    fontWeight: "bold",
     fontSize: 18,
-    letterSpacing: 0.2,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  paymentMethodsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  addMethodButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  addMethodText: {
+    color: Colors.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  methodButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  methodButtonSelected: {
+    borderColor: Colors.primary,
+  },
+  methodIcon: {
+    width: 32,
+    height: 32,
+    resizeMode: 'contain',
+  },
+  pricingSection: {
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+  },
+  pricingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  pricingLabel: {
+    color: Colors.text,
+    fontSize: 16,
+  },
+  pricingValue: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  pricingLabelTotal: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  pricingValueTotal: {
+    color: Colors.text,
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  bottomContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 32,
+    paddingTop: 16,
+  },
+  payButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 25,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  payButtonDisabled: {
+    opacity: 0.5,
+  },
+  payButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

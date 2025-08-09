@@ -1,42 +1,84 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Header from '@/components/Header';
+import { StatusBar } from 'expo-status-bar';
 import Colors from '@/constants/Colors';
-import { ChevronLeft } from 'lucide-react-native';
 
 export default function ConfirmationScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  let eventId = params.id;
-  if (Array.isArray(eventId)) eventId = eventId[0];
-  // For demo, use static values. You can pass real values via params if needed.
-  let countParam = params.count;
-  if (Array.isArray(countParam)) countParam = countParam[0];
-  const ticketCount = parseInt(countParam || '', 10) || 1;
-  let amountParam = params.amount;
-  if (Array.isArray(amountParam)) amountParam = amountParam[0];
-  const amount = parseInt(amountParam || '', 10) || 0;
-  let ticketType = params.ticketType || 'vvip tickets';
-  if (Array.isArray(ticketType)) ticketType = ticketType[0];
-  const eventName = 'baba experience ticket';
-  const eventVenue = 'kigali convention center';
+  const params = useLocalSearchParams<{
+    id?: string;
+    count?: string;
+    amount?: string;
+  }>();
+
+  const ticketCount = parseInt(params.count || '1', 10);
+  const amount = params.amount || '0';
+
+  // Animation values
+  const checkScale = new Animated.Value(0);
+  const checkOpacity = new Animated.Value(0);
+
+  useEffect(() => {
+    // Animate check mark appearance
+    Animated.sequence([
+      Animated.delay(500),
+      Animated.parallel([
+        Animated.spring(checkScale, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }),
+        Animated.timing(checkOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
+  const handleGoBack = () => {
+    router.push('/(tabs)');
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header showLogo showProfile showSearch />
+      <StatusBar style="light" />
+      
       <View style={styles.content}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <ChevronLeft size={24} color={Colors.text} />
-          </TouchableOpacity>
-        <Text style={styles.title}>You have successfully{"\n"}bought tickets</Text>
-        <Text style={styles.subtitle}>
-          you have now bought {ticketCount} {ticketType}{ticketCount > 1 ? 's' : ''} for{"\n"}
-          {eventName} happening at {eventVenue} this weekend enjoy
+        {/* Success Message */}
+        <Text style={styles.title}>
+          You have successfully{'\n'}bought tickets
         </Text>
-        <Image source={require('@/assets/images/check.png')} style={styles.checkIcon} />
-        <TouchableOpacity style={styles.button} onPress={() => router.push(`/event/${eventId}/ticket-preview?count=${ticketCount}&ticketType=${encodeURIComponent(ticketType)}&amount=${params.amount}`)}>
+        
+        <Text style={styles.subtitle}>
+          You have now bought {ticketCount} VVip ticket{ticketCount > 1 ? 's' : ''} for{'\n'}
+          Baba experience happening at kigali{'\n'}
+          convention center this weekend enjoy
+        </Text>
+
+        {/* Animated Check Mark */}
+        <Animated.View 
+          style={[
+            styles.checkContainer,
+            {
+              transform: [{ scale: checkScale }],
+              opacity: checkOpacity,
+            }
+          ]}
+        >
+          <View style={styles.checkCircle}>
+            <View style={styles.checkMark}>
+              <Text style={styles.checkText}>✓</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Go Back Button */}
+        <TouchableOpacity style={styles.button} onPress={handleGoBack}>
           <Text style={styles.buttonText}>Go back to Events</Text>
         </TouchableOpacity>
       </View>
@@ -53,58 +95,61 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    position: 'relative',
-  },
-  backBtn: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    padding: 16,
-    zIndex: 2,
-  },
-  backArrow: {
-    color: Colors.text,
-    fontSize: 24,
-    fontWeight: 'bold',
+    paddingHorizontal: 32,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.text,
-    marginBottom: 16,
     textAlign: 'center',
-    marginTop: 32,
+    marginBottom: 20,
+    lineHeight: 32,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text,
-    marginBottom: 32,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: 60,
+    opacity: 0.8,
   },
-  checkIcon: {
+  checkContainer: {
+    marginBottom: 60,
+  },
+  checkCircle: {
     width: 120,
     height: 120,
-    marginBottom: 48,
-    resizeMode: 'contain',
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+  },
+  checkMark: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#4CAF50',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkText: {
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
   },
   button: {
     backgroundColor: Colors.primary,
-    borderRadius: 24,
+    borderRadius: 25,
     paddingVertical: 16,
     paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
-    maxWidth: 320,
-    alignSelf: 'center',
-    marginTop: 0,
+    alignItems: 'center',
   },
   buttonText: {
     color: Colors.text,
+    fontSize: 16,
     fontWeight: 'bold',
-    fontSize: 18,
-    textAlign: 'center',
   },
 });

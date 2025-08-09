@@ -144,7 +144,7 @@ export default function EventDetailScreen() {
                 <Text style={styles.ticketPrice}>{ticket.price}</Text>
                 <TouchableOpacity
                   style={styles.buyButton}
-                  onPress={() => router.push(`/event/${id}/payment`)}
+                  onPress={() => router.push(`/event/${id}/seat-selection`)}
                 >
                   <Text style={styles.buyButtonText}>Buy</Text>
                 </TouchableOpacity>
