@@ -1,29 +1,31 @@
-import Colors from "@/constants/Colors";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Image as RNImage,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-
-const TICKETS = [
-  { type: "Regular Tickets", price: "3,000 RWF", left: 150 },
-  { type: "VIP Tickets", price: "8,000 RWF", left: 75 },
-  { type: "Premium Tickets", price: "15,000 RWF", left: 50 },
-  { type: "VVIP Tickets", price: "25,000 RWF", left: 25 },
-];
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
+import Header from "@/components/Header";
+import Colors from "@/constants/Colors";
+import { useEventsStore, Event } from "@/store/events-store";
+import { useTicketsStore, TicketCategory } from "@/store/tickets-store";
 
 export const options = {
   headerShown: false,
 };
+
+function formatPrice(price: number, currency: string = 'RWF'): string {
+  return `${price.toLocaleString()} ${currency}`;
+}
 
 export default function EventDetailScreen() {
   const { id, booked } = useLocalSearchParams<{
@@ -31,45 +33,97 @@ export default function EventDetailScreen() {
     booked?: string;
   }>();
   const router = useRouter();
-
-  // Mock event data (will be replaced with backend data)
-  const [event, setEvent] = useState<any>(null);
+  
+  const { fetchById: fetchEvent, loading: eventsLoading, error: eventsError } = useEventsStore();
+  const { fetchTicketCategories, ticketCategories, loading: ticketsLoading, error: ticketsError } = useTicketsStore();
+  
+  const [event, setEvent] = useState<Event | null>(null);
+  const [categories, setCategories] = useState<TicketCategory[]>([]);
   const [coords, setCoords] = useState<{
     latitude: number | null;
     longitude: number | null;
   }>({
-    latitude: -1.9536,
-    longitude: 30.0605,
+    latitude: null,
+    longitude: null,
   });
-  const [loadingCoords, setLoadingCoords] = useState(false);
 
   useEffect(() => {
-    // Mock event data - replace with actual backend call
-    const mockEvent = {
-      id: id,
-      title: "Baba Experience",
-      image: require("@/assets/images/m1.png"),
-      organizer: "Platini",
-      date: "15-May-2025",
-      venue: "Serena Hotel Kigali",
-      description: "Amazing music experience with Baba",
-      booked: false,
-    };
-    setEvent(mockEvent);
-
-    // Set coordinates for Serena Hotel Kigali
-    setCoords({
-      latitude: -1.9536,
-      longitude: 30.0605,
-    });
+    if (id) {
+      loadEventData();
+    }
   }, [id]);
 
-  if (!event) {
+  const loadEventData = async () => {
+    if (!id) return;
+    
+    try {
+      // Fetch event details
+      const eventData = await fetchEvent(id);
+      if (eventData) {
+        setEvent(eventData);
+        
+        // Try to extract coordinates from location
+        if (eventData.location) {
+          // You can implement geocoding here or expect coordinates from backend
+          // For now, using default Rwanda coordinates (Kigali)
+          setCoords({
+            latitude: -1.9441,
+            longitude: 30.0619,
+          });
+        }
+      }
+      
+      // Fetch ticket categories
+      const ticketCats = await fetchTicketCategories(id);
+      setCategories(ticketCats);
+      
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to load event details");
+    }
+  };
+
+  const handleBuyTicket = (category: TicketCategory) => {
+    if (!category.available_quantity || category.available_quantity <= 0) {
+      Alert.alert("Sold Out", "This ticket category is no longer available.");
+      return;
+    }
+    
+    // Navigate to seat selection with category info
+    router.push(`/event/${id}/seat-selection?categoryId=${category.category_id}&categoryName=${encodeURIComponent(category.name)}&price=${category.price}`);
+  };
+
+  const handleViewMap = () => {
+    router.push(`/event/${id}/map`);
+  };
+
+  if (eventsLoading || ticketsLoading) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <StatusBar style="light" />
+        <Header showLogo showProfile showSearch />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading event details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (eventsError || ticketsError || !event) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <StatusBar style="light" />
+        <Header showLogo showProfile showSearch />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {eventsError || ticketsError || "Event not found"}
+          </Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={loadEventData}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -78,13 +132,10 @@ export default function EventDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="light" />
+      <Header showLogo showProfile showSearch />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header with Back Button and Title */}
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -98,7 +149,11 @@ export default function EventDetailScreen() {
         {/* Event Image */}
         <View style={styles.imageContainer}>
           <RNImage
-            source={event.image}
+            source={
+              event.imageUrl 
+                ? { uri: event.imageUrl }
+                : event.image || require('@/assets/images/m1.png')
+            }
             style={styles.eventImage}
             resizeMode="cover"
           />
@@ -106,18 +161,22 @@ export default function EventDetailScreen() {
 
         {/* Event Details */}
         <View style={styles.detailsContainer}>
-          {/* Organizer */}
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Organizer</Text>
-            <Text style={styles.detailValue}>{event.organizer}</Text>
-          </View>
+          {/* Description */}
+          {event.description && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Description</Text>
+              <Text style={styles.detailValue}>{event.description}</Text>
+            </View>
+          )}
 
           {/* Date */}
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Date</Text>
             <View style={styles.detailValueRow}>
               <Calendar size={16} color={Colors.text} />
-              <Text style={styles.detailValue}>{event.date}</Text>
+              <Text style={styles.detailValue}>
+                {event.date ? new Date(event.date).toLocaleDateString() : "TBD"}
+              </Text>
             </View>
           </View>
 
@@ -126,7 +185,7 @@ export default function EventDetailScreen() {
             <Text style={styles.detailLabel}>Venue</Text>
             <View style={styles.detailValueRow}>
               <MapPin size={16} color={Colors.text} />
-              <Text style={styles.detailValue}>{event.venue}</Text>
+              <Text style={styles.detailValue}>{event.location || "TBD"}</Text>
             </View>
           </View>
         </View>
@@ -134,62 +193,73 @@ export default function EventDetailScreen() {
         {/* Tickets Section */}
         <View style={styles.ticketsSection}>
           <Text style={styles.sectionTitle}>Tickets</Text>
-          <View style={styles.ticketsGrid}>
-            {TICKETS.map((ticket, idx) => (
-              <View style={styles.ticketCard} key={idx}>
-                <View style={styles.ticketHeader}>
-                  <Text style={styles.ticketType}>{ticket.type}</Text>
-                  <Text style={styles.ticketLeft}>100 left</Text>
+          {categories.length === 0 ? (
+            <View style={styles.noTicketsContainer}>
+              <Text style={styles.noTicketsText}>No tickets available for this event</Text>
+            </View>
+          ) : (
+            <View style={styles.ticketsGrid}>
+              {categories.map((category, idx) => (
+                <View style={styles.ticketCard} key={idx}>
+                  <Text style={styles.ticketType}>{category.name}</Text>
+                  <Text style={styles.ticketPrice}>
+                    {formatPrice(category.price, category.currency)}
+                  </Text>
+                  <Text style={styles.ticketLeft}>
+                    {category.available_quantity || 0} left
+                  </Text>
+                  <TouchableOpacity 
+                    style={[
+                      styles.buyButton,
+                      (!category.available_quantity || category.available_quantity <= 0) && styles.buyButtonDisabled
+                    ]}
+                    onPress={() => handleBuyTicket(category)}
+                    disabled={!category.available_quantity || category.available_quantity <= 0}
+                  >
+                    <Text style={[
+                      styles.buyButtonText,
+                      (!category.available_quantity || category.available_quantity <= 0) && styles.buyButtonTextDisabled
+                    ]}>
+                      {(!category.available_quantity || category.available_quantity <= 0) ? "Sold Out" : "Buy"}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.ticketPrice}>{ticket.price}</Text>
-                <TouchableOpacity
-                  style={styles.buyButton}
-                  onPress={() => router.push(`/event/${id}/seat-selection`)}
-                >
-                  <Text style={styles.buyButtonText}>Buy</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Location Section */}
-        <View style={styles.locationSection}>
-          <Text style={styles.sectionTitle}>Location</Text>
-          <View style={styles.mapContainer}>
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onPress={() => router.push(`/event/${id}/map`)}
-            >
+        {coords.latitude && coords.longitude && (
+          <View style={styles.locationSection}>
+            <Text style={styles.sectionTitle}>Location</Text>
+            <TouchableOpacity style={styles.mapContainer} onPress={handleViewMap}>
               <MapView
                 style={styles.map}
                 initialRegion={{
-                  latitude: coords.latitude || -1.9536,
-                  longitude: coords.longitude || 30.0605,
+                  latitude: coords.latitude,
+                  longitude: coords.longitude,
                   latitudeDelta: 0.01,
                   longitudeDelta: 0.01,
                 }}
                 scrollEnabled={false}
                 zoomEnabled={false}
-                pitchEnabled={false}
                 rotateEnabled={false}
-                pointerEvents="none"
+                pitchEnabled={false}
               >
-                {coords.latitude && coords.longitude && (
-                  <Marker
-                    coordinate={{
-                      latitude: coords.latitude,
-                      longitude: coords.longitude,
-                    }}
-                    title={event.venue}
-                    description={event.title}
-                    pinColor={Colors.primary}
-                  />
-                )}
+                <Marker
+                  coordinate={{
+                    latitude: coords.latitude,
+                    longitude: coords.longitude,
+                  }}
+                  title={event.title}
+                  description={event.location}
+                  pinColor={Colors.primary}
+                />
               </MapView>
             </TouchableOpacity>
           </View>
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -207,21 +277,40 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     color: Colors.text,
+    marginTop: 16,
     fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorText: {
+    color: Colors.text,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 32,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
   },
   backButton: {
     marginRight: 16,
@@ -231,39 +320,37 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
   },
   imageContainer: {
-    margin: 20,
+    height: 200,
+    marginHorizontal: 20,
     borderRadius: 16,
     overflow: 'hidden',
-    height: 200,
+    marginBottom: 20,
   },
   eventImage: {
     width: '100%',
     height: '100%',
   },
   detailsContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    backgroundColor: Colors.card,
+    marginHorizontal: 20,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    marginBottom: 16,
   },
   detailLabel: {
     color: Colors.textSecondary,
     fontSize: 14,
-    fontWeight: '500',
+    marginBottom: 4,
   },
   detailValue: {
     color: Colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 8,
+    fontSize: 16,
   },
   detailValueRow: {
     flexDirection: 'row',
@@ -271,7 +358,7 @@ const styles = StyleSheet.create({
   },
   ticketsSection: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionTitle: {
     color: Colors.text,
@@ -279,65 +366,76 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
+  noTicketsContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+  },
+  noTicketsText: {
+    color: Colors.textSecondary,
+    fontSize: 16,
+    textAlign: 'center',
+  },
   ticketsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
   },
   ticketCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
     padding: 16,
     width: '48%',
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  ticketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   ticketType: {
     color: Colors.text,
     fontSize: 14,
     fontWeight: '600',
-  },
-  ticketLeft: {
-    color: '#4CAF50',
-    fontSize: 12,
-    fontWeight: '500',
+    marginBottom: 8,
   },
   ticketPrice: {
-    color: Colors.text,
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  ticketLeft: {
+    color: Colors.textSecondary,
+    fontSize: 12,
     marginBottom: 12,
   },
   buyButton: {
-    backgroundColor: Colors.text,
-    borderRadius: 20,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
     paddingVertical: 8,
     alignItems: 'center',
   },
+  buyButtonDisabled: {
+    backgroundColor: Colors.textSecondary,
+    opacity: 0.5,
+  },
   buyButtonText: {
-    color: Colors.background,
-    fontWeight: 'bold',
+    color: Colors.text,
     fontSize: 14,
+    fontWeight: '600',
+  },
+  buyButtonTextDisabled: {
+    color: Colors.background,
   },
   locationSection: {
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
   mapContainer: {
+    height: 200,
     borderRadius: 16,
     overflow: 'hidden',
-    height: 200,
-    borderWidth: 2,
-    borderColor: Colors.primary,
   },
   map: {
-    width: '100%',
-    height: '100%',
+    flex: 1,
   },
 });

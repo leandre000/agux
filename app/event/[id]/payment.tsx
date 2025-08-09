@@ -1,29 +1,27 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
   Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
-import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import Colors from "@/constants/Colors";
-import { useRouter, useLocalSearchParams } from "expo-router";
 import Header from "@/components/Header";
-import { TicketsAPI } from "@/lib/api";
+import { useTicketsStore, TicketPurchase } from "@/store/tickets-store";
 
 const PAYMENT_METHODS = [
-  {
-    key: "mastercard",
-    icon: require("@/assets/images/payment/mastercard.png"),
-  },
-  { key: "paypal", icon: require("@/assets/images/payment/paypal.png") },
-  { key: "stripe", icon: require("@/assets/images/payment/stripe.png") },
-  { key: "mtn", icon: require("@/assets/images/payment/mtn.png") },
+  { key: "momo", name: "MTN Mobile Money", icon: require("@/assets/images/payment/mtn.png") },
+  { key: "mastercard", name: "Mastercard", icon: require("@/assets/images/payment/mastercard.png") },
+  { key: "paypal", name: "PayPal", icon: require("@/assets/images/payment/paypal.png") },
+  { key: "stripe", name: "Stripe", icon: require("@/assets/images/payment/stripe.png") },
 ];
 
 export default function PaymentScreen() {
@@ -33,35 +31,62 @@ export default function PaymentScreen() {
     count?: string;
     names?: string;
     seats?: string;
+    categoryId?: string;
+    categoryName?: string;
+    price?: string;
   }>();
+
+  const { purchaseTickets, purchaseLoading, error } = useTicketsStore();
 
   const seatCount = Math.max(1, parseInt(params.count || "1", 10));
   const names = params.names ? params.names.split(',') : [];
-  const ticketPrice = 3000; // Regular ticket price in RWF
+  const seats = params.seats ? params.seats.split(',') : [];
+  const categoryId = params.categoryId || "";
+  const categoryName = params.categoryName || "Standard";
+  const ticketPrice = params.price ? parseInt(params.price, 10) : 0;
   const subtotal = seatCount * ticketPrice;
-  const total = subtotal;
+  const processingFee = Math.round(subtotal * 0.03); // 3% processing fee
+  const total = subtotal + processingFee;
 
   const [selectedMethod, setSelectedMethod] = useState<string | null>(
     PAYMENT_METHODS[0].key
   );
-  const [submitting, setSubmitting] = useState(false);
 
   async function handlePurchase() {
-    if (!selectedMethod) return;
-    
-    setSubmitting(true);
+    if (!selectedMethod) {
+      Alert.alert("Payment Method Required", "Please select a payment method.");
+      return;
+    }
+
+    if (!categoryId) {
+      Alert.alert("Error", "Invalid ticket category. Please try again.");
+      return;
+    }
+
+    if (names.length !== seatCount) {
+      Alert.alert("Error", "Please provide names for all tickets.");
+      return;
+    }
+
     try {
-      // Mock API call - replace with actual backend integration
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const purchaseData: TicketPurchase = {
+        category_id: categoryId,
+        quantity: seatCount,
+        holder_names: names,
+        seats: seats.length > 0 ? seats : undefined,
+      };
+
+      const tickets = await purchaseTickets(purchaseData);
       
-      router.push(`/event/${params.id}/confirmation?count=${seatCount}&amount=${total}`);
-    } catch (e: any) {
+      // Navigate to confirmation with ticket details
+      const ticketIds = tickets.map(t => t.ticket_id || t.id).join(',');
+      router.push(`/event/${params.id}/confirmation?ticketIds=${ticketIds}&count=${seatCount}&amount=${total}&categoryName=${encodeURIComponent(categoryName)}`);
+      
+    } catch (error: any) {
       Alert.alert(
-        "Purchase failed",
-        e?.message || "Could not complete the purchase."
+        "Purchase Failed",
+        error?.message || "Could not complete the purchase. Please try again."
       );
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -83,76 +108,108 @@ export default function PaymentScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Ticket Summary */}
-        <View style={styles.summarySection}>
+        {/* Order Summary */}
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryTitle}>Order Summary</Text>
+          
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Vvip Tickets ({seatCount})</Text>
-            <TouchableOpacity>
-              <Text style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
+            <Text style={styles.summaryLabel}>Event</Text>
+            <Text style={styles.summaryValue}>Ticket Purchase</Text>
           </View>
           
-          {names.length > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Mike Peter</Text>
-              <TouchableOpacity>
-                <Text style={styles.changeText}>Change</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Category</Text>
+            <Text style={styles.summaryValue}>{categoryName}</Text>
+          </View>
           
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>+254 984652971</Text>
-            <TouchableOpacity>
-              <Text style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
+            <Text style={styles.summaryLabel}>Quantity</Text>
+            <Text style={styles.summaryValue}>{seatCount} ticket{seatCount > 1 ? 's' : ''}</Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Price per ticket</Text>
+            <Text style={styles.summaryValue}>{ticketPrice.toLocaleString()} RWF</Text>
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal</Text>
+            <Text style={styles.summaryValue}>{subtotal.toLocaleString()} RWF</Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Processing Fee</Text>
+            <Text style={styles.summaryValue}>{processingFee.toLocaleString()} RWF</Text>
+          </View>
+          
+          <View style={styles.divider} />
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>{total.toLocaleString()} RWF</Text>
           </View>
         </View>
 
         {/* Payment Methods */}
-        <Text style={styles.sectionTitle}>Payment</Text>
-        <View style={styles.paymentMethodsContainer}>
-          <TouchableOpacity style={styles.addMethodButton}>
-            <Text style={styles.addMethodText}>+</Text>
-          </TouchableOpacity>
+        <View style={styles.paymentContainer}>
+          <Text style={styles.paymentTitle}>Payment Method</Text>
           
           {PAYMENT_METHODS.map((method) => (
             <TouchableOpacity
               key={method.key}
               style={[
-                styles.methodButton,
-                selectedMethod === method.key && styles.methodButtonSelected,
+                styles.paymentMethod,
+                selectedMethod === method.key && styles.paymentMethodSelected,
               ]}
               onPress={() => setSelectedMethod(method.key)}
             >
-              <Image source={method.icon} style={styles.methodIcon} />
+              <Image source={method.icon} style={styles.paymentIcon} />
+              <Text style={styles.paymentMethodName}>{method.name}</Text>
+              <View style={styles.radioContainer}>
+                {selectedMethod === method.key && (
+                  <View style={styles.radioSelected} />
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Pricing */}
-        <View style={styles.pricingSection}>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabel}>Subtotal</Text>
-            <Text style={styles.pricingValue}>{subtotal} Rwf</Text>
+        {/* Ticket Holders */}
+        {names.length > 0 && (
+          <View style={styles.holdersContainer}>
+            <Text style={styles.holdersTitle}>Ticket Holders</Text>
+            {names.map((name, index) => (
+              <View key={index} style={styles.holderRow}>
+                <Text style={styles.holderLabel}>Ticket {index + 1}:</Text>
+                <Text style={styles.holderName}>{name}</Text>
+              </View>
+            ))}
           </View>
-          <View style={styles.pricingRow}>
-            <Text style={styles.pricingLabelTotal}>Total</Text>
-            <Text style={styles.pricingValueTotal}>{total} Rwf</Text>
+        )}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
-        </View>
+        )}
       </ScrollView>
 
-      {/* Bottom button */}
-      <View style={styles.bottomContainer}>
+      {/* Purchase Button */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.payButton, (!selectedMethod || submitting) && styles.payButtonDisabled]}
+          style={[styles.purchaseButton, purchaseLoading && styles.purchaseButtonDisabled]}
           onPress={handlePurchase}
-          disabled={!selectedMethod || submitting}
+          disabled={purchaseLoading || !selectedMethod}
         >
-          <Text style={styles.payButtonText}>
-            {submitting ? "Processing..." : "Proceed to Payment"}
-          </Text>
+          {purchaseLoading ? (
+            <ActivityIndicator size="small" color={Colors.text} />
+          ) : (
+            <Text style={styles.purchaseButtonText}>
+              Complete Purchase - {total.toLocaleString()} RWF
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -165,8 +222,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -177,127 +234,167 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: Colors.text,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   content: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 32,
+    paddingBottom: 100,
   },
-  summarySection: {
-    marginBottom: 32,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  summaryLabel: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  changeText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
+  summaryContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 20,
   },
-  paymentMethodsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  addMethodButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  addMethodText: {
-    color: Colors.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  methodButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#1C1C1E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  methodButtonSelected: {
-    borderColor: Colors.primary,
-  },
-  methodIcon: {
-    width: 32,
-    height: 32,
-    resizeMode: 'contain',
-  },
-  pricingSection: {
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#333',
-  },
-  pricingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  pricingLabel: {
-    color: Colors.text,
-    fontSize: 16,
-  },
-  pricingValue: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  pricingLabelTotal: {
+  summaryTitle: {
     color: Colors.text,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    marginBottom: 16,
   },
-  pricingValueTotal: {
+  summaryRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  summaryValue: {
     color: Colors.text,
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: "500",
   },
-  bottomContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 16,
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 12,
   },
-  payButton: {
+  totalLabel: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  totalValue: {
+    color: Colors.primary,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  paymentContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  paymentTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  paymentMethod: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 12,
+  },
+  paymentMethodSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: `${Colors.primary}20`,
+  },
+  paymentIcon: {
+    width: 32,
+    height: 32,
+    marginRight: 16,
+  },
+  paymentMethodName: {
+    color: Colors.text,
+    fontSize: 16,
+    flex: 1,
+  },
+  radioContainer: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioSelected: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+  },
+  holdersContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+  },
+  holdersTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  holderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  holderLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  holderName: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  errorContainer: {
+    backgroundColor: '#ff4444',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  purchaseButton: {
     backgroundColor: Colors.primary,
     borderRadius: 25,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  payButtonDisabled: {
+  purchaseButtonDisabled: {
     opacity: 0.5,
   },
-  payButtonText: {
+  purchaseButtonText: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

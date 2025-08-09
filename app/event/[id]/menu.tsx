@@ -1,315 +1,379 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ChevronLeft } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
+import { useFoodStore, MenuItem } from '@/store/food-store';
 
 export default function EventMenuScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [selectedTab, setSelectedTab] = useState<'menu' | 'orders'>('menu');
+  
+  const { 
+    menuItems, 
+    fetchMenuItems, 
+    setCurrentEventId,
+    loading, 
+    error,
+    clearError 
+  } = useFoodStore();
 
-  // Mock menu data with realistic Rwanda pricing
-  const menuItems = [
-    {
-      id: '1',
-      name: 'Cheese Burger',
-      description: 'Big beef burger with cheese and fries',
-      price: 3500,
-      rating: 4.5,
-      image: require('@/assets/images/m1.png'),
-      category: 'food',
-      inStock: true,
-    },
-    {
-      id: '2',
-      name: 'Soft Drinks',
-      description: 'Coca-Cola, Fanta, or Sprite',
-      price: 800,
-      rating: 4.2,
-      image: require('@/assets/images/m2.png'),
-      category: 'drinks',
-      inStock: true,
-    },
-    {
-      id: '3',
-      name: 'Mutzig Beer',
-      description: 'Local Rwanda premium beer',
-      price: 1200,
-      rating: 4.5,
-      image: require('@/assets/images/m1.png'),
-      category: 'drinks',
-      inStock: true,
-    },
-    {
-      id: '4',
-      name: 'Chicken & Rice',
-      description: 'Grilled chicken with pilau rice',
-      price: 4500,
-      rating: 4.2,
-      image: require('@/assets/images/m2.png'),
-      category: 'food',
-      inStock: true,
-    },
-  ];
+  const currentMenuItems = id ? menuItems[id] || [] : [];
 
-  const handleOrderItem = (item: any) => {
-    // Navigate to food detail screen
+  useEffect(() => {
+    if (id) {
+      setCurrentEventId(id);
+      loadMenuItems();
+    }
+  }, [id]);
+
+  const loadMenuItems = async () => {
+    if (!id) return;
+    
+    try {
+      clearError();
+      await fetchMenuItems(id);
+    } catch (error: any) {
+      console.error('Failed to load menu items:', error);
+    }
+  };
+
+  const handleOrderItem = (item: MenuItem) => {
+    if (!item.available) return;
     router.push(`/event/${id}/food-detail?itemId=${item.id}`);
   };
 
-  // Menu Item Component
-  const MenuItem = ({ item }: { item: any }) => (
-    <TouchableOpacity 
-      style={styles.menuItem}
-      onPress={() => handleOrderItem(item)}
-      disabled={!item.inStock}
-      activeOpacity={0.8}
-    >
-      <Image source={item.image} style={styles.menuItemImage} />
-      <View style={styles.menuItemContent}>
-        <Text style={styles.menuItemName}>{item.name}</Text>
-        <Text style={styles.menuItemDescription}>{item.description}</Text>
-        <View style={styles.menuItemFooter}>
-          <View style={styles.ratingContainer}>
-            <Text style={styles.starIcon}>⭐</Text>
-            <Text style={styles.ratingText}>{item.rating}+</Text>
-          </View>
-          <View style={[styles.orderButton, !item.inStock && styles.orderButtonDisabled]}>
-            <Text style={styles.orderButtonText}>
-              {item.inStock ? 'Order' : 'Out of Stock'}
-            </Text>
-          </View>
+  const handleSwitchToOrders = () => {
+    setSelectedTab('orders');
+    router.push(`/event/${id}/orders`);
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'food': return '🍔';
+      case 'drinks': return '🥤';
+      case 'snacks': return '🍿';
+      default: return '🍽️';
+    }
+  };
+
+  const groupedItems = currentMenuItems.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, MenuItem[]>);
+
+  if (loading && currentMenuItems.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar style="light" />
+        <Header showLogo showProfile showSearch />
+        
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading menu...</Text>
         </View>
-      </View>
-      {!item.inStock && <View style={styles.outOfStockOverlay} />}
-    </TouchableOpacity>
-  );
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar style="light" />
+        <Header showLogo showProfile showSearch />
+        
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadMenuItems}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
-      <Header
-        showLogo
-        showProfile
-        showSearch
-        onSearchPress={() => router.push("/search")}
-      />
-      
+      <Header showLogo showProfile showSearch />
+
       <View style={styles.content}>
         <View style={styles.titleRow}>
-          <Text style={styles.screenTitle}>Event Orders</Text>
-          <TouchableOpacity>
-            <Text style={styles.recentText}>Recent</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ChevronLeft size={24} color={Colors.text} />
           </TouchableOpacity>
+          <Text style={styles.screenTitle}>Event Menu</Text>
         </View>
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tab, selectedTab === 'menu' && styles.tabActive]}
+            style={[styles.tab, selectedTab === 'menu' && styles.activeTab]}
             onPress={() => setSelectedTab('menu')}
           >
-            <Text style={[styles.tabText, selectedTab === 'menu' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, selectedTab === 'menu' && styles.activeTabText]}>
               Menu
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, selectedTab === 'orders' && styles.tabActive]}
-            onPress={() => {
-              setSelectedTab('orders');
-              router.push(`/event/${id}/orders`);
-            }}
+            style={[styles.tab, selectedTab === 'orders' && styles.activeTab]}
+            onPress={handleSwitchToOrders}
           >
-            <Text style={[styles.tabText, selectedTab === 'orders' && styles.tabTextActive]}>
+            <Text style={[styles.tabText, selectedTab === 'orders' && styles.activeTabText]}>
               Orders
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Category Icons */}
-        <View style={styles.categoryContainer}>
-          <View style={styles.categoryItem}>
-            <View style={styles.categoryIcon}>
-              <Text style={styles.categoryEmoji}>🍕</Text>
-            </View>
-            <Text style={styles.categoryText}>Pizza</Text>
-          </View>
-          <View style={styles.categoryItem}>
-            <View style={[styles.categoryIcon, styles.categoryIconActive]}>
-              <Text style={styles.categoryEmoji}>🍔</Text>
-            </View>
-            <Text style={styles.categoryText}>Burger</Text>
-          </View>
-          <View style={styles.categoryItem}>
-            <View style={styles.categoryIcon}>
-              <Text style={styles.categoryEmoji}>🍕</Text>
-            </View>
-            <Text style={styles.categoryText}>Pizza</Text>
-          </View>
-          <View style={styles.categoryItem}>
-            <View style={styles.categoryIcon}>
-              <Text style={styles.categoryEmoji}>🍕</Text>
-            </View>
-            <Text style={styles.categoryText}>Pizza</Text>
-          </View>
-        </View>
-
-        {/* Available Foods Title */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Foods</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>View all (30)</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Menu Items */}
         <ScrollView 
-          style={styles.menuList}
-          contentContainerStyle={styles.menuListContent}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {menuItems.map((item) => (
-            <MenuItem key={item.id} item={item} />
-          ))}
+          {currentMenuItems.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No menu items available</Text>
+              <Text style={styles.emptySubText}>Check back later!</Text>
+            </View>
+          ) : (
+            Object.entries(groupedItems).map(([category, items]) => (
+              <View key={category} style={styles.categorySection}>
+                <View style={styles.categoryHeader}>
+                  <Text style={styles.categoryIcon}>{getCategoryIcon(category)}</Text>
+                  <Text style={styles.categoryTitle}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </Text>
+                </View>
+                
+                <View style={styles.itemsGrid}>
+                  {items.map((item) => (
+                    <MenuItem key={item.id} item={item} onPress={() => handleOrderItem(item)} />
+                  ))}
+                </View>
+              </View>
+            ))
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
 
+// Menu Item Component
+const MenuItem: React.FC<{ item: MenuItem; onPress: () => void }> = ({ item, onPress }) => (
+  <TouchableOpacity
+    style={[styles.menuItem, !item.available && styles.menuItemDisabled]}
+    onPress={onPress}
+    disabled={!item.available}
+    activeOpacity={0.8}
+  >
+    <Image 
+      source={
+        item.image_url 
+          ? { uri: item.image_url }
+          : require('@/assets/images/m1.png')
+      } 
+      style={styles.menuItemImage} 
+    />
+    <View style={styles.menuItemContent}>
+      <Text style={styles.menuItemName}>{item.name}</Text>
+      <Text style={styles.menuItemDescription} numberOfLines={2}>
+        {item.description}
+      </Text>
+      <Text style={styles.menuItemPrice}>
+        {item.price.toLocaleString()} {item.currency}
+      </Text>
+      <View style={styles.menuItemFooter}>
+        <View style={styles.ratingContainer}>
+          <Text style={styles.starIcon}>⭐</Text>
+          <Text style={styles.ratingText}>{item.rating?.toFixed(1) || '4.0'}+</Text>
+        </View>
+        <View style={[
+          styles.orderButton, 
+          !item.available && styles.orderButtonDisabled
+        ]}>
+          <Text style={[
+            styles.orderButtonText,
+            !item.available && styles.orderButtonTextDisabled
+          ]}>
+            {item.available ? 'Order' : 'Out of Stock'}
+          </Text>
+        </View>
+      </View>
+    </View>
+    {!item.available && <View style={styles.outOfStockOverlay} />}
+  </TouchableOpacity>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: Colors.text,
+    marginTop: 16,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorText: {
+    color: Colors.text,
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
   content: {
     flex: 1,
   },
   titleRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 20,
+  },
+  backBtn: {
+    marginRight: 12,
+    padding: 4,
   },
   screenTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
   },
-  recentText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-  },
   tabContainer: {
     flexDirection: 'row',
     marginHorizontal: 20,
-    marginBottom: 20,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: Colors.card,
     borderRadius: 25,
     padding: 4,
+    marginBottom: 20,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
-    alignItems: 'center',
+    paddingHorizontal: 20,
     borderRadius: 20,
+    alignItems: 'center',
   },
-  tabActive: {
+  activeTab: {
     backgroundColor: Colors.primary,
   },
   tabText: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
   },
-  tabTextActive: {
+  activeTabText: {
     color: Colors.text,
     fontWeight: '600',
   },
-  categoryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    paddingBottom: 20,
   },
-  categoryItem: {
-    alignItems: 'center',
-  },
-  categoryIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#1C1C1E',
+  emptyContainer: {
+    paddingVertical: 64,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  emptyText: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '600',
     marginBottom: 8,
   },
-  categoryIconActive: {
-    backgroundColor: Colors.primary,
-  },
-  categoryEmoji: {
-    fontSize: 24,
-  },
-  categoryText: {
-    color: Colors.text,
-    fontSize: 12,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  seeAllText: {
-    color: Colors.primary,
+  emptySubText: {
+    color: Colors.textSecondary,
     fontSize: 14,
   },
-  menuList: {
-    flex: 1,
+  categorySection: {
+    marginBottom: 32,
   },
-  menuListContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
+  categoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  categoryIcon: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  categoryTitle: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  itemsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   menuItem: {
-    flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: Colors.card,
     borderRadius: 16,
-    padding: 12,
     marginBottom: 16,
+    overflow: 'hidden',
+    width: '48%',
     position: 'relative',
   },
+  menuItemDisabled: {
+    opacity: 0.6,
+  },
   menuItemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    marginRight: 16,
+    width: '100%',
+    height: 120,
   },
   menuItemContent: {
-    flex: 1,
-    justifyContent: 'space-between',
+    padding: 16,
   },
   menuItemName: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   menuItemDescription: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 12,
     marginBottom: 8,
-    lineHeight: 18,
+    lineHeight: 16,
+  },
+  menuItemPrice: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
   menuItemFooter: {
     flexDirection: 'row',
@@ -321,26 +385,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   starIcon: {
-    fontSize: 16,
+    fontSize: 12,
     marginRight: 4,
   },
   ratingText: {
-    color: Colors.text,
-    fontSize: 14,
+    color: Colors.textSecondary,
+    fontSize: 12,
   },
   orderButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   orderButtonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: Colors.textSecondary,
   },
   orderButtonText: {
     color: Colors.text,
     fontSize: 12,
     fontWeight: '600',
+  },
+  orderButtonTextDisabled: {
+    color: Colors.background,
   },
   outOfStockOverlay: {
     position: 'absolute',
@@ -349,6 +416,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

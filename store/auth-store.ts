@@ -121,6 +121,13 @@ export const useAuthStore = create<AuthStore>()(
         set({ user: null, isAuthenticated: false });
       },
 
+      logoutWithConfirmation: async () => {
+        return new Promise((resolve) => {
+          // This will be handled by the component calling this function
+          resolve(true);
+        });
+      },
+
       updateUser: (userData) => {
         const currentUser = get().user;
         if (currentUser) {

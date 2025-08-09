@@ -13,6 +13,8 @@ import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as Permissions from 'expo-permissions';
 import * as MediaLibrary from 'expo-media-library';
+import { useTicketsStore } from "@/store/tickets-store";
+import { useEventsStore } from "@/store/events-store";
 
 const { width } = Dimensions.get('window');
 
@@ -21,26 +23,31 @@ export default function TicketPreviewScreen() {
   const params = useLocalSearchParams();
   let eventId = params.id;
   if (Array.isArray(eventId)) eventId = eventId[0];
-  let ticketType = params.ticketType || 'Vvip Tickets';
-  if (Array.isArray(ticketType)) ticketType = ticketType[0];
-  let countParam = params.count;
-  if (Array.isArray(countParam)) countParam = countParam[0];
-  const ticketCount = parseInt(countParam || '', 10) || 1;
-  let amountParam = params.amount;
-  if (Array.isArray(amountParam)) amountParam = amountParam[0];
-  const amount = amountParam ? parseInt(amountParam, 10) : 30000;
+  let ticketId = params.ticketId;
+  if (Array.isArray(ticketId)) ticketId = ticketId[0];
+  
+  const { userTickets, loading } = useTicketsStore();
+  const { allEvents } = useEventsStore();
+  
+  // Find the specific ticket
+  const ticket = userTickets.find(t => t.ticket_id === ticketId || t.id === ticketId) || userTickets[0];
+  const event = allEvents.find(e => e.id === eventId);
+  
+  const ticketType = ticket?.category_name || 'Standard';
+  const amount = ticket?.price || 0;
+  const holderName = ticket?.holder_name || 'Guest';
 
-  // Mock data for demo
-  const eventName = 'Baba Expreince';
-  const venue = 'Intare Conference Arena';
-  const boughtAt = '5:00 AM';
-  const date = '1/1/2025';
+  // Use real data from backend
+  const eventName = event?.title || 'Event';
+  const venue = event?.location || 'Venue TBD';
+  const boughtAt = ticket?.purchase_date ? new Date(ticket.purchase_date).toLocaleTimeString() : 'N/A';
+  const date = event?.date ? new Date(event.date).toLocaleDateString() : 'TBD';
 
-  // Generate a unique QR code value
-  const qrValue = JSON.stringify({
+  // Generate a unique QR code value from ticket data
+  const qrValue = ticket?.qr_code || JSON.stringify({
+    ticketId: ticket?.ticket_id || ticketId,
     eventId,
-    ticketType,
-    ticketCount,
+    holderName,
     timestamp: Date.now(),
   });
 
@@ -119,9 +126,10 @@ export default function TicketPreviewScreen() {
           </View>
           <View style={styles.ticketInfo}>
             <Text style={styles.eventName}>{eventName}</Text>
-            <Text style={styles.ticketType}>{ticketType} ({ticketCount})</Text>
-            <Text style={styles.venue}>{venue}</Text>
-            <Text style={styles.amount}>Amount: {amount} Rwf</Text>
+                                    <Text style={styles.ticketType}>{ticketType}</Text>
+                        <Text style={styles.holderName}>Holder: {holderName}</Text>
+                        <Text style={styles.venue}>{venue}</Text>
+                        <Text style={styles.amount}>Amount: {amount.toLocaleString()} RWF</Text>
             <Text style={styles.meta}>Bought at: {boughtAt}</Text>
             <Text style={styles.meta}>Date: {date}</Text>
           </View>

@@ -9,12 +9,16 @@ export default function ConfirmationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     id?: string;
+    ticketIds?: string;
     count?: string;
     amount?: string;
+    categoryName?: string;
   }>();
 
   const ticketCount = parseInt(params.count || '1', 10);
   const amount = params.amount || '0';
+  const categoryName = params.categoryName ? decodeURIComponent(params.categoryName) : 'Standard';
+  const ticketIds = params.ticketIds ? params.ticketIds.split(',') : [];
 
   // Animation values
   const checkScale = new Animated.Value(0);
@@ -55,9 +59,9 @@ export default function ConfirmationScreen() {
         </Text>
         
         <Text style={styles.subtitle}>
-          You have now bought {ticketCount} VVip ticket{ticketCount > 1 ? 's' : ''} for{'\n'}
-          Baba experience happening at kigali{'\n'}
-          convention center this weekend enjoy
+          You have now bought {ticketCount} {categoryName} ticket{ticketCount > 1 ? 's' : ''}{'\n'}
+          for {parseInt(amount).toLocaleString()} RWF.{'\n'}
+          Your tickets are ready to use!
         </Text>
 
         {/* Animated Check Mark */}

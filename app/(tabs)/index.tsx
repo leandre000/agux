@@ -5,27 +5,56 @@ import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
 import Colors from "@/constants/Colors";
 import { useEventsStore } from "@/store/events-store";
+import { useTicketsStore } from "@/store/tickets-store";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { featuredEvents, userEvents } = useEventsStore();
+  const { featuredEvents, allEvents, fetchAll, loading, error } = useEventsStore();
+  const { fetchUserTickets } = useTicketsStore();
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   // Filter events based on search
-  const filteredEvents = userEvents.filter(event =>
+  const filteredEvents = allEvents.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      await Promise.all([
+        fetchAll(),
+        fetchUserTickets(),
+      ]);
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    }
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   const handleSeeAllUpcoming = useCallback(() => {
     router.push("/events/upcoming");
@@ -63,6 +92,13 @@ export default function HomeScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.primary}
+          />
+        }
         showsVerticalScrollIndicator={false}
       >
         {/* Search Bar */}

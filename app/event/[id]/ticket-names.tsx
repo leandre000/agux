@@ -18,10 +18,13 @@ import Header from "@/components/Header";
 
 export default function TicketNamesScreen() {
   const router = useRouter();
-  const { id, count, seats } = useLocalSearchParams<{
+  const { id, count, seats, categoryId, categoryName, price } = useLocalSearchParams<{
     id?: string;
     count?: string;
     seats?: string;
+    categoryId?: string;
+    categoryName?: string;
+    price?: string;
   }>();
   
   const ticketCount = Math.max(1, parseInt(count || "1", 10));
@@ -38,6 +41,9 @@ export default function TicketNamesScreen() {
     queryParams.set("count", String(ticketCount));
     queryParams.set("names", names.join(","));
     if (seats) queryParams.set("seats", seats);
+    if (categoryId) queryParams.set("categoryId", categoryId);
+    if (categoryName) queryParams.set("categoryName", categoryName);
+    if (price) queryParams.set("price", price);
     
     router.push(`/event/${id}/payment?${queryParams.toString()}`);
   };

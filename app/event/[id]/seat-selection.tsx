@@ -18,7 +18,12 @@ interface Seat {
 
 export default function SeatSelectionScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, categoryId, categoryName, price } = useLocalSearchParams<{ 
+    id?: string; 
+    categoryId?: string;
+    categoryName?: string;
+    price?: string;
+  }>();
   
   // Generate seat map (10 rows, 12 seats per row)
   const generateSeats = (): Seat[] => {
@@ -54,7 +59,14 @@ export default function SeatSelectionScreen() {
   const handleNext = () => {
     if (selectedSeats.length === 0) return;
     
-    router.push(`/event/${id}/ticket-names?count=${selectedSeats.length}&seats=${selectedSeats.map(s => s.id).join(',')}`);
+    const params = new URLSearchParams();
+    params.set('count', selectedSeats.length.toString());
+    params.set('seats', selectedSeats.map(s => s.id).join(','));
+    if (categoryId) params.set('categoryId', categoryId);
+    if (categoryName) params.set('categoryName', categoryName);
+    if (price) params.set('price', price);
+    
+    router.push(`/event/${id}/ticket-names?${params.toString()}`);
   };
 
   const renderSeat = (seat: Seat) => {

@@ -49,6 +49,31 @@ export default function ProfileScreen() {
   const handleHelpCenter = () => router.push('/profile/help-support');
   const handleContact = () => router.push('/profile/contact');
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logout();
+              router.replace('/auth/login');
+            } catch (error) {
+              Alert.alert("Error", "Failed to logout. Please try again.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
@@ -96,6 +121,14 @@ export default function ProfileScreen() {
             icon={<Phone size={24} color={Colors.text} />}
             title="Contact"
             onPress={handleContact}
+          />
+
+          <ProfileOption
+            icon={<LogOut size={24} color="#ff4444" />}
+            title="Logout"
+            onPress={handleLogout}
+            showChevron={false}
+            destructive={true}
           />
         </View>
       </View>

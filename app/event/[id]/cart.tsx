@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -6,84 +6,63 @@ import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft, Minus, Plus } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
-
-interface CartItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  quantity: number;
-  image: any;
-}
+import { useFoodStore, CartItem } from '@/store/food-store';
 
 export default function CartScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   
-  // Mock cart data (this would come from cart store/backend)
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '1',
-      name: 'Soft Drinks',
-      description: 'Coca-Cola and Fanta',
-      price: 800,
-      quantity: 2,
-      image: require('@/assets/images/m1.png'),
-    },
-    {
-      id: '2',
-      name: 'Cheese Burger',
-      description: 'Big cheese burger with fries',
-      price: 3500,
-      quantity: 1,
-      image: require('@/assets/images/m2.png'),
-    },
-    {
-      id: '3',
-      name: 'Mutzig Beer',
-      description: 'Local Rwanda beer',
-      price: 1200,
-      quantity: 1,
-      image: require('@/assets/images/m1.png'),
-    },
-  ]);
+  const { 
+    cart, 
+    updateCartItem, 
+    removeFromCart, 
+    getCartTotal,
+    clearCart 
+  } = useFoodStore();
 
   const updateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(itemId);
-      return;
-    }
-    
-    setCartItems(prev => 
-      prev.map(item => 
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    updateCartItem(itemId, newQuantity);
   };
 
   const removeItem = (itemId: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== itemId));
+    removeFromCart(itemId);
   };
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return getCartTotal();
   };
 
   const handleProceedToCheckout = () => {
+    if (cart.length === 0) return;
     router.push(`/event/${id}/payment-info`);
+  };
+
+  const handleContinueShopping = () => {
+    router.push(`/event/${id}/menu`);
   };
 
   // Cart Item Component
   const CartItemComponent = ({ item }: { item: CartItem }) => (
     <View style={styles.cartItem}>
       <View style={styles.itemImageContainer}>
-        <Image source={item.image} style={styles.itemImage} />
+        <Image 
+          source={
+            item.image_url 
+              ? { uri: item.image_url }
+              : require('@/assets/images/m1.png')
+          } 
+          style={styles.itemImage} 
+        />
       </View>
       
       <View style={styles.itemContent}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemDescription}>{item.description}</Text>
-        <Text style={styles.itemPrice}>{item.price.toLocaleString()} RWF</Text>
+        <Text style={styles.itemDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
+        <Text style={styles.itemPrice}>
+          {item.price.toLocaleString()} {item.currency} each
+        </Text>
       </View>
 
       <View style={styles.itemActions}>
@@ -104,6 +83,17 @@ export default function CartScreen() {
             <Plus size={16} color={Colors.text} />
           </TouchableOpacity>
         </View>
+        
+        <Text style={styles.itemTotal}>
+          {item.total.toLocaleString()} {item.currency}
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.removeButton}
+          onPress={() => removeItem(item.id)}
+        >
+          <Text style={styles.removeButtonText}>Remove</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.statusBadge}>
@@ -128,6 +118,11 @@ export default function CartScreen() {
             <ChevronLeft size={24} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.screenTitle}>Your Cart</Text>
+          {cart.length > 0 && (
+            <TouchableOpacity onPress={clearCart} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>Clear</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView 
@@ -135,23 +130,62 @@ export default function CartScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {cartItems.length === 0 ? (
+          {cart.length === 0 ? (
             <View style={styles.emptyCart}>
-              <Text style={styles.emptyCartText}>Your cart is empty</Text>
+              <Text style={styles.emptyCartTitle}>Your cart is empty</Text>
+              <Text style={styles.emptyCartText}>
+                Add some delicious items from the menu!
+              </Text>
+              <TouchableOpacity 
+                style={styles.continueShoppingButton}
+                onPress={handleContinueShopping}
+              >
+                <Text style={styles.continueShoppingText}>Browse Menu</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            cartItems.map((item) => (
-              <CartItemComponent key={item.id} item={item} />
-            ))
+            <>
+              {cart.map((item) => (
+                <CartItemComponent key={item.id} item={item} />
+              ))}
+              
+              {/* Order Summary */}
+              <View style={styles.summaryContainer}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Items ({cart.length})</Text>
+                  <Text style={styles.summaryValue}>
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                  </Text>
+                </View>
+                
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Subtotal</Text>
+                  <Text style={styles.summaryValue}>
+                    {calculateTotal().toLocaleString()} RWF
+                  </Text>
+                </View>
+                
+                <View style={styles.divider} />
+                
+                <View style={styles.summaryRow}>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  <Text style={styles.totalValue}>
+                    {calculateTotal().toLocaleString()} RWF
+                  </Text>
+                </View>
+              </View>
+            </>
           )}
         </ScrollView>
 
         {/* Cart Footer */}
-        {cartItems.length > 0 && (
+        {cart.length > 0 && (
           <View style={styles.cartFooter}>
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalAmount}>{calculateTotal().toLocaleString()} RWF</Text>
+              <Text style={styles.totalAmount}>
+                {calculateTotal().toLocaleString()} RWF
+              </Text>
             </View>
             
             <TouchableOpacity 
@@ -189,6 +223,18 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+  },
+  clearButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.textSecondary,
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
@@ -199,7 +245,7 @@ const styles = StyleSheet.create({
   },
   cartItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
     padding: 16,
@@ -219,6 +265,7 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     flex: 1,
+    marginRight: 12,
   },
   itemName: {
     color: Colors.text,
@@ -228,16 +275,18 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 12,
     marginBottom: 4,
+    lineHeight: 16,
   },
   itemPrice: {
-    color: Colors.text,
+    color: Colors.textSecondary,
     fontSize: 14,
     fontWeight: '500',
   },
   itemActions: {
     alignItems: 'flex-end',
+    minWidth: 100,
   },
   quantityControls: {
     flexDirection: 'row',
@@ -246,6 +295,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 4,
     paddingVertical: 4,
+    marginBottom: 8,
   },
   quantityButton: {
     width: 28,
@@ -262,6 +312,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     minWidth: 16,
     textAlign: 'center',
+  },
+  itemTotal: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  removeButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  removeButtonText: {
+    color: '#ff4444',
+    fontSize: 12,
+    fontWeight: '600',
   },
   statusBadge: {
     position: 'absolute',
@@ -284,10 +349,64 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  emptyCartTitle: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
   emptyCartText: {
     color: Colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
+    marginBottom: 24,
+  },
+  continueShoppingButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  continueShoppingText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  summaryContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 20,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  summaryValue: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 12,
+  },
+  totalLabel: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  totalValue: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   cartFooter: {
     position: 'absolute',
@@ -310,11 +429,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  totalLabel: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   totalAmount: {
     color: Colors.text,
