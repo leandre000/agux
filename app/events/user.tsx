@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEventsStore } from '@/store/events-store';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
-import { Calendar, MapPin, ArrowUpRight } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
 
 export default function AllEventsScreen() {
@@ -15,9 +14,61 @@ export default function AllEventsScreen() {
   // Filter state
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'booked'>('all');
 
-  // Filtered events
-  const allEvents = userEvents;
-  const bookedEvents = userEvents.filter(e => e.booked);
+  // Mock data for demonstration (since backend not connected yet)
+  const mockEvents = [
+    {
+      id: '1',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      price: '2399 Rwf',
+      quantity: 2,
+      image: require('@/assets/images/m1.png'),
+      booked: false,
+    },
+    {
+      id: '2', 
+      title: 'Baba Experience',
+      category: 'Vvip Tickets', 
+      price: '2399 Rwf',
+      quantity: 2,
+      image: require('@/assets/images/m2.png'),
+      booked: false,
+    },
+    {
+      id: '3',
+      title: 'Baba Experience', 
+      category: 'Vvip Tickets',
+      price: '2399 Rwf', 
+      quantity: 2,
+      image: require('@/assets/images/m1.png'),
+      booked: false,
+    },
+    {
+      id: '4',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      price: '2399 Rwf',
+      quantity: 2, 
+      image: require('@/assets/images/m2.png'),
+      booked: false,
+    },
+    {
+      id: '5',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      price: '2399 Rwf',
+      quantity: 2,
+      image: require('@/assets/images/m1.png'),
+      booked: false,
+    },
+  ];
+
+  // Use mock data or backend data
+  const eventsData = userEvents.length > 0 ? userEvents : mockEvents;
+  
+  // Filter logic
+  const allEvents = eventsData;
+  const bookedEvents = eventsData.filter(e => e.booked);
   const eventsToShow = selectedFilter === 'all' ? allEvents : bookedEvents;
 
   // Empty state component
@@ -27,33 +78,26 @@ export default function AllEventsScreen() {
     </View>
   );
 
-  // Custom event card for All Events to match design
-  const AllEventCard = ({ event, isBooked }: { event: any, isBooked?: boolean }) => (
-    <View style={styles.listEventCard}>
+  // Event card component matching the design
+  const EventCard = ({ event }: { event: any }) => (
+    <View style={styles.eventCard}>
       <Image 
         source={typeof event.image === 'string' ? { uri: event.image } : event.image} 
-        style={styles.listEventImage} 
+        style={styles.eventImage} 
       />
-      <View style={styles.listEventInfo}>
-        <View>
-          <Text style={styles.listEventTitle} numberOfLines={1}>{event.title}</Text>
-          <Text style={styles.listEventSubtitle}>Platini</Text>
-          <View style={styles.listEventMeta}>
-            <Calendar size={13} color={Colors.textSecondary} />
-            <Text style={styles.listEventMetaText}>{event.date}</Text>
-          </View>
-          <View style={styles.listEventMeta}>
-            <MapPin size={13} color={Colors.textSecondary} />
-            <Text style={styles.listEventMetaText}>{event.location}</Text>
-          </View>
-        </View>
+      <View style={styles.eventOverlay}>
+        <Text style={styles.eventTitle}>{event.title}</Text>
+        <Text style={styles.eventCategory}>{event.category || 'Vvip Tickets'}</Text>
+        <Text style={styles.eventPrice}>{event.price || '2399 Rwf'}</Text>
         <TouchableOpacity 
-          style={styles.listDetailsButton} 
+          style={styles.viewTicketButton}
           onPress={() => router.push(`/event/${event.id}`)}
         >
-          <ArrowUpRight size={13} color={Colors.text} />
-          <Text style={styles.listDetailsButtonText}>View Details</Text>
+          <Text style={styles.viewTicketText}>View Ticket</Text>
         </TouchableOpacity>
+      </View>
+      <View style={styles.quantityBadge}>
+        <Text style={styles.quantityText}>{event.quantity || 2}</Text>
       </View>
     </View>
   );
@@ -61,49 +105,59 @@ export default function AllEventsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="light" />
-      <Header title="Available Events" showBack />
+      <Header
+        showLogo
+        showProfile
+        showSearch
+        onSearchPress={() => router.push("/search")}
+      />
       
-      <View style={styles.tabsRowCentered}>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('all')}
+      <View style={styles.content}>
+        <View style={styles.titleRow}>
+          <Text style={styles.screenTitle}>Available Events</Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.tabsRow}>
+          <TouchableOpacity
+            style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter('all')}
+          >
+            <Text style={[styles.filterButtonText, selectedFilter === 'all' && styles.filterButtonTextActive]}>
+              All Events ({allEvents.length})
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, selectedFilter === 'booked' && styles.filterButtonActive]}
+            onPress={() => setSelectedFilter('booked')}
+          >
+            <Text style={[styles.filterButtonText, selectedFilter === 'booked' && styles.filterButtonTextActive]}>
+              Booked Events ({bookedEvents.length})
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView 
+          style={styles.scrollView} 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={[styles.filterButtonText, selectedFilter === 'all' && styles.filterButtonTextActive]}>
-            All Events ({allEvents.length})
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, selectedFilter === 'booked' && styles.filterButtonActive]}
-          onPress={() => setSelectedFilter('booked')}
-        >
-          <Text style={[styles.filterButtonText, selectedFilter === 'booked' && styles.filterButtonTextActive]}>
-            Booked Events ({bookedEvents.length})
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContent} 
-        showsVerticalScrollIndicator={false}
-      >
-        {eventsToShow.length === 0 ? (
-          <EmptyState 
-            message={selectedFilter === 'all' 
-              ? "No events available at the moment" 
-              : "You haven't booked any events yet"
-            } 
-          />
-        ) : (
-          eventsToShow.map((event) => (
-            <AllEventCard 
-              key={event.id} 
-              event={event} 
-              isBooked={selectedFilter === 'booked'} 
+          {eventsToShow.length === 0 ? (
+            <EmptyState 
+              message={selectedFilter === 'all' 
+                ? "No events available at the moment" 
+                : "You haven't booked any events yet"
+              } 
             />
-          ))
-        )}
-      </ScrollView>
+          ) : (
+            eventsToShow.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))
+          )}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -113,12 +167,31 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  tabsRowCentered: {
+  content: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  screenTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  seeAll: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  tabsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 20,
     paddingHorizontal: 20,
   },
   filterButton: {
@@ -146,67 +219,75 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 32,
   },
-  listEventCard: {
-    flexDirection: 'row',
+  eventCard: {
+    position: 'relative',
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
-    marginHorizontal: 20,
     marginBottom: 16,
-    padding: 12,
-    minHeight: 140,
+    overflow: 'hidden',
+    height: 200,
   },
-  listEventImage: {
-    width: 120,
+  eventImage: {
+    width: '100%',
     height: '100%',
-    borderRadius: 12,
-    marginRight: 16,
+    position: 'absolute',
   },
-  listEventInfo: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingVertical: 4,
+  eventOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
-  listEventTitle: {
+  eventTitle: {
     color: Colors.text,
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 4,
   },
-  listEventSubtitle: {
+  eventCategory: {
     color: Colors.textSecondary,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  listEventMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  listEventMetaText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginLeft: 6,
-  },
-  listDetailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 8,
-  },
-  listDetailsButtonText: {
+  eventPrice: {
     color: Colors.text,
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  viewTicketButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  viewTicketText: {
+    color: Colors.text,
+    fontWeight: '600',
     fontSize: 13,
-    fontWeight: '500',
-    marginLeft: 6,
+  },
+  quantityBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  quantityText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   emptyState: {
-    paddingHorizontal: 20,
     paddingVertical: 64,
     alignItems: 'center',
     justifyContent: 'center',

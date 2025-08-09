@@ -1,4 +1,3 @@
-import Header from "@/components/Header";
 import Colors from "@/constants/Colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
@@ -13,11 +12,12 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 const TICKETS = [
   { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
-  { type: "Vip Tickets", price: "5000 Rwf", left: 100 },
-  { type: "Vvip Tickets", price: "5000 Rwf", left: 100 },
+  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
+  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
   { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
 ];
 
@@ -32,209 +32,163 @@ export default function EventDetailScreen() {
   }>();
   const router = useRouter();
 
-  // Replace mock with backend-driven load via events store
+  // Mock event data (will be replaced with backend data)
   const [event, setEvent] = useState<any>(null);
   const [coords, setCoords] = useState<{
     latitude: number | null;
     longitude: number | null;
   }>({
-    latitude: null,
-    longitude: null,
+    latitude: -1.9536,
+    longitude: 30.0605,
   });
-  const [loadingCoords, setLoadingCoords] = useState(true);
+  const [loadingCoords, setLoadingCoords] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-    async function load() {
-      try {
-        const mod = await import("@/store/events-store");
-        const ev = await mod.useEventsStore.getState().fetchById(String(id));
-        if (isMounted) {
-          const fallback = {
-            title: "Event",
-            image: require("@/assets/images/m2.png"),
-            organizer: ev?.organizer || "Organizer",
-            date: ev?.date || "TBD",
-            venue: ev?.location || "Unknown venue",
-            description: ev?.description || "",
-            booked: ev?.booked ?? false,
-          };
-          setEvent({
-            ...fallback,
-            title: ev?.title ?? fallback.title,
-            image:
-              ev?.image ??
-              (ev?.imageUrl ? { uri: ev.imageUrl } : fallback.image),
-            venue: ev?.location ?? fallback.venue,
-          });
-        }
-      } catch {
-        // fall back to minimal default
-        if (isMounted) {
-          setEvent({
-            title: "Event",
-            image: require("@/assets/images/m2.png"),
-            organizer: "Organizer",
-            date: "TBD",
-            venue: "Unknown venue",
-            description: "",
-            booked: false,
-          });
-        }
-      }
-    }
-    load();
-    return () => {
-      isMounted = false;
+    // Mock event data - replace with actual backend call
+    const mockEvent = {
+      id: id,
+      title: "Baba Experience",
+      image: require("@/assets/images/m1.png"),
+      organizer: "Platini",
+      date: "15-May-2025",
+      venue: "Serena Hotel Kigali",
+      description: "Amazing music experience with Baba",
+      booked: false,
     };
-  }, [id]);
+    setEvent(mockEvent);
 
-  // Geocode venue name to coordinates
-  useEffect(() => {
-    async function geocodeVenue() {
-      if (!event?.venue) return;
-      setLoadingCoords(true);
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            event.venue
-          )}`
-        );
-        const data = await response.json();
-        if (data && data.length > 0) {
-          setCoords({
-            latitude: parseFloat(data[0].lat),
-            longitude: parseFloat(data[0].lon),
-          });
-        } else {
-          setCoords({ latitude: -1.9536, longitude: 30.0605 }); // fallback
-        }
-      } catch (e) {
-        setCoords({ latitude: -1.9536, longitude: 30.0605 }); // fallback
-      }
-      setLoadingCoords(false);
-    }
-    geocodeVenue();
-  }, [event?.venue]);
+    // Set coordinates for Serena Hotel Kigali
+    setCoords({
+      latitude: -1.9536,
+      longitude: 30.0605,
+    });
+  }, [id]);
 
   if (!event) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
-        <Header showLogo showProfile showSearch />
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        />
+        <StatusBar style="light" />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Header showLogo showProfile showSearch />
+      <StatusBar style="light" />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back and Title */}
-        <View style={styles.titleRow}>
+        {/* Header with Back Button and Title */}
+        <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={styles.backBtn}
+            style={styles.backButton}
           >
             <ChevronLeft size={24} color={Colors.text} />
           </TouchableOpacity>
-          <Text style={styles.eventTitle}>{event.title}</Text>
+          <Text style={styles.headerTitle}>{event.title}</Text>
         </View>
 
         {/* Event Image */}
         <View style={styles.imageContainer}>
           <RNImage
             source={event.image}
-            style={styles.image}
+            style={styles.eventImage}
             resizeMode="cover"
           />
         </View>
 
-        {/* Event Info */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Organizer</Text>
-            <Text style={styles.infoValue}>{event.organizer}</Text>
+        {/* Event Details */}
+        <View style={styles.detailsContainer}>
+          {/* Organizer */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Organizer</Text>
+            <Text style={styles.detailValue}>{event.organizer}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Date</Text>
-            <View style={styles.infoIconRow}>
+
+          {/* Date */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Date</Text>
+            <View style={styles.detailValueRow}>
               <Calendar size={16} color={Colors.text} />
-              <Text style={styles.infoValue}>{event.date}</Text>
+              <Text style={styles.detailValue}>{event.date}</Text>
             </View>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Venue</Text>
-            <View style={styles.infoIconRow}>
+
+          {/* Venue */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Venue</Text>
+            <View style={styles.detailValueRow}>
               <MapPin size={16} color={Colors.text} />
-              <Text style={styles.infoValue}>{event.venue}</Text>
+              <Text style={styles.detailValue}>{event.venue}</Text>
             </View>
           </View>
         </View>
 
-        {/* Tickets Grid */}
-        <Text style={styles.sectionTitle}>Tickets</Text>
-        <View style={styles.ticketsGrid}>
-          {(booked ? [TICKETS[0]] : TICKETS).map((ticket, idx) => (
-            <View style={styles.ticketCard} key={idx}>
-              <View style={styles.ticketHeader}>
-                <Text style={styles.ticketType}>{ticket.type}</Text>
-                <Text style={styles.ticketLeft}>100 left</Text>
-              </View>
-              <Text style={styles.ticketPrice}>{ticket.price}</Text>
-              {!booked && !event.booked && (
+        {/* Tickets Section */}
+        <View style={styles.ticketsSection}>
+          <Text style={styles.sectionTitle}>Tickets</Text>
+          <View style={styles.ticketsGrid}>
+            {TICKETS.map((ticket, idx) => (
+              <View style={styles.ticketCard} key={idx}>
+                <View style={styles.ticketHeader}>
+                  <Text style={styles.ticketType}>{ticket.type}</Text>
+                  <Text style={styles.ticketLeft}>100 left</Text>
+                </View>
+                <Text style={styles.ticketPrice}>{ticket.price}</Text>
                 <TouchableOpacity
-                  style={styles.buyBtn}
-                  onPress={() => router.push(`/event/${id}/payment?count=1&ticketType=${encodeURIComponent(ticket.type)}&seatPrice=${ticket.price.replace('$', '')}`)}
+                  style={styles.buyButton}
+                  onPress={() => router.push(`/event/${id}/payment`)}
                 >
-                  <Text style={styles.buyBtnText}>Buy</Text>
+                  <Text style={styles.buyButtonText}>Buy</Text>
                 </TouchableOpacity>
-              )}
-            </View>
-          ))}
+              </View>
+            ))}
+          </View>
         </View>
 
-        {/* Location Map */}
-        <Text style={styles.sectionTitle}>Location</Text>
-        <View style={styles.mapContainer}>
-          <TouchableOpacity
-            activeOpacity={0.95}
-            onPress={() => router.push(`/event/${id}/map`)}
-          >
-            <MapView
-              style={styles.mapImg}
-              initialRegion={{
-                latitude: coords.latitude || -1.9536,
-                longitude: coords.longitude || 30.0605,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              scrollEnabled={false}
-              zoomEnabled={false}
-              pitchEnabled={false}
-              rotateEnabled={false}
-              pointerEvents="none"
+        {/* Location Section */}
+        <View style={styles.locationSection}>
+          <Text style={styles.sectionTitle}>Location</Text>
+          <View style={styles.mapContainer}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => router.push(`/event/${id}/map`)}
             >
-              {coords.latitude && coords.longitude && (
-                <Marker
-                  coordinate={{
-                    latitude: coords.latitude,
-                    longitude: coords.longitude,
-                  }}
-                  title={event.venue}
-                  description={event.title}
-                />
-              )}
-            </MapView>
-          </TouchableOpacity>
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: coords.latitude || -1.9536,
+                  longitude: coords.longitude || 30.0605,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+                pointerEvents="none"
+              >
+                {coords.latitude && coords.longitude && (
+                  <Marker
+                    coordinate={{
+                      latitude: coords.latitude,
+                      longitude: coords.longitude,
+                    }}
+                    title={event.venue}
+                    description={event.title}
+                    pinColor={Colors.primary}
+                  />
+                )}
+              </MapView>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -246,58 +200,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  headerWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    backgroundColor: Colors.background,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logo: {
-    fontSize: 22,
-    fontWeight: "bold",
-    letterSpacing: 0.5,
-  },
-  logoFirst: {
+  loadingText: {
     color: Colors.text,
-  },
-  logoSecond: {
-    color: Colors.primary,
-  },
-  headerIcons: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 2,
-  },
-  iconImg: {
-    width: 18,
-    height: 18,
-    resizeMode: "contain",
-  },
-  profileCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    overflow: "hidden",
-    marginLeft: 8,
-    borderWidth: 2,
-    borderColor: Colors.card,
-  },
-  profileImg: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+    fontSize: 16,
   },
   scrollView: {
     flex: 1,
@@ -305,132 +215,129 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    marginBottom: 8,
-    paddingHorizontal: 16,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
-  backBtn: {
-    marginRight: 8,
-    padding: 4,
+  backButton: {
+    marginRight: 16,
+    padding: 8,
   },
-  eventTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  headerTitle: {
     color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   imageContainer: {
-    width: "92%",
-    height: 180,
-    borderRadius: 18,
-    overflow: "hidden",
-    alignSelf: "center",
-    marginBottom: 16,
+    margin: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: 200,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 18,
+  eventImage: {
+    width: '100%',
+    height: '100%',
   },
-  infoSection: {
-    marginHorizontal: 16,
-    marginBottom: 12,
+  detailsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
-  infoLabel: {
+  detailLabel: {
     color: Colors.textSecondary,
     fontSize: 14,
-    width: 80,
+    fontWeight: '500',
   },
-  infoValue: {
+  detailValue: {
     color: Colors.text,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: '600',
+    marginLeft: 8,
   },
-  infoIconRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
+  detailValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ticketsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
     color: Colors.text,
-    fontWeight: "bold",
-    fontSize: 16,
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   ticketsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginHorizontal: 16,
-    marginBottom: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 12,
   },
   ticketCard: {
-    backgroundColor: Colors.card,
+    backgroundColor: '#1C1C1E',
     borderRadius: 16,
-    width: "48%",
-    padding: 14,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 1,
+    padding: 16,
+    width: '48%',
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   ticketHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
   ticketType: {
     color: Colors.text,
-    fontWeight: "bold",
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '600',
   },
   ticketLeft: {
-    color: "#4CAF50",
+    color: '#4CAF50',
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: '500',
   },
   ticketPrice: {
     color: Colors.text,
-    fontSize: 15,
-    marginBottom: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
-  buyBtn: {
+  buyButton: {
     backgroundColor: Colors.text,
     borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
     paddingVertical: 8,
-    marginTop: 2,
+    alignItems: 'center',
   },
-  buyBtnText: {
-    color: Colors.primary,
-    fontWeight: "bold",
-    fontSize: 15,
+  buyButtonText: {
+    color: Colors.background,
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  locationSection: {
+    paddingHorizontal: 20,
   },
   mapContainer: {
-    backgroundColor: Colors.card,
-    borderRadius: 18,
-    padding: 10,
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: 200,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
-  mapImg: {
-    width: "100%",
-    height: 140,
-    borderRadius: 12,
+  map: {
+    width: '100%',
+    height: '100%',
   },
 });
