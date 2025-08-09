@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/auth-store";
 import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Header from "@/components/Header";
-import AuthLayout from "@/components/AuthLayout";
+import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { API_BASE_URL } from "@/config/api";
@@ -81,18 +81,20 @@ export default function LoginScreen() {
   };
 
   return (
-    <AuthLayout>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <Header title="Login" showBack />
 
       <View style={styles.content}>
         <View style={styles.inputContainer}>
           <Input
-            placeholder="Phone Number or Email"
+            placeholder="Phone Number or Gmail"
             value={identifier}
             onChangeText={setIdentifier}
             error={validationErrors.identifier}
             autoCapitalize="none"
             keyboardType="email-address"
+            style={styles.input}
           />
 
           <Input
@@ -101,6 +103,7 @@ export default function LoginScreen() {
             onChangeText={setPassword}
             error={validationErrors.password}
             isPassword
+            style={styles.input}
           />
 
           <TouchableOpacity
@@ -111,93 +114,86 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        <View style={styles.bottomSection}>
+          {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Button
-          title="Login"
-          onPress={handleLogin}
-          loading={isLoading}
-          style={styles.loginButton}
-        />
+          <Button
+            title="Login"
+            onPress={handleLogin}
+            loading={isLoading}
+            style={styles.loginButton}
+          />
 
-        <View style={styles.oauthWrap}>
-          <TouchableOpacity
-            style={styles.googleBtn}
-            onPress={handleGoogleLogin}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.googleBtnText}>Continue with Google</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>Don&apos;t have an account? </Text>
-          <TouchableOpacity onPress={() => router.push("/auth/register")}>
-            <Text style={styles.signupLink}>Signup</Text>
-          </TouchableOpacity>
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => router.push("/auth/register")}>
+              <Text style={styles.signupLink}>Signup</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </AuthLayout>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
   content: {
     flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 32,
     justifyContent: "space-between",
-    marginTop: 16,
   },
   inputContainer: {
     width: "100%",
   },
+  input: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 0,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    color: "#fff",
+  },
   forgotPasswordLink: {
     alignSelf: "flex-start",
     marginTop: 8,
+    marginBottom: 32,
   },
   forgotPasswordText: {
-    color: Colors.text,
+    color: "#fff",
     fontSize: 14,
+  },
+  bottomSection: {
+    width: "100%",
+    paddingBottom: 32,
   },
   errorText: {
     color: Colors.error,
-    marginTop: 16,
+    marginBottom: 16,
     textAlign: "center",
   },
   loginButton: {
-    marginTop: 32,
-  },
-  oauthWrap: {
-    marginTop: 16,
-    marginBottom: 8,
-    alignItems: "center",
-  },
-  googleBtn: {
-    backgroundColor: Colors.card,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  googleBtnText: {
-    color: Colors.text,
-    fontSize: 14,
-    fontWeight: "600",
+    backgroundColor: "#E6007E",
+    borderRadius: 25,
+    paddingVertical: 16,
+    marginBottom: 24,
   },
   signupContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 24,
   },
   signupText: {
-    color: Colors.textSecondary,
+    color: "#aaa",
     fontSize: 14,
   },
   signupLink: {
-    color: Colors.primary,
+    color: "#E6007E",
     fontSize: 14,
     fontWeight: "500",
   },
