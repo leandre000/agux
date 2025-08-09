@@ -1,159 +1,128 @@
-import Button from '@/components/Button';
-import Carousel from '@/components/Carousel';
-import Images from '@/constants/images';
-import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from 'react-native';
 
-const { height, width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-export default function OnboardingScreen() {
+export default function LoadingScreen() {
     const router = useRouter();
+    const [progress, setProgress] = useState(10);
 
-    const handleLogin = () => {
-        router.push('/auth/login');
-    };
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 100) {
+                    clearInterval(interval);
+                    // Navigate to login/register after loading completes
+                    setTimeout(() => {
+                        router.replace('/auth/login');
+                    }, 500);
+                    return 100;
+                }
+                return prev + 10;
+            });
+        }, 300);
 
-    const handleSignUp = () => {
-        router.push('/auth/register');
-    };
+        return () => clearInterval(interval);
+    }, [router]);
 
     return (
         <View style={styles.container}>
-            <View style={styles.innerContent}>
-                <View style={styles.carouselContainer}>
-                    <Carousel>
-                        <Image
-                            source={{ uri: Images.concertImage1 }}
-                            style={styles.image}
-                            contentFit="cover"
-                        />
-                        <Image
-                            source={{ uri: Images.concertImage2 }}
-                            style={styles.image}
-                            contentFit="cover"
-                        />
-                    </Carousel>
-                </View>
-                <View style={styles.contentContainer}>
-                    <Text style={styles.title}>
-                        Enjoy Endless Events{"\n"}Experiences with <Text style={styles.highlight}>Agura</Text>
-                    </Text>
-                    <Text style={styles.description}>
-                        Agura ticketing platform is here for your events — grab your tickets and have fun, all in one place.
-                    </Text>
-                    <View style={styles.buttonRow}>
-                        <Button
-                            title="Login"
-                            variant="primary"
-                            style={styles.loginButton}
-                            textStyle={styles.buttonText}
-                            onPress={handleLogin}
-                        />
-                        <Button
-                            title="Sign Up"
-                            variant="outline"
-                            style={styles.signUpButton}
-                            textStyle={styles.buttonText}
-                            onPress={handleSignUp}
-                        />
-                    </View>
-                </View>
+            <StatusBar style="light" />
+            
+            {/* Pink/Magenta gradient background matching the screenshot */}
+            <LinearGradient
+                colors={['#e91e63', '#c2185b', '#8e0038', '#ad1457']}
+                style={styles.background}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+            />
+            
+            {/* Curved shadow effect */}
+            <View style={styles.shadowContainer}>
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.4)', 'transparent']}
+                    style={styles.shadowGradient}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                />
+            </View>
+
+            {/* Logo container */}
+            <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>agura</Text>
+            </View>
+
+            {/* Loading indicator at bottom */}
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color="#ffffff" style={styles.spinner} />
+                <Text style={styles.progressText}>{progress}%</Text>
             </View>
         </View>
     );
 }
 
-const SPACING = 32;
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
         justifyContent: 'center',
         alignItems: 'center',
+        position: 'relative',
     },
-    innerContent: {
-        flex: 1,
-        width: '100%',
-        paddingHorizontal: SPACING,
-        paddingTop: SPACING,
-        zIndex: 2,
-        justifyContent: 'center',
+    background: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
     },
-    carouselContainer: {
-        height: height * 0.36,
-        width: '100%',
-        borderRadius: 30,
+    shadowContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: height * 0.4,
+        borderTopLeftRadius: width * 0.3,
+        borderTopRightRadius: width * 0.3,
         overflow: 'hidden',
-        marginBottom: SPACING,
-        backgroundColor: 'transparent',
     },
-    image: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 30,
-    },
-    contentContainer: {
+    shadowGradient: {
         flex: 1,
+        borderTopLeftRadius: width * 0.3,
+        borderTopRightRadius: width * 0.3,
+    },
+    logoContainer: {
+        zIndex: 10,
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
+        flex: 1,
     },
-    title: {
-        fontSize: 26,
+    logoText: {
+        fontSize: 42,
         fontWeight: 'bold',
-        color: '#fff',
+        color: '#ffffff',
+        letterSpacing: 2,
         textAlign: 'center',
-        lineHeight: 34,
-        marginBottom: SPACING / 1.5,
+        textShadowColor: 'rgba(0,0,0,0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
     },
-    highlight: {
-        color: '#fff',
-        fontWeight: 'bold',
-        textShadowColor: '#e6007e',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 8,
-    },
-    description: {
-        fontSize: 15,
-        color: '#fff',
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: SPACING,
-        opacity: 0.9,
-    },
-    buttonRow: {
-        flexDirection: 'row',
+    loadingContainer: {
+        position: 'absolute',
+        bottom: 80,
+        alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
-        marginTop: 8,
+        zIndex: 15,
     },
-    loginButton: {
-        flex: 1,
-        marginRight: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 0,
-        minWidth: 100,
-        maxWidth: 140,
-        borderRadius: 30,
+    spinner: {
+        marginBottom: 8,
     },
-    signUpButton: {
-        flex: 1,
-        marginLeft: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 0,
-        minWidth: 100,
-        maxWidth: 140,
-        borderRadius: 30,
-        borderWidth: 1.5,
-        backgroundColor: '#fff',
-        color: '#e6007e',
-    },
-    buttonText: {
-        fontSize: 15,
-        fontWeight: '600',
-        // color: '#fff',
+    progressText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: '500',
+        textAlign: 'center',
     },
 });
