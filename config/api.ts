@@ -96,7 +96,7 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
       } else if (err?.status === 503 || err?.status === 502) {
         // Handle backend maintenance or temporary issues
         console.warn('Backend temporarily unavailable:', err.message);
-      } else if (err?.status >= 500) {
+      } else if (err?.status && err.status >= 500) {
         // Handle server errors
         console.error('Server error:', err.message);
       }

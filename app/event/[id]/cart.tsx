@@ -109,7 +109,7 @@ export default function CartScreen() {
         showLogo
         showProfile
         showSearch
-        onSearchPress={() => router.push("/search")}
+        onSearchPress={() => {}}
       />
       
       <View style={styles.content}>

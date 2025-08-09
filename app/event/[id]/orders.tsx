@@ -89,7 +89,7 @@ export default function EventOrdersScreen() {
         showLogo
         showProfile
         showSearch
-        onSearchPress={() => router.push("/search")}
+        onSearchPress={() => {}}
       />
       
       <View style={styles.content}>

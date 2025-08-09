@@ -37,7 +37,7 @@ export default function FoodPaymentSuccessScreen() {
         showLogo
         showProfile
         showSearch
-        onSearchPress={() => router.push("/search")}
+        onSearchPress={() => {}}
       />
       
       <View style={styles.content}>

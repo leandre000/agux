@@ -61,7 +61,7 @@ export default function HomeScreen() {
   }, [router]);
 
   const handleSeeAllAvailable = useCallback(() => {
-    router.push("/events/user");
+    router.push("/events/upcoming");
   }, [router]);
 
   const handleSeeAllBooked = useCallback(() => {
@@ -86,7 +86,7 @@ export default function HomeScreen() {
         showLogo
         showProfile
         showSearch
-        onSearchPress={() => router.push("/search")}
+        onSearchPress={() => {}}
       />
       
       <ScrollView
@@ -141,15 +141,16 @@ export default function HomeScreen() {
           showSeeAll
           onSeeAllPress={handleSeeAllAvailable}
         />
-        {userEvents.length === 0 ? (
+        {allEvents.length === 0 ? (
           <EmptyState message="No events available right now" />
         ) : (
-          userEvents.slice(0, 2).map((event) => (
-            <ListEventCard 
-              key={`available-${event.id}`} 
-              event={event}
+          allEvents.slice(0, 2).map((event) => (
+            <TouchableOpacity 
+              key={`available-${event.id}`}
               onPress={() => router.push(`/event/${event.id}`)}
-            />
+            >
+              <ListEventCard event={event} />
+            </TouchableOpacity>
           ))
         )}
 
@@ -159,19 +160,19 @@ export default function HomeScreen() {
           showSeeAll
           onSeeAllPress={handleSeeAllBooked}
         />
-        {userEvents.filter(e => e.booked).length === 0 ? (
+        {allEvents.filter(e => e.booked).length === 0 ? (
           <EmptyState message="You haven't booked any events yet" />
         ) : (
-          userEvents
+          allEvents
             .filter(e => e.booked)
             .slice(0, 2)
             .map((event) => (
-              <ListEventCard 
-                key={`booked-${event.id}`} 
-                event={event} 
-                isBooked
+              <TouchableOpacity 
+                key={`booked-${event.id}`}
                 onPress={() => router.push(`/event/${event.id}`)}
-              />
+              >
+                <ListEventCard event={event} isBooked />
+              </TouchableOpacity>
             ))
         )}
 

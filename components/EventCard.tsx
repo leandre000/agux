@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { Calendar, MapPin, ArrowUpRight } from 'lucide-react-native';
 import { Link } from 'expo-router';
 import Colors from '@/constants/Colors';
-import { Event } from '@/mocks/events';
+import { Event } from '@/store/events-store';
 
 interface EventCardProps {
   event: Event;
@@ -22,7 +22,11 @@ const EventCard: React.FC<EventCardProps> = ({ event, variant = 'list' }) => {
       isFeatured ? styles.featuredContainer : styles.listContainer
     ]}>
       <Image
-        source={{ uri: event.image }}
+        source={
+          event.imageUrl 
+            ? { uri: event.imageUrl }
+            : event.image || require('@/assets/images/m1.png')
+        }
         style={[
           styles.image,
           isFeatured ? styles.featuredImage : styles.listImage

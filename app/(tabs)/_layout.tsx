@@ -4,10 +4,10 @@ import { Clock, Home, Ticket, User, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-function CustomTabBar({ state, descriptors, navigation }) {
+function CustomTabBar({ state, descriptors, navigation }: any) {
     return (
         <View style={styles.tabBarContainer}>
-            {state.routes.map((route, index) => {
+            {state.routes.map((route: any, index: number) => {
                 const { options } = descriptors[route.key];
                 const isFocused = state.index === index;
                 let icon;
