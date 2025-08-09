@@ -20,7 +20,7 @@ export default function AllEventsScreen() {
       id: '1',
       title: 'Baba Experience',
       category: 'Vvip Tickets',
-      price: '2399 Rwf',
+      price: '8,000 RWF',
       quantity: 2,
       image: require('@/assets/images/m1.png'),
       booked: false,
@@ -29,7 +29,7 @@ export default function AllEventsScreen() {
       id: '2', 
       title: 'Baba Experience',
       category: 'Vvip Tickets', 
-      price: '2399 Rwf',
+      price: '8,000 RWF',
       quantity: 2,
       image: require('@/assets/images/m2.png'),
       booked: false,
@@ -38,7 +38,7 @@ export default function AllEventsScreen() {
       id: '3',
       title: 'Baba Experience', 
       category: 'Vvip Tickets',
-      price: '2399 Rwf', 
+      price: '8,000 RWF', 
       quantity: 2,
       image: require('@/assets/images/m1.png'),
       booked: false,
@@ -47,7 +47,7 @@ export default function AllEventsScreen() {
       id: '4',
       title: 'Baba Experience',
       category: 'Vvip Tickets',
-      price: '2399 Rwf',
+      price: '8,000 RWF',
       quantity: 2, 
       image: require('@/assets/images/m2.png'),
       booked: false,
@@ -56,7 +56,7 @@ export default function AllEventsScreen() {
       id: '5',
       title: 'Baba Experience',
       category: 'Vvip Tickets',
-      price: '2399 Rwf',
+      price: '8,000 RWF',
       quantity: 2,
       image: require('@/assets/images/m1.png'),
       booked: false,
@@ -88,7 +88,7 @@ export default function AllEventsScreen() {
       <View style={styles.eventOverlay}>
         <Text style={styles.eventTitle}>{event.title}</Text>
         <Text style={styles.eventCategory}>{event.category || 'Vvip Tickets'}</Text>
-        <Text style={styles.eventPrice}>{event.price || '2399 Rwf'}</Text>
+        <Text style={styles.eventPrice}>{event.price || '8,000 RWF'}</Text>
         <TouchableOpacity 
           style={styles.viewTicketButton}
           onPress={() => router.push(`/event/${event.id}`)}

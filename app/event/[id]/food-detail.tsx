@@ -15,11 +15,11 @@ export default function FoodDetailScreen() {
   // Mock food item data (this would come from backend based on itemId)
   const foodItem = {
     id: itemId || '1',
-    name: 'Big boys Cheese burger',
+    name: 'Cheese Burger',
     rating: 4.5,
-    reviewCount: 300,
-    price: 15000,
-    description: 'Our sample classic cheeseburger begins with a 100% pure beef burger seasoned with just a pinch of salt and pepper. The McDonald\'s Cheeseburger is topped',
+    reviewCount: 180,
+    price: 3500,
+    description: 'Classic beef cheeseburger with fresh lettuce, tomatoes, onions, and our special sauce. Served with crispy fries. Perfect for sharing at events!',
     image: require('@/assets/images/m1.png'),
     inStock: true,
   };

@@ -15,9 +15,9 @@ export default function PaymentInfoScreen() {
   const [selectedPayment, setSelectedPayment] = useState('mastercard');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock cart total (would come from cart store)
-  const subtotal = 520;
-  const total = 520;
+  // Mock cart total (would come from cart store) - Rwanda pricing
+  const subtotal = 5500;
+  const total = 6000; // Including processing fee
 
   // Payment methods
   const paymentMethods = [
@@ -142,12 +142,12 @@ export default function PaymentInfoScreen() {
           <View style={styles.orderSummary}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>{subtotal} Rwf</Text>
+              <Text style={styles.summaryValue}>{subtotal.toLocaleString()} RWF</Text>
             </View>
             <View style={styles.summaryDivider} />
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>{total} Rwf</Text>
+              <Text style={styles.totalValue}>{total.toLocaleString()} RWF</Text>
             </View>
           </View>
         </ScrollView>

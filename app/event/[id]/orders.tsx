@@ -11,43 +11,43 @@ export default function EventOrdersScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [selectedTab, setSelectedTab] = useState<'menu' | 'orders'>('orders');
 
-  // Mock orders data
+  // Mock orders data with realistic Rwanda pricing
   const orders = [
     {
       id: '1',
-      name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
+      name: 'Cheese Burger',
+      description: 'Beef burger with fries',
+      price: 3500,
       quantity: 1,
       image: require('@/assets/images/m1.png'),
-      status: 'pending',
+      status: 'completed',
     },
     {
       id: '2',
       name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
-      quantity: 1,
+      description: 'Coca-Cola and Fanta',
+      price: 800,
+      quantity: 2,
       image: require('@/assets/images/m2.png'),
-      status: 'pending',
+      status: 'completed',
     },
     {
       id: '3',
-      name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
+      name: 'Mutzig Beer',
+      description: 'Local premium beer',
+      price: 1200,
       quantity: 1,
       image: require('@/assets/images/m1.png'),
-      status: 'pending',
+      status: 'completed',
     },
     {
       id: '4',
-      name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
+      name: 'Chicken & Rice',
+      description: 'Grilled chicken with pilau',
+      price: 4500,
       quantity: 1,
       image: require('@/assets/images/m2.png'),
-      status: 'pending',
+      status: 'completed',
     },
   ];
 

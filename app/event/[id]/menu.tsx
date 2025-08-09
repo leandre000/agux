@@ -11,13 +11,13 @@ export default function EventMenuScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [selectedTab, setSelectedTab] = useState<'menu' | 'orders'>('menu');
 
-  // Mock menu data
+  // Mock menu data with realistic Rwanda pricing
   const menuItems = [
     {
       id: '1',
-      name: 'Big cheese burger',
-      description: 'This is a big burger cheese for people',
-      price: 15000,
+      name: 'Cheese Burger',
+      description: 'Big beef burger with cheese and fries',
+      price: 3500,
       rating: 4.5,
       image: require('@/assets/images/m1.png'),
       category: 'food',
@@ -25,29 +25,29 @@ export default function EventMenuScreen() {
     },
     {
       id: '2',
-      name: 'Big cheese burger',
-      description: 'This is a big burger cheese for people',
-      price: 15000,
+      name: 'Soft Drinks',
+      description: 'Coca-Cola, Fanta, or Sprite',
+      price: 800,
       rating: 4.2,
       image: require('@/assets/images/m2.png'),
-      category: 'food',
+      category: 'drinks',
       inStock: true,
     },
     {
       id: '3',
-      name: 'Big cheese burger',
-      description: 'This is a big burger cheese for people',
-      price: 15000,
+      name: 'Mutzig Beer',
+      description: 'Local Rwanda premium beer',
+      price: 1200,
       rating: 4.5,
       image: require('@/assets/images/m1.png'),
-      category: 'food',
-      inStock: false,
+      category: 'drinks',
+      inStock: true,
     },
     {
       id: '4',
-      name: 'Big cheese burger',
-      description: 'This is a big burger cheese for people',
-      price: 15000,
+      name: 'Chicken & Rice',
+      description: 'Grilled chicken with pilau rice',
+      price: 4500,
       rating: 4.2,
       image: require('@/assets/images/m2.png'),
       category: 'food',

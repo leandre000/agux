@@ -15,10 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 const TICKETS = [
-  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
-  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
-  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
-  { type: "Regular Tickets", price: "5000 Rwf", left: 100 },
+  { type: "Regular Tickets", price: "3,000 RWF", left: 150 },
+  { type: "VIP Tickets", price: "8,000 RWF", left: 75 },
+  { type: "Premium Tickets", price: "15,000 RWF", left: 50 },
+  { type: "VVIP Tickets", price: "25,000 RWF", left: 25 },
 ];
 
 export const options = {

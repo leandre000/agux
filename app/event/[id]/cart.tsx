@@ -25,24 +25,24 @@ export default function CartScreen() {
     {
       id: '1',
       name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
-      quantity: 1,
+      description: 'Coca-Cola and Fanta',
+      price: 800,
+      quantity: 2,
       image: require('@/assets/images/m1.png'),
     },
     {
       id: '2',
-      name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
+      name: 'Cheese Burger',
+      description: 'Big cheese burger with fries',
+      price: 3500,
       quantity: 1,
       image: require('@/assets/images/m2.png'),
     },
     {
       id: '3',
-      name: 'Soft Drinks',
-      description: 'Coca and Frita',
-      price: 33.00,
+      name: 'Mutzig Beer',
+      description: 'Local Rwanda beer',
+      price: 1200,
       quantity: 1,
       image: require('@/assets/images/m1.png'),
     },
@@ -83,7 +83,7 @@ export default function CartScreen() {
       <View style={styles.itemContent}>
         <Text style={styles.itemName}>{item.name}</Text>
         <Text style={styles.itemDescription}>{item.description}</Text>
-        <Text style={styles.itemPrice}>{item.price.toFixed(2)} Rwf</Text>
+        <Text style={styles.itemPrice}>{item.price.toLocaleString()} RWF</Text>
       </View>
 
       <View style={styles.itemActions}>
@@ -151,7 +151,7 @@ export default function CartScreen() {
           <View style={styles.cartFooter}>
             <View style={styles.totalContainer}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalAmount}>{calculateTotal().toFixed(0)} Rwf</Text>
+              <Text style={styles.totalAmount}>{calculateTotal().toLocaleString()} RWF</Text>
             </View>
             
             <TouchableOpacity 

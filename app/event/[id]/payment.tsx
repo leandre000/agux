@@ -37,7 +37,7 @@ export default function PaymentScreen() {
 
   const seatCount = Math.max(1, parseInt(params.count || "1", 10));
   const names = params.names ? params.names.split(',') : [];
-  const ticketPrice = 1000; // Mock price per ticket
+  const ticketPrice = 3000; // Regular ticket price in RWF
   const subtotal = seatCount * ticketPrice;
   const total = subtotal;
 
