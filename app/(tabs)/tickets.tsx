@@ -5,37 +5,78 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/Colors";
 import Header from "@/components/Header";
-import SearchBar from "@/components/SearchBar";
-import SectionHeader from "@/components/SectionHeader";
 import { TicketsAPI } from "@/lib/api";
-import { Calendar, MapPin, ArrowUpRight } from 'lucide-react-native';
 
-export default function TicketsTabScreen() {
+export default function EventTicketsScreen() {
   const router = useRouter();
   const [tickets, setTickets] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // Mock tickets data for demonstration
+  const mockTickets = [
+    {
+      id: '1',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      quantity: 2,
+      price: '2399 Rwf',
+      image: require('@/assets/images/m1.png'),
+      status: 'active',
+    },
+    {
+      id: '2',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      quantity: 2,
+      price: '2399 Rwf',
+      image: require('@/assets/images/m2.png'),
+      status: 'active',
+    },
+    {
+      id: '3',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      quantity: 2,
+      price: '2399 Rwf',
+      image: require('@/assets/images/m1.png'),
+      status: 'active',
+    },
+    {
+      id: '4',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      quantity: 2,
+      price: '2399 Rwf',
+      image: require('@/assets/images/m2.png'),
+      status: 'active',
+    },
+    {
+      id: '5',
+      title: 'Baba Experience',
+      category: 'Vvip Tickets',
+      quantity: 2,
+      price: '2399 Rwf',
+      image: require('@/assets/images/m1.png'),
+      status: 'active',
+    },
+  ];
 
   async function load() {
     try {
       setError(null);
-      const data = await TicketsAPI.getMyTickets();
-      setTickets(Array.isArray(data) ? data : data?.tickets || []);
+      // Replace with actual API call when backend is ready
+      // const data = await TicketsAPI.getMyTickets();
+      setTickets(mockTickets);
     } catch (e: any) {
       setError(e?.message || "Failed to load your tickets");
+      setTickets(mockTickets); // Fallback to mock data
     }
   }
 
   useEffect(() => {
     load();
   }, []);
-
-  // Filter tickets based on search
-  const filteredTickets = tickets.filter(ticket =>
-    ticket.event?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ticket.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   // Empty state component
   const EmptyState = ({ message }: { message: string }) => (
@@ -44,68 +85,23 @@ export default function TicketsTabScreen() {
     </View>
   );
 
-  // Mock events for demo (since no backend yet)
-  const mockEvents = [
-    {
-      id: '1',
-      title: 'Summer Event',
-      subtitle: 'Platini',
-      date: '10 May 2025',
-      location: 'Serena Hotel Kigali',
-      image: require('@/assets/images/m1.png'),
-    }
-  ];
-
-  const mockOrders = [
-    {
-      id: '1',
-      title: 'Soft Drinks',
-      subtitle: 'Coca and Fanta',
-      price: '$12.00',
-      image: require('@/assets/images/m1.png'),
-    }
-  ];
-
-  // Event card component
-  const EventCard = ({ event }: { event: any }) => (
-    <View style={styles.eventCard}>
-      <Image source={event.image} style={styles.eventImage} />
-      <View style={styles.eventInfo}>
-        <View>
-          <Text style={styles.eventTitle}>{event.title}</Text>
-          <Text style={styles.eventSubtitle}>{event.subtitle}</Text>
-          <View style={styles.eventMeta}>
-            <Calendar size={13} color={Colors.textSecondary} />
-            <Text style={styles.eventMetaText}>{event.date}</Text>
-          </View>
-          <View style={styles.eventMeta}>
-            <MapPin size={13} color={Colors.textSecondary} />
-            <Text style={styles.eventMetaText}>{event.location}</Text>
-          </View>
-        </View>
+  // Ticket card component
+  const TicketCard = ({ ticket }: { ticket: any }) => (
+    <View style={styles.ticketCard}>
+      <Image source={ticket.image} style={styles.ticketImage} />
+      <View style={styles.ticketOverlay}>
+        <Text style={styles.ticketTitle}>{ticket.title}</Text>
+        <Text style={styles.ticketCategory}>{ticket.category}</Text>
+        <Text style={styles.ticketPrice}>{ticket.price}</Text>
         <TouchableOpacity 
-          style={styles.detailsButton}
-          onPress={() => router.push(`/event/${event.id}`)}
+          style={styles.viewTicketButton}
+          onPress={() => router.push(`/event/${ticket.id}/ticket-preview`)}
         >
-          <ArrowUpRight size={13} color={Colors.text} />
-          <Text style={styles.detailsButtonText}>View Details</Text>
+          <Text style={styles.viewTicketText}>View Ticket</Text>
         </TouchableOpacity>
       </View>
-    </View>
-  );
-
-  // Order card component
-  const OrderCard = ({ order }: { order: any }) => (
-    <View style={styles.orderCard}>
-      <View style={styles.orderImageContainer}>
-        <Image source={order.image} style={styles.orderImage} />
-      </View>
-      <View style={styles.orderInfo}>
-        <Text style={styles.orderTitle}>{order.title}</Text>
-        <Text style={styles.orderSubtitle}>{order.subtitle}</Text>
-      </View>
-      <View style={styles.orderPrice}>
-        <Text style={styles.orderPriceText}>{order.price}</Text>
+      <View style={styles.quantityBadge}>
+        <Text style={styles.quantityText}>{ticket.quantity}</Text>
       </View>
     </View>
   );
@@ -120,77 +116,45 @@ export default function TicketsTabScreen() {
         onSearchPress={() => router.push("/search")}
       />
       
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={async () => {
-              setRefreshing(true);
-              await load();
-              setRefreshing(false);
-            }}
-            tintColor={Colors.text}
-          />
-        }
-      >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <SearchBar
-            placeholder="Search Event"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+      <View style={styles.content}>
+        <View style={styles.titleRow}>
+          <Text style={styles.screenTitle}>Event Tickets</Text>
+          <TouchableOpacity>
+            <Text style={styles.recentText}>Recent</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Upcoming Events */}
-        <SectionHeader title="Upcoming Events" showSeeAll />
-        {mockEvents.length === 0 ? (
-          <EmptyState message="No upcoming events" />
-        ) : (
-          mockEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
-          ))
-        )}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true);
+                await load();
+                setRefreshing(false);
+              }}
+              tintColor={Colors.text}
+            />
+          }
+        >
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
-        {/* Available Events */}
-        <SectionHeader title="Available Events" showSeeAll />
-        {mockEvents.length === 0 ? (
-          <EmptyState message="No events available" />
-        ) : (
-          mockEvents.map((event) => (
-            <EventCard key={`available-${event.id}`} event={event} />
-          ))
-        )}
-
-        {/* Booked Events */}
-        <SectionHeader title="Booked Events" showSeeAll />
-        {mockEvents.length === 0 ? (
-          <EmptyState message="No booked events" />
-        ) : (
-          mockEvents.map((event) => (
-            <EventCard key={`booked-${event.id}`} event={event} />
-          ))
-        )}
-
-        {/* Orders */}
-        <SectionHeader title="Orders" showSeeAll />
-        {mockOrders.length === 0 ? (
-          <EmptyState message="No orders yet" />
-        ) : (
-          mockOrders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))
-        )}
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-      </ScrollView>
+          {tickets.length === 0 ? (
+            <EmptyState message="No tickets found" />
+          ) : (
+            tickets.map((ticket) => (
+              <TicketCard key={ticket.id} ticket={ticket} />
+            ))
+          )}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -200,117 +164,99 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  content: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  screenTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  recentText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 32,
   },
-  searchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  eventCard: {
-    flexDirection: 'row',
+  ticketCard: {
+    position: 'relative',
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
-    marginHorizontal: 20,
     marginBottom: 16,
-    padding: 12,
-    minHeight: 140,
-  },
-  eventImage: {
-    width: 120,
-    height: '100%',
-    borderRadius: 12,
-    marginRight: 16,
-  },
-  eventInfo: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  eventTitle: {
-    color: Colors.text,
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  eventSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  eventMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  eventMetaText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    marginLeft: 6,
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginTop: 8,
-  },
-  detailsButtonText: {
-    color: Colors.text,
-    fontSize: 13,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  orderCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    padding: 16,
-  },
-  orderImageContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
     overflow: 'hidden',
-    marginRight: 16,
+    height: 200,
   },
-  orderImage: {
+  ticketImage: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
   },
-  orderInfo: {
-    flex: 1,
+  ticketOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
-  orderTitle: {
+  ticketTitle: {
     color: Colors.text,
-    fontWeight: '600',
+    fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 4,
   },
-  orderSubtitle: {
+  ticketCategory: {
     color: Colors.textSecondary,
     fontSize: 14,
+    marginBottom: 4,
   },
-  orderPrice: {
-    alignItems: 'flex-end',
+  ticketPrice: {
+    color: Colors.text,
+    fontSize: 14,
+    marginBottom: 12,
   },
-  orderPriceText: {
-    color: Colors.primary,
+  viewTicketButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  viewTicketText: {
+    color: Colors.text,
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  quantityBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  quantityText: {
+    color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 14,
   },
   emptyState: {
-    paddingHorizontal: 20,
-    paddingVertical: 32,
+    paddingVertical: 64,
     alignItems: 'center',
     justifyContent: 'center',
   },
