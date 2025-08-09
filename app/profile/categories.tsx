@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
 import { useEventsStore } from '@/store/events-store';
@@ -7,7 +7,7 @@ import Colors from '@/constants/Colors';
 import Button from '@/components/Button';
 import Header from '@/components/Header';
 import CategoryButton from '@/components/CategoryButton';
-import AuthLayout from '@/components/AuthLayout';
+import { StatusBar } from 'expo-status-bar';
 
 import { EventCategory } from '@/mocks/events';
 
@@ -42,7 +42,8 @@ export default function CategoriesScreen() {
   };
 
   return (
-    <AuthLayout>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <Header title="Event Categories" showBack />
       <View style={styles.content}>
         <Text style={styles.description}>
@@ -102,11 +103,15 @@ export default function CategoriesScreen() {
           style={styles.saveButton}
         />
       </View>
-    </AuthLayout>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
@@ -115,32 +120,36 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#aaa',
     marginBottom: 32,
     textAlign: 'center',
   },
   pyramidContainer: {
     alignItems: 'center',
     marginBottom: 32,
+    flex: 1,
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   categoryCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    marginHorizontal: 18,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginHorizontal: 20,
     marginVertical: 0,
+    backgroundColor: '#333',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   saveButton: {
     width: '100%',
-    marginTop: 16,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
+    borderRadius: 25,
+    backgroundColor: '#E6007E',
     alignSelf: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
 });

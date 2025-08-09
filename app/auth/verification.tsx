@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
 import Colors from '@/constants/Colors';
 import Button from '@/components/Button';
 import Header from '@/components/Header';
 import VerificationInput from '@/components/VerificationInput';
+import { StatusBar } from 'expo-status-bar';
 
 export default function VerificationScreen() {
   const router = useRouter();
@@ -18,19 +19,20 @@ export default function VerificationScreen() {
 
     try {
       await verifyAccount(code);
-      router.push('/(tabs)');
+      router.push('/profile/setup');
     } catch (error) {
       // Error is handled in the store
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <Header title="Account Verification" showBack />
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          We have sent verification code on your email or phone use it to activate your account
+          We have sent verification code on your email or{"\n"}phone use it to activate your account
         </Text>
 
         <VerificationInput
@@ -47,14 +49,14 @@ export default function VerificationScreen() {
           style={styles.verifyButton}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#000',
   },
   content: {
     flex: 1,
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: Colors.textSecondary,
+    color: '#aaa',
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 20,
@@ -78,5 +80,8 @@ const styles = StyleSheet.create({
   verifyButton: {
     marginTop: 32,
     width: '100%',
+    backgroundColor: '#E6007E',
+    borderRadius: 25,
+    paddingVertical: 16,
   },
 });

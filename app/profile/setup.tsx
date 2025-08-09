@@ -14,6 +14,7 @@ import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Header from "@/components/Header";
+import { StatusBar } from "expo-status-bar";
 
 export default function ProfileSetupScreen() {
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function ProfileSetupScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style="light" />
       <Header title="Personal Information" showBack />
       <View style={styles.content}>
         <Text style={styles.description}>
@@ -78,13 +80,15 @@ export default function ProfileSetupScreen() {
             placeholder="FirstName"
             value={firstName}
             onChangeText={setFirstName}
-            error={validationError}
+            error={validationError && !firstName ? validationError : ""}
+            style={styles.input}
           />
           <Input
             placeholder="LastName"
             value={lastName}
             onChangeText={setLastName}
-            error={validationError}
+            error={validationError && !lastName ? validationError : ""}
+            style={styles.input}
           />
         </View>
         <Button title="Next" onPress={handleNext} style={styles.nextButton} />
@@ -96,7 +100,7 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#000',
   },
   content: {
     flex: 1,
@@ -106,8 +110,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   description: {
-    fontSize: 15,
-    color: Colors.textSecondary,
+    fontSize: 14,
+    color: '#aaa',
     marginBottom: 32,
     textAlign: "center",
   },
@@ -119,16 +123,16 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: Colors.card,
+    backgroundColor: '#333',
   },
   profileImagePlaceholder: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: Colors.card,
+    backgroundColor: '#333',
   },
   addPhotoText: {
-    color: Colors.primary,
+    color: '#E6007E',
     marginTop: 12,
     fontSize: 16,
     fontWeight: "500",
@@ -136,14 +140,22 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: "100%",
     marginBottom: 32,
-
-    paddingRight: 16,
+  },
+  input: {
+    backgroundColor: "#1a1a1a",
+    borderWidth: 0,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    color: "#fff",
   },
   nextButton: {
     width: "100%",
-    borderRadius: 28,
-    paddingVertical: 14,
-    backgroundColor: Colors.primary,
+    borderRadius: 25,
+    paddingVertical: 16,
+    backgroundColor: '#E6007E',
     alignSelf: "center",
   },
 });
