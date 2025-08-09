@@ -154,7 +154,7 @@ export default function EventMenuScreen() {
                 
                 <View style={styles.itemsGrid}>
                   {items.map((item) => (
-                    <MenuItem key={item.id} item={item} onPress={() => handleOrderItem(item)} />
+                    <MenuItemComponent key={item.id} item={item} onPress={() => handleOrderItem(item)} />
                   ))}
                 </View>
               </View>
@@ -167,7 +167,7 @@ export default function EventMenuScreen() {
 }
 
 // Menu Item Component
-const MenuItem: React.FC<{ item: MenuItem; onPress: () => void }> = ({ item, onPress }) => (
+const MenuItemComponent: React.FC<{ item: MenuItem; onPress: () => void }> = ({ item, onPress }) => (
   <TouchableOpacity
     style={[styles.menuItem, !item.available && styles.menuItemDisabled]}
     onPress={onPress}

@@ -127,7 +127,7 @@ export default function TicketPreviewScreen() {
           <View style={styles.ticketInfo}>
             <Text style={styles.eventName}>{eventName}</Text>
                                     <Text style={styles.ticketType}>{ticketType}</Text>
-                        <Text style={styles.holderName}>Holder: {holderName}</Text>
+                        <Text style={styles.ticketType}>Holder: {holderName}</Text>
                         <Text style={styles.venue}>{venue}</Text>
                         <Text style={styles.amount}>Amount: {amount.toLocaleString()} RWF</Text>
             <Text style={styles.meta}>Bought at: {boughtAt}</Text>
