@@ -1,70 +1,39 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageSourcePropType } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEventsStore } from '@/store/events-store';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { Calendar, MapPin, ArrowUpRight } from 'lucide-react-native';
-import { Event, EventCategory } from '@/mocks/events';
-
-// Mock data for all events (fallback)
-export const allEventsMock: Event[] = [
-  {
-    id: 'a1',
-    title: 'Baba Xpreince',
-    date: '10-May-2025',
-    location: 'Serena Hotel Kigali',
-    image: require('../../assets/images/m1.png'),
-    category: 'Music' as EventCategory,
-    price: 'Standard',
-    description: 'Live concert event.',
-    isFeatured: false,
-    booked: true,
-  },
-  {
-    id: 'a2',
-    title: 'Baba Xpreince',
-    date: '10-May-2025',
-    location: 'Serena Hotel Kigali',
-    image: require('../../assets/images/m2.png'),
-    category: 'Music' as EventCategory,
-    price: 'Standard',
-    description: 'Live concert event.',
-    isFeatured: false,
-    booked: false,
-  },
-  {
-    id: 'a3',
-    title: 'Baba Xpreince',
-    date: '10-May-2025',
-    location: 'Serena Hotel Kigali',
-    image: require('../../assets/images/m1.png'),
-    category: 'Music' as EventCategory,
-    price: 'Standard',
-    description: 'Live concert event.',
-    isFeatured: false,
-    booked: true,
-  },
-];
+import { StatusBar } from 'expo-status-bar';
 
 export default function AllEventsScreen() {
   const router = useRouter();
-  let { userEvents } = useEventsStore();
-  if (userEvents.length < 3) userEvents = allEventsMock;
-
+  const { userEvents } = useEventsStore();
+  
   // Filter state
-  const [selectedFilter, setSelectedFilter] = React.useState<'all' | 'booked'>('all');
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'booked'>('all');
 
   // Filtered events
   const allEvents = userEvents;
   const bookedEvents = userEvents.filter(e => e.booked);
   const eventsToShow = selectedFilter === 'all' ? allEvents : bookedEvents;
 
+  // Empty state component
+  const EmptyState = ({ message }: { message: string }) => (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyStateText}>{message}</Text>
+    </View>
+  );
+
   // Custom event card for All Events to match design
-  const AllEventCard = ({ event, isBooked }: { event: Event, isBooked?: boolean }) => (
+  const AllEventCard = ({ event, isBooked }: { event: any, isBooked?: boolean }) => (
     <View style={styles.listEventCard}>
-      <Image source={typeof event.image === 'string' ? { uri: event.image } : event.image} style={styles.listEventImage} />
+      <Image 
+        source={typeof event.image === 'string' ? { uri: event.image } : event.image} 
+        style={styles.listEventImage} 
+      />
       <View style={styles.listEventInfo}>
         <View>
           <Text style={styles.listEventTitle} numberOfLines={1}>{event.title}</Text>
@@ -78,7 +47,10 @@ export default function AllEventsScreen() {
             <Text style={styles.listEventMetaText}>{event.location}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.listDetailsButton} onPress={() => router.push({ pathname: `/event/${event.id}`, params: { booked: isBooked ? '1' : undefined } })}>
+        <TouchableOpacity 
+          style={styles.listDetailsButton} 
+          onPress={() => router.push(`/event/${event.id}`)}
+        >
           <ArrowUpRight size={13} color={Colors.text} />
           <Text style={styles.listDetailsButtonText}>View Details</Text>
         </TouchableOpacity>
@@ -88,7 +60,9 @@ export default function AllEventsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style="light" />
       <Header title="Available Events" showBack />
+      
       <View style={styles.tabsRowCentered}>
         <TouchableOpacity
           style={[styles.filterButton, selectedFilter === 'all' && styles.filterButtonActive]}
@@ -107,10 +81,28 @@ export default function AllEventsScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {eventsToShow.slice(0, 3).map((event) => (
-          <AllEventCard key={event.id} event={event} isBooked={selectedFilter === 'booked'} />
-        ))}
+      
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+      >
+        {eventsToShow.length === 0 ? (
+          <EmptyState 
+            message={selectedFilter === 'all' 
+              ? "No events available at the moment" 
+              : "You haven't booked any events yet"
+            } 
+          />
+        ) : (
+          eventsToShow.map((event) => (
+            <AllEventCard 
+              key={event.id} 
+              event={event} 
+              isBooked={selectedFilter === 'booked'} 
+            />
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,25 +113,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  tabsScroll: {
-    maxHeight: 60,
-    marginBottom: 4,
-    marginTop: 8,
-  },
-  tabsScrollContent: {
-    paddingHorizontal: 12,
+  tabsRowCentered: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  filterRow: {
-    display: 'none', // replaced by tabsScroll
+    marginBottom: 16,
+    marginTop: 8,
+    paddingHorizontal: 20,
   },
   filterButton: {
     backgroundColor: Colors.card,
     borderRadius: 24,
     paddingVertical: 12,
-    paddingHorizontal: 26,
-    marginRight: 12,
-    minWidth: 120,
+    paddingHorizontal: 20,
+    marginHorizontal: 8,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -148,8 +136,8 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     color: Colors.textSecondary,
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 14,
   },
   filterButtonTextActive: {
     color: Colors.text,
@@ -158,93 +146,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 0,
     paddingBottom: 32,
-  },
-  eventCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.card,
-    borderRadius: 20,
-    marginHorizontal: 16,
-    marginBottom: 18,
-    padding: 14,
-    minHeight: 110,
-    borderWidth: 1.5,
-    borderColor: '#222',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 2,
-    overflow: 'hidden',
-  },
-  eventImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 14,
-    marginRight: 14,
-    minWidth: 80,
-    maxWidth: 80,
-  },
-  eventInfo: {
-    flex: 1,
-    justifyContent: 'center',
-    minWidth: 0,
-  },
-  eventTitle: {
-    color: Colors.text,
-    fontWeight: 'bold',
-    fontSize: 17,
-    marginBottom: 2,
-  },
-  eventSubtitle: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  eventMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  eventMetaText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginLeft: 8,
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#222',
-    borderRadius: 22,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    alignSelf: 'flex-end',
-    marginLeft: 10,
-    minHeight: 44,
-    minWidth: 44,
-  },
-  detailsButtonText: {
-    color: Colors.text,
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginLeft: 8,
   },
   listEventCard: {
     flexDirection: 'row',
     backgroundColor: '#1C1C1E',
-    borderRadius: 24,
+    borderRadius: 16,
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 12,
-    height: 200,
+    minHeight: 140,
   },
   listEventImage: {
-    width: 200,
+    width: 120,
     height: '100%',
-    borderRadius: 16,
-    marginRight: 19,
+    borderRadius: 12,
+    marginRight: 16,
   },
   listEventInfo: {
     flex: 1,
@@ -254,42 +171,50 @@ const styles = StyleSheet.create({
   listEventTitle: {
     color: Colors.text,
     fontWeight: 'bold',
-    fontSize: 17,
+    fontSize: 16,
+    marginBottom: 4,
   },
   listEventSubtitle: {
     color: Colors.textSecondary,
     fontSize: 14,
-    marginTop: 4,
+    marginBottom: 8,
   },
   listEventMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    marginBottom: 6,
   },
   listEventMetaText: {
     color: Colors.textSecondary,
-    fontSize: 13,
-    marginLeft: 9,
+    fontSize: 12,
+    marginLeft: 6,
   },
   listDetailsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    paddingVertical: 7,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
   },
   listDetailsButtonText: {
     color: Colors.text,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
-    marginLeft: 8,
+    marginLeft: 6,
   },
-  tabsRowCentered: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  emptyState: {
+    paddingHorizontal: 20,
+    paddingVertical: 64,
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 8,
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    color: Colors.textSecondary,
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
