@@ -122,12 +122,6 @@ export default function RegisterEmailScreen() {
 
           <View style={styles.socialButtonsRow}>
             <SocialLoginButton
-              provider="apple"
-              onPress={() => handleSocialLogin('apple')}
-              showText={false}
-              style={styles.socialButton}
-            />
-            <SocialLoginButton
               provider="google"
               onPress={() => handleSocialLogin('google')}
               showText={false}

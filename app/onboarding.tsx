@@ -15,9 +15,9 @@ export default function LoadingScreen() {
             setProgress((prev) => {
                 if (prev >= 100) {
                     clearInterval(interval);
-                    // Navigate to login/register after loading completes
+                    // Navigate to welcome screen after loading completes
                     setTimeout(() => {
-                        router.replace('/auth/login');
+                        router.replace('/welcome');
                     }, 500);
                     return 100;
                 }

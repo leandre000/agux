@@ -19,7 +19,6 @@ export default function RegisterScreen() {
   const goPhone = () => router.push("/auth/register-phone");
   const goLogin = () => router.push("/auth/login");
 
-  const handleRegisterWithApple = () => goEmail(); // placeholder to real SSO
   const handleRegisterWithGoogle = () => goEmail();
 
   return (
@@ -45,11 +44,6 @@ export default function RegisterScreen() {
             Sign up to our app and start buying your ticket easily and faster
           </Text>
           <View style={styles.socialButtonsContainer}>
-            <SocialLoginButton
-              provider="apple"
-              onPress={handleRegisterWithApple}
-              style={styles.socialButton}
-            />
             <SocialLoginButton
               provider="google"
               onPress={handleRegisterWithGoogle}
