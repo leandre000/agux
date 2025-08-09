@@ -5,25 +5,27 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
+  TextInput,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "@/store/auth-store";
 import Colors from "@/constants/Colors";
-import Button from "@/components/Button";
-import Input from "@/components/Input";
 import Header from "@/components/Header";
 import { StatusBar } from "expo-status-bar";
 
-export default function ProfileSetupScreen() {
+export default function MyAccountScreen() {
   const router = useRouter();
-  const { updateUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState("");
+  const [name, setName] = useState(user?.username || "Donye Collins");
+  const [email, setEmail] = useState(user?.email || "Louis04real@gmail.com");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phone || "+23408146186693");
+  const [profileImage, setProfileImage] = useState<string | null>(
+    user?.profileImage || null
+  );
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -38,60 +40,86 @@ export default function ProfileSetupScreen() {
     }
   };
 
-  const validateForm = () => {
-    if (!firstName || !lastName) {
-      setValidationError("Please fill in all fields");
-      return false;
+  const handleSave = async () => {
+    try {
+      await updateUser({
+        username: name,
+        email: email,
+        phone: phoneNumber,
+        profileImage: profileImage || undefined,
+      });
+      router.back();
+    } catch (error) {
+      console.error('Failed to update profile:', error);
     }
-    setValidationError("");
-    return true;
-  };
-
-  const handleNext = () => {
-    if (!validateForm()) return;
-    updateUser({
-      username: firstName + " " + lastName,
-      profileImage: profileImage || undefined,
-    });
-    router.push("/profile/categories");
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
-      <Header title="Personal Information" showBack />
+      <Header showLogo showProfile showSearch />
+      
       <View style={styles.content}>
-        <Text style={styles.description}>
-          Please fill in with your personal information
-        </Text>
-        <TouchableOpacity
-          style={styles.profileImageContainer}
-          onPress={pickImage}
-        >
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-          ) : (
-            <View style={styles.profileImagePlaceholder} />
-          )}
-          <Text style={styles.addPhotoText}>Add Photo</Text>
-        </TouchableOpacity>
-        <View style={styles.inputContainer}>
-          <Input
-            placeholder="FirstName"
-            value={firstName}
-            onChangeText={setFirstName}
-            error={validationError && !firstName ? validationError : ""}
-            style={styles.input}
-          />
-          <Input
-            placeholder="LastName"
-            value={lastName}
-            onChangeText={setLastName}
-            error={validationError && !lastName ? validationError : ""}
-            style={styles.input}
-          />
+        <View style={styles.titleRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <ChevronLeft size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.screenTitle}>My Account</Text>
         </View>
-        <Button title="Next" onPress={handleNext} style={styles.nextButton} />
+
+        <View style={styles.profileSection}>
+          <TouchableOpacity style={styles.profileImageContainer} onPress={pickImage}>
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            ) : (
+              <Image source={require('@/assets/images/profile.jpg')} style={styles.profileImage} />
+            )}
+            <View style={styles.editIndicator}>
+              <Text style={styles.editIcon}>✎</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.formContainer}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Name</Text>
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName}
+              placeholderTextColor={Colors.textSecondary}
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.textInput}
+              value={email}
+              onChangeText={setEmail}
+              placeholderTextColor={Colors.textSecondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Phone Number</Text>
+            <TextInput
+              style={styles.textInput}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholderTextColor={Colors.textSecondary}
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -100,62 +128,88 @@ export default function ProfileSetupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
-    alignItems: "center",
+    paddingHorizontal: 20,
   },
-  description: {
-    fontSize: 14,
-    color: '#aaa',
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 32,
-    textAlign: "center",
+  },
+  backBtn: {
+    marginRight: 12,
+    padding: 4,
+  },
+  screenTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  profileSection: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
   profileImageContainer: {
-    alignItems: "center",
-    marginBottom: 32,
+    position: 'relative',
   },
   profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: '#333',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
-  profileImagePlaceholder: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    backgroundColor: '#333',
+  editIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  addPhotoText: {
-    color: '#E6007E',
-    marginTop: 12,
+  editIcon: {
+    color: Colors.text,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: 'bold',
   },
-  inputContainer: {
-    width: "100%",
-    marginBottom: 32,
+  formContainer: {
+    flex: 1,
   },
-  input: {
-    backgroundColor: "#1a1a1a",
-    borderWidth: 0,
+  inputGroup: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  textInput: {
+    backgroundColor: '#1C1C1E',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    marginBottom: 16,
     fontSize: 16,
-    color: "#fff",
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: '#3C3C3E',
   },
-  nextButton: {
-    width: "100%",
+  buttonContainer: {
+    paddingBottom: 32,
+  },
+  saveButton: {
+    backgroundColor: Colors.primary,
     borderRadius: 25,
     paddingVertical: 16,
-    backgroundColor: '#E6007E',
-    alignSelf: "center",
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
