@@ -58,7 +58,10 @@ const Header: React.FC<HeaderProps> = ({
                     </TouchableOpacity>
                 )}
                 {/* Notification bell always visible with red dot */}
-                <TouchableOpacity style={styles.iconButton} onPress={onNotificationPress}>
+                <TouchableOpacity 
+                    style={styles.iconButton} 
+                    onPress={onNotificationPress || (() => router.push('/notifications'))}
+                >
                     <View style={{ position: 'relative' }}>
                         <Bell size={24} color={Colors.text} />
                         <View style={styles.notificationDot} />
