@@ -1,4 +1,5 @@
 import { clearToken, getToken as readToken } from "@/lib/authToken";
+import { AppError } from "@/lib/errorHandler";
 import axios, {
     AxiosError,
     AxiosInstance,
@@ -7,8 +8,6 @@ import axios, {
 } from "axios";
 import * as Linking from "expo-linking";
 import { PRODUCTION_CONFIG } from "./production";
-import { Linking } from "react-native";
-import { AppError, handleError } from "@/lib/errorHandler";
 
 const RUNTIME_BASE =
   process.env.EXPO_PUBLIC_API_URL ||

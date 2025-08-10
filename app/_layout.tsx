@@ -5,11 +5,24 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
+import CustomSplashScreen from '@/components/CustomSplashScreen';
 
 export default function RootLayout() {
+  const [isSplashVisible, setIsSplashVisible] = React.useState(true);
+
+  React.useEffect(() => {
+    // Hide splash screen after a short delay for smooth transition
+    const timer = setTimeout(() => {
+      setIsSplashVisible(false);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const content = (
     <>
       <StatusBar style="light" backgroundColor="#e6007e" />
+      <CustomSplashScreen visible={isSplashVisible} />
       <Stack
         screenOptions={{
           headerShown: false,

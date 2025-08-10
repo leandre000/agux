@@ -1,7 +1,7 @@
 export default {
   primary: "#E6007E",
   primaryLight: "#FF4DA6",
-  primaryDark: "#B3005F",
+  primaryDark: "#B8005F",
   background: "#000000",
   card: "#121212",
   text: "#FFFFFF",
