@@ -93,6 +93,10 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
           // Fire-and-forget; it's okay if it fails in background
           Linking.openURL(url).catch(() => {});
         } catch {}
+      } else if (err?.status === 404) {
+        // Handle 404 errors gracefully
+        console.warn('Resource not found:', err.message);
+        // You can show a user-friendly message here
       } else if (err?.status === 503 || err?.status === 502) {
         // Handle backend maintenance or temporary issues
         console.warn('Backend temporarily unavailable:', err.message);

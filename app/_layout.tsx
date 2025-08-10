@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function RootLayout() {
   const content = (
@@ -35,7 +36,11 @@ export default function RootLayout() {
   );
 
   if (Platform.OS === 'web') {
-    return content;
+    return <ErrorBoundary>{content}</ErrorBoundary>;
   }
-  return <GestureHandlerRootView style={{ flex: 1 }}>{content}</GestureHandlerRootView>;
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#e6007e' }}>
+      <ErrorBoundary>{content}</ErrorBoundary>
+    </GestureHandlerRootView>
+  );
 }
