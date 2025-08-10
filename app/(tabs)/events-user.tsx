@@ -50,6 +50,13 @@ export default function EventsUserScreen() {
   const router = useRouter();
   const { allEvents, fetchAll, loading, error } = useEventsStore();
   const { user } = useAuthStore();
+
+  // Helper function to check if a date is today
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
@@ -80,7 +87,8 @@ export default function EventsUserScreen() {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      // For now, just update local state since we don't have a dedicated search screen
+      console.log('Searching for:', searchQuery.trim());
     }
   };
 
@@ -127,7 +135,8 @@ export default function EventsUserScreen() {
     { id: "music", label: "Music", value: "music" },
     { id: "sports", label: "Sports", value: "sports" },
     { id: "tech", label: "Technology", value: "tech" },
-    { id: "food", label: "Food & Drink", value: "food" },
+    { id: "business", label: "Business", value: "business" },
+    { id: "other", label: "Other", value: "other" },
   ];
 
   const sortOptions: SortOption[] = [
@@ -162,52 +171,47 @@ export default function EventsUserScreen() {
       if (!matchesSearch) return false;
 
       // Apply filters
-      if (selectedFilters.includes("free") && event.price > 0) return false;
+      if (selectedFilters.includes("free") && (event.price ?? 0) > 0) return false;
+      if (selectedFilters.includes("today") && !isToday(new Date(event.date))) return false;
       if (selectedFilters.includes("music") && event.category !== "music") return false;
-      if (selectedFilters.includes("sports") && event.category !== "sports") return false;
       if (selectedFilters.includes("tech") && event.category !== "tech") return false;
-      if (selectedFilters.includes("food") && event.category !== "food") return false;
+      if (selectedFilters.includes("sports") && event.category !== "sports") return false;
+      if (selectedFilters.includes("business") && event.category !== "business") return false;
+      if (selectedFilters.includes("other") && event.category !== "other") return false;
 
-      // Date filters
-      if (selectedDate === "today") {
-        const today = new Date();
-        const eventDate = new Date(event.date);
-        if (eventDate.toDateString() !== today.toDateString()) return false;
-      }
-
-      // Price range
-      if (event.price < priceRange.min || event.price > priceRange.max) return false;
+      // Apply price range filter
+      if (event.price !== undefined && (event.price < priceRange.min || event.price > priceRange.max)) return false;
 
       return true;
     });
 
     // Apply sorting
-    filtered.sort((a, b) => {
+    const sortedEvents = [...filtered].sort((a, b) => {
       switch (selectedSort) {
         case "date":
           return new Date(a.date).getTime() - new Date(b.date).getTime();
         case "date-desc":
           return new Date(b.date).getTime() - new Date(a.date).getTime();
         case "price":
-          return a.price - b.price;
+          return (a.price ?? 0) - (b.price ?? 0);
         case "price-desc":
-          return b.price - a.price;
+          return (b.price ?? 0) - (a.price ?? 0);
         case "rating":
-          return (b.rating || 0) - (a.rating || 0);
+          return (b.rating ?? 0) - (a.rating ?? 0);
         case "popularity":
-          return (b.attendees || 0) - (a.attendees || 0);
+          return (b.attendees ?? 0) - (a.attendees ?? 0);
         default:
           return 0;
       }
     });
 
-    return filtered;
-  }, [allEvents, searchQuery, selectedFilters, selectedSort, priceRange, selectedDate]);
+    return sortedEvents;
+  }, [allEvents, searchQuery, selectedFilters, selectedSort, priceRange, selectedDate, isToday]);
 
   const renderEventItem = ({ item }: { item: any }) => (
     <EventCard
       event={item}
-      variant={viewMode === "grid" ? "compact" : "list"}
+      variant={viewMode === "grid" ? "compact" : "default"}
       onPress={() => handleEventPress(item.id)}
       onFavorite={() => console.log("Favorite", item.id)}
       onShare={() => console.log("Share", item.id)}

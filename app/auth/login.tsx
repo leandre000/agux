@@ -171,7 +171,6 @@ export default function LoginScreen() {
             title="Continue with Google"
             onPress={handleGoogleLogin}
             style={styles.googleButton}
-            textStyle={styles.googleButtonText}
           />
 
           <View style={styles.signupContainer}>

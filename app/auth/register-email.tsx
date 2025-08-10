@@ -122,7 +122,7 @@ export default function RegisterEmailScreen() {
             value={password}
             onChangeText={setPassword}
             error={validationErrors.password}
-            isPassword
+            secureTextEntry
           />
         </View>
 

@@ -86,7 +86,8 @@ export default function TicketsScreen() {
   };
 
   const handleTicketPress = (ticketId: string) => {
-    router.push(`/ticket/${ticketId}`);
+    // For now, just log the ticket press since we don't have a dedicated ticket detail screen
+    console.log("Viewing ticket:", ticketId);
   };
 
   const handleDownloadTicket = (ticket: any) => {

@@ -12,4 +12,9 @@ export default {
   error: "#F44336",
   warning: "#FF9800",
   info: "#2196F3",
+  white: "#FFFFFF",
+  black: "#000000",
+  gray: "#666666",
+  lightGray: "#999999",
+  darkGray: "#333333",
 };

@@ -97,7 +97,7 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
       const err = normalizeError(error) as Error & { status?: number; code?: string };
       
       // Convert to AppError for better handling
-      const appError = new AppError(err.message, err.status, err.data);
+      const appError = new AppError(err.message, err.status);
       
       // Handle specific error cases for production
       if (appError.status === 401) {
@@ -117,7 +117,7 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
       } else if (appError.status === 404) {
         // Handle 404 errors gracefully
         console.warn('API endpoint not found:', error.config?.url);
-      } else if (appError.status >= 500) {
+      } else if (appError.status && appError.status >= 500) {
         // Log server errors for monitoring
         console.error('Server error:', {
           status: appError.status,

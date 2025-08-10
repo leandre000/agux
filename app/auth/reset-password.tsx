@@ -68,7 +68,7 @@ export default function ResetPasswordScreen() {
             value={newPassword}
             onChangeText={setNewPassword}
             error={validationErrors.newPassword}
-            isPassword
+            secureTextEntry
             style={styles.input}
           />
           <Input
@@ -76,7 +76,7 @@ export default function ResetPasswordScreen() {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             error={validationErrors.confirmPassword}
-            isPassword
+            secureTextEntry
             style={styles.input}
           />
         </View>

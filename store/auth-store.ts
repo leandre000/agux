@@ -144,7 +144,7 @@ export const useAuthStore = create<AuthStore>()(
             email: userData.email!,
             password: userData.password!,
             name: userData.username!,
-            phone_number: userData.phone_number,
+            phone_number: userData.phone,
           };
 
           const data = (

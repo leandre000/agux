@@ -50,7 +50,7 @@ export default function Input({
 
   const inputStyles = [
     styles.input,
-    leftIcon && styles.inputWithLeftIcon,
+    LeftIcon && styles.inputWithLeftIcon,
     (RightIcon || secureTextEntry) && styles.inputWithRightIcon,
     isFocused && styles.inputFocused,
     error && styles.inputError,

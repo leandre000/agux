@@ -50,14 +50,12 @@ export default function WelcomeScreen() {
                             title="Login"
                             variant="primary"
                             style={styles.loginButton}
-                            textStyle={styles.buttonText}
                             onPress={handleLogin}
                         />
                         <Button
                             title="Sign Up"
                             variant="outline"
                             style={styles.signUpButton}
-                            textStyle={styles.buttonText}
                             onPress={handleSignUp}
                         />
                     </View>

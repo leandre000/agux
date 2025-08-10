@@ -56,7 +56,7 @@ export default function RegisterPhoneScreen() {
             value={password}
             onChangeText={setPassword}
             error={validationErrors.password}
-            isPassword
+            secureTextEntry
           />
         </View>
         {error && <Text style={styles.errorText}>{error}</Text>}

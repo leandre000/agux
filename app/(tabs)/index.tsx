@@ -3,11 +3,12 @@ import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
+import { useEventsStore } from "@/store/events-store";
 import { useRouter } from "expo-router";
 import {
     Bell
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
     Alert,
     Dimensions,
@@ -25,6 +26,23 @@ const { width } = Dimensions.get("window");
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
+  const { featuredEvents, allEvents, loading } = useEventsStore();
+  
+  // Compute upcoming events from all events
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    return allEvents
+      .filter(event => new Date(event.date) > now)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 6);
+  }, [allEvents]);
+
+  // Helper function to check if a date is today
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([
@@ -39,64 +57,6 @@ export default function HomeScreen() {
     "sports games",
     "business networking"
   ]);
-
-  const featuredEvents = [
-    {
-      id: "1",
-      title: "Agura Launch Event",
-      location: "Downtown Convention Center",
-      image: require("@/assets/images/m1.png"),
-      price: 25,
-      category: "tech",
-      date: "2025-01-15T18:00:00.000Z",
-      attendees: 150,
-      rating: 4.8,
-      description: "Join us for the official launch of Agura - the future of event ticketing and management.",
-      organizer: "Agura Team"
-    },
-    {
-      id: "2",
-      title: "Summer Music Festival",
-      location: "Central Park",
-      image: require("@/assets/images/m2.png"),
-      price: 45,
-      category: "music",
-      date: "2025-01-20T19:00:00.000Z",
-      attendees: 500,
-      rating: 4.9,
-      description: "Experience the hottest summer beats with top artists from around the world.",
-      organizer: "Music Events Inc"
-    },
-  ];
-
-  const upcomingEvents = [
-    {
-      id: "3",
-      title: "Food & Wine Expo",
-      location: "City Hall Plaza",
-      image: require("@/assets/images/m1.png"),
-      price: 35,
-      category: "food",
-      date: "2025-01-25T17:00:00.000Z",
-      attendees: 200,
-      rating: 4.7,
-      description: "Taste the finest cuisines and wines from renowned chefs and wineries.",
-      organizer: "Culinary Arts Society"
-    },
-    {
-      id: "4",
-      title: "Tech Startup Meetup",
-      location: "Innovation Hub",
-      image: require("@/assets/images/m2.png"),
-      price: 0,
-      category: "tech",
-      date: "2025-01-30T18:30:00.000Z",
-      attendees: 75,
-      rating: 4.6,
-      description: "Connect with fellow entrepreneurs and investors in the tech ecosystem.",
-      organizer: "Startup Community"
-    },
-  ];
 
   const quickActions = [
     {
@@ -115,18 +75,27 @@ export default function HomeScreen() {
     },
     {
       id: "3",
-      title: "Food Orders",
-      icon: "🍕",
+      title: "Food & Drinks",
+      icon: "🍔",
       color: "#f59e0b",
-      onPress: () => router.push("/(tabs)/menu")
+      onPress: () => router.push("/(tabs)/events-user")
     },
     {
       id: "4",
-      title: "Profile",
-      icon: "👤",
+      title: "Get Help",
+      icon: "❓",
       color: "#10b981",
-      onPress: () => router.push("/(tabs)/profile")
+      onPress: () => router.push("/profile/help-support")
     }
+  ];
+
+  const categories = [
+    { name: "Music", icon: "🎵", color: Colors.primary },
+    { name: "Sports", icon: "⚽", color: Colors.success },
+    { name: "Technology", icon: "💻", color: Colors.info },
+    { name: "Food", icon: "🍕", color: Colors.warning },
+    { name: "Art", icon: "🎨", color: Colors.error },
+    { name: "Business", icon: "💼", color: Colors.primaryLight }
   ];
 
   const handleSearch = (query: string) => {
@@ -135,8 +104,8 @@ export default function HomeScreen() {
       const newRecentSearches = [query.trim(), ...recentSearches.filter(s => s !== query.trim())].slice(0, 5);
       setRecentSearches(newRecentSearches);
       
-      // Navigate to search results
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+      // For now, just update local state since we don't have a dedicated search screen
+      console.log('Searching for:', query.trim());
     }
   };
 
@@ -179,7 +148,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>Hello, {user?.name || 'Guest'}! 👋</Text>
+            <Text style={styles.greeting}>Hello, {user?.username || 'Guest'}! 👋</Text>
             <Text style={styles.subtitle}>Discover amazing events today</Text>
           </View>
           <TouchableOpacity 
@@ -227,9 +196,8 @@ export default function HomeScreen() {
           <SectionHeader
             title="Featured Events"
             subtitle="Handpicked events just for you"
-            onPress={handleViewAllEvents}
-            showButton={true}
-            buttonText="View All"
+            showSeeAll={true}
+            onSeeAllPress={handleViewAllEvents}
           />
           <ScrollView 
             horizontal 
@@ -256,9 +224,8 @@ export default function HomeScreen() {
           <SectionHeader
             title="Upcoming Events"
             subtitle="Events happening soon"
-            onPress={handleViewAllUpcoming}
-            showButton={true}
-            buttonText="View All"
+            showSeeAll={true}
+            onSeeAllPress={handleViewAllUpcoming}
           />
           {upcomingEvents.map((event) => (
             <EventCard
@@ -275,18 +242,14 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Browse by Category</Text>
           <View style={styles.categoriesGrid}>
-            {[
-              { name: "Music", icon: "🎵", color: "#e6007e" },
-              { name: "Sports", icon: "⚽", color: "#3b82f6" },
-              { name: "Food", icon: "🍕", color: "#f59e0b" },
-              { name: "Tech", icon: "💻", color: "#10b981" },
-              { name: "Art", icon: "🎨", color: "#8b5cf6" },
-              { name: "Business", icon: "💼", color: "#6b7280" }
-            ].map((category, index) => (
+            {categories.map((category, index) => (
               <TouchableOpacity
                 key={index}
                 style={[styles.categoryButton, { backgroundColor: category.color + '20' }]}
-                onPress={() => router.push(`/category/${category.name.toLowerCase()}`)}
+                onPress={() => {
+                  // For now, just log the category selection since we don't have dedicated category screens
+                  console.log('Selected category:', category.name);
+                }}
                 activeOpacity={0.8}
               >
                 <Text style={styles.categoryIcon}>{category.icon}</Text>

@@ -6,11 +6,13 @@ import { ArrowLeft, Menu, Bell, Search } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 
 interface HeaderProps {
-  title: string;
+  title?: string;
   showBack?: boolean;
   showMenu?: boolean;
   showBell?: boolean;
   showSearch?: boolean;
+  showLogo?: boolean;
+  showProfile?: boolean;
   onMenuPress?: () => void;
   onBellPress?: () => void;
   onSearchPress?: () => void;
@@ -23,6 +25,8 @@ export default function Header({
   showMenu = false,
   showBell = false,
   showSearch = false,
+  showLogo = false,
+  showProfile = false,
   onMenuPress,
   onBellPress,
   onSearchPress,
@@ -64,9 +68,13 @@ export default function Header({
         </View>
 
         <View style={styles.titleSection}>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
+          {showLogo ? (
+            <Text style={styles.logo}>AGURA</Text>
+          ) : title ? (
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.rightSection}>
@@ -136,6 +144,13 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     textAlign: "center",
     letterSpacing: 0.5,
+  },
+  logo: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#ffffff",
+    textAlign: "center",
+    letterSpacing: 1,
   },
   iconButton: {
     width: 44,

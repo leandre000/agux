@@ -22,7 +22,7 @@ import {
     Shield,
     Star
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
     Animated,
     Dimensions,
@@ -40,7 +40,14 @@ const { width } = Dimensions.get("window");
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const [fadeAnim] = useState(new Animated.Value(0));
+
+  // Helper function to check if a date is today
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -133,7 +140,10 @@ export default function ProfileScreen() {
       title: "Favorites",
       subtitle: "Events you've saved",
       icon: Heart,
-      onPress: () => router.push("/profile/favorites"),
+      onPress: () => {
+        // For now, just log since we don't have a dedicated favorites screen
+        console.log('Navigate to favorites');
+      },
       color: "#ef4444",
       badge: 8,
     },
@@ -160,7 +170,10 @@ export default function ProfileScreen() {
       title: "Privacy & Security",
       subtitle: "Manage your privacy settings",
       icon: Shield,
-      onPress: () => router.push("/profile/privacy"),
+      onPress: () => {
+        // For now, just log since we don't have a dedicated privacy screen
+        console.log('Navigate to privacy settings');
+      },
       color: "#059669",
       badge: null,
     },
@@ -224,7 +237,10 @@ export default function ProfileScreen() {
     <View style={styles.achievementsSection}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Achievements</Text>
-        <TouchableOpacity onPress={() => router.push("/profile/achievements")}>
+        <TouchableOpacity onPress={() => {
+          // For now, just log since we don't have a dedicated achievements screen
+          console.log('Navigate to achievements');
+        }}>
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
@@ -233,7 +249,10 @@ export default function ProfileScreen() {
           <TouchableOpacity
             key={achievement.id}
             style={styles.achievementCard}
-            onPress={() => router.push(`/profile/achievements/${achievement.id}`)}
+            onPress={() => {
+              // For now, just log since we don't have a dedicated achievement detail screen
+              console.log('View achievement:', achievement.id);
+            }}
             activeOpacity={0.7}
           >
             <View style={[
@@ -264,7 +283,10 @@ export default function ProfileScreen() {
     <View style={styles.activitySection}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <TouchableOpacity onPress={() => router.push("/profile/activity")}>
+        <TouchableOpacity onPress={() => {
+          // For now, just log since we don't have a dedicated activity screen
+          console.log('Navigate to activity');
+        }}>
           <Text style={styles.seeAllText}>See All</Text>
         </TouchableOpacity>
       </View>
@@ -273,7 +295,10 @@ export default function ProfileScreen() {
           <TouchableOpacity
             key={activity.id}
             style={styles.activityItem}
-            onPress={() => router.push(`/profile/activity/${activity.id}`)}
+            onPress={() => {
+              // For now, just log since we don't have a dedicated activity detail screen
+              console.log('View activity:', activity.id);
+            }}
             activeOpacity={0.7}
           >
             <View style={[styles.activityIcon, { backgroundColor: `${Colors.primary}15` }]}>
@@ -311,7 +336,7 @@ export default function ProfileScreen() {
           </View>
           
           <View style={styles.userNameContainer}>
-            <Text style={styles.userName}>{user?.name || "User Name"}</Text>
+            <Text style={styles.userName}>{user?.username || "User Name"}</Text>
             <TouchableOpacity
               style={styles.editProfileButton}
               onPress={() => router.push("/profile/setup")}
@@ -354,7 +379,7 @@ export default function ProfileScreen() {
 
         {/* Menu Items */}
         <View style={styles.menuSection}>
-          <Text style={styles.menuSectionTitle}>Account Settings</Text>
+          <Text style={styles.sectionTitle}>Account Settings</Text>
           {profileMenuItems.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -493,9 +518,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "500",
   },
-  editProfileButton: {
-    minWidth: 120,
-  },
+
   statsCard: {
     backgroundColor: Colors.card,
     marginHorizontal: 20,
