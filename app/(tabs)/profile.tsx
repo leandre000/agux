@@ -225,7 +225,7 @@ export default function ProfileScreen() {
         <View style={styles.statItem}>
           <View style={[styles.statIcon, { backgroundColor: "#8b5cf615" }]}>
             <Star size={20} color="#8b5cf6" />
-          </View>
+      </View>
           <Text style={styles.statNumber}>{userStats.averageRating}</Text>
           <Text style={styles.statLabel}>Rating</Text>
         </View>
@@ -356,8 +356,8 @@ export default function ProfileScreen() {
               <Star size={16} color="rgba(255, 255, 255, 0.8)" />
               <Text style={styles.metaText}>{userStats.averageRating} average rating</Text>
             </View>
-          </View>
-          
+      </View>
+
           <Button
             title="Edit Profile"
             variant="outline"
@@ -404,7 +404,7 @@ export default function ProfileScreen() {
                 )}
                 <ChevronRight size={20} color={Colors.textSecondary} />
               </View>
-            </TouchableOpacity>
+      </TouchableOpacity>
           ))}
         </View>
 
