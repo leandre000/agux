@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 export default function SplashScreen() {
     const router = useRouter();

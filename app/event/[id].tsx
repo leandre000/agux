@@ -38,19 +38,10 @@ export default function EventDetailScreen() {
   
   const [event, setEvent] = useState<Event | null>(null);
   const [categories, setCategories] = useState<TicketCategory[]>([]);
-  const [coords, setCoords] = useState<{
-    latitude: number | null;
-    longitude: number | null;
-  }>({
-    latitude: null,
-    longitude: null,
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number }>({
+    latitude: -1.9441,
+    longitude: 30.0619,
   });
-
-  useEffect(() => {
-    if (id) {
-      loadEventData();
-    }
-  }, [id, loadEventData]);
 
   const loadEventData = useCallback(async () => {
     if (!id) return;
@@ -80,6 +71,12 @@ export default function EventDetailScreen() {
       Alert.alert("Error", error.message || "Failed to load event details");
     }
   }, [id, fetchEvent, fetchTicketCategories]);
+
+  useEffect(() => {
+    if (id) {
+      loadEventData();
+    }
+  }, [id, loadEventData]);
 
   const handleBuyTicket = (category: TicketCategory) => {
     if (!category.available_quantity || category.available_quantity <= 0) {

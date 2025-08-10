@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/Colors';
+import Colors from '@/constants/Colors';
 import { useTicketsStore } from '@/store/tickets-store';
 import { useRouter } from 'expo-router';
 import { Calendar, Clock, MapPin, Ticket } from 'lucide-react-native';
@@ -8,16 +8,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TicketsScreen() {
   const router = useRouter();
-  const { tickets, loadTickets } = useTicketsStore();
+  const { userTickets, fetchUserTickets } = useTicketsStore();
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      await loadTickets();
+      await fetchUserTickets();
     } catch (error) {
       console.error('Error loading tickets:', error);
     }
-  }, [loadTickets]);
+  }, [fetchUserTickets]);
 
   useEffect(() => {
     load();
@@ -30,7 +30,7 @@ export default function TicketsScreen() {
   }, [load]);
 
   const handleTicketPress = (ticketId: string) => {
-    router.push(`/ticket/${ticketId}`);
+    router.push('/profile/settings');
   };
 
   const renderTicket = ({ item }: { item: any }) => (
@@ -76,7 +76,7 @@ export default function TicketsScreen() {
     </TouchableOpacity>
   );
 
-  if (tickets.length === 0) {
+  if (userTickets.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyState}>
@@ -104,8 +104,8 @@ export default function TicketsScreen() {
       </View>
 
       <FlatList
-        data={tickets}
-        keyExtractor={(item) => item.id}
+        data={userTickets}
+        keyExtractor={(item) => String(item.id || item.ticket_id || Math.random())}
         renderItem={renderTicket}
         contentContainerStyle={styles.ticketList}
         showsVerticalScrollIndicator={false}

@@ -22,15 +22,6 @@ export default function EventMenuScreen() {
     clearError 
   } = useFoodStore();
 
-  const currentMenuItems = id ? menuItems[id] || [] : [];
-
-  useEffect(() => {
-    if (id) {
-      setCurrentEventId(id);
-      loadMenuItems();
-    }
-  }, [id, setCurrentEventId, loadMenuItems]);
-
   const loadMenuItems = useCallback(async () => {
     if (!id) return;
     
@@ -41,6 +32,15 @@ export default function EventMenuScreen() {
       console.error('Failed to load menu items:', error);
     }
   }, [id, clearError, fetchMenuItems]);
+
+  const currentMenuItems = id ? menuItems[id] || [] : [];
+
+  useEffect(() => {
+    if (id) {
+      setCurrentEventId(id);
+      loadMenuItems();
+    }
+  }, [id, setCurrentEventId, loadMenuItems]);
 
   const handleOrderItem = (item: MenuItem) => {
     if (!item.available) return;

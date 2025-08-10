@@ -1,7 +1,7 @@
-import { Button } from '@/components/Button';
-import { EventCard } from '@/components/EventCard';
-import { SearchBar } from '@/components/SearchBar';
-import { Colors } from '@/constants/Colors';
+import Button from '@/components/Button';
+import EventCard from '@/components/EventCard';
+import SearchBar from '@/components/SearchBar';
+import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
 import { useEventsStore } from '@/store/events-store';
 import { useRouter } from 'expo-router';
@@ -11,18 +11,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function TabOneScreen() {
   const router = useRouter();
-  const { events, loadEvents } = useEventsStore();
+  const { allEvents, fetchAll } = useEventsStore();
   const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const loadData = useCallback(async () => {
     try {
-      await loadEvents();
+      await fetchAll();
     } catch (error) {
       console.error('Error loading events:', error);
     }
-  }, [loadEvents]);
+  }, [fetchAll]);
 
   useEffect(() => {
     loadData();
@@ -39,13 +39,9 @@ export default function TabOneScreen() {
     router.push("/(tabs)");
   }, [router]);
 
-  const handleEventPress = useCallback((eventId: string) => {
-    router.push(`/event/${eventId}`);
-  }, [router]);
-
-  const filteredEvents = events.filter(event => 
+  const filteredEvents = allEvents.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    event.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (event.description?.toLowerCase() || '').includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -76,7 +72,6 @@ export default function TabOneScreen() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
-              onPress={() => handleEventPress(item.id)}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -107,7 +102,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: Colors.text,
   },
   subtitle: {
     fontSize: 16,
@@ -127,14 +122,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: Colors.text,
+    marginBottom: 16,
   },
   seeAllText: {
+    color: Colors.text,
     fontSize: 14,
-    color: Colors.primary,
-    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   viewAllButton: {
     marginTop: 20,
+    alignSelf: 'center',
   },
 });

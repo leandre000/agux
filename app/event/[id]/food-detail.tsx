@@ -25,12 +25,6 @@ export default function FoodDetailScreen() {
   const currentMenuItems = id ? menuItems[id] || [] : [];
   const foodItem = currentMenuItems.find(item => item.id === itemId);
 
-  useEffect(() => {
-    if (id && currentMenuItems.length === 0) {
-      loadMenuItems();
-    }
-  }, [id, itemId, currentMenuItems.length, loadMenuItems]);
-
   const loadMenuItems = useCallback(async () => {
     if (!id) return;
     
@@ -41,6 +35,12 @@ export default function FoodDetailScreen() {
       console.error('Failed to load menu items:', error);
     }
   }, [id, clearError, fetchMenuItems]);
+
+  useEffect(() => {
+    if (id && itemId) {
+      loadMenuItems();
+    }
+  }, [id, itemId, currentMenuItems.length, loadMenuItems]);
 
   const handleAddToCart = () => {
     if (!foodItem || !foodItem.available) return;

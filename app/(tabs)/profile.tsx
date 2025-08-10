@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/Colors';
+import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
 import { useRouter } from 'expo-router';
 import { Heart, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react-native';
@@ -21,29 +21,29 @@ export default function ProfileScreen() {
 
   const menuItems = [
     {
-      icon: <User size={24} color={Colors.textPrimary} />,
+      icon: <User size={24} color={Colors.text} />,
       title: 'Personal Information',
-      onPress: () => router.push('/profile/personal-info'),
+      onPress: () => router.push('/profile/settings'),
     },
     {
-      icon: <Heart size={24} color={Colors.textPrimary} />,
+      icon: <Heart size={24} color={Colors.text} />,
       title: 'My Categories',
-      onPress: () => router.push('/profile/categories'),
+      onPress: () => router.push('/profile/settings'),
     },
     {
-      icon: <Settings size={24} color={Colors.textPrimary} />,
+      icon: <Settings size={24} color={Colors.text} />,
       title: 'Settings',
       onPress: () => router.push('/profile/settings'),
     },
     {
-      icon: <HelpCircle size={24} color={Colors.textPrimary} />,
+      icon: <HelpCircle size={24} color={Colors.text} />,
       title: 'Help & Support',
       onPress: () => router.push('/profile/help-support'),
     },
     {
-      icon: <Shield size={24} color={Colors.textPrimary} />,
+      icon: <Shield size={24} color={Colors.text} />,
       title: 'Privacy & Security',
-      onPress: () => router.push('/profile/privacy-security'),
+      onPress: () => router.push('/profile/settings'),
     },
   ];
 
@@ -55,7 +55,7 @@ export default function ProfileScreen() {
 
       <View style={styles.profileSection}>
         <Image
-          source={{ uri: user?.profilePicture || 'https://via.placeholder.com/80' }}
+          source={{ uri: user?.profileImage || 'https://via.placeholder.com/80' }}
           style={styles.profileImage}
         />
         <View style={styles.profileInfo}>
