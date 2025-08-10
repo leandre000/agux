@@ -1,34 +1,50 @@
-import React, { useState, useCallback, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  FlatList,
-  RefreshControl,
-  ActivityIndicator,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { 
-  Filter, 
-  MapPin, 
-  Calendar, 
-  Users, 
-  Star,
-  Search,
-  Sliders,
-  Grid3X3,
-  List
-} from "lucide-react-native";
+import Button from "@/components/Button";
+import EventCard from "@/components/EventCard";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
-import EventCard from "@/components/EventCard";
-import Button from "@/components/Button";
 import Colors from "@/constants/Colors";
-import { useEventsStore } from "@/store/events-store";
 import { useAuthStore } from "@/store/auth-store";
+import { useEventsStore } from "@/store/events-store";
+import { useRouter } from "expo-router";
+import {
+    Calendar,
+    ChevronDown,
+    DollarSign,
+    Filter,
+    Grid3X3,
+    List,
+    Sliders,
+    Star,
+    Users,
+    X
+} from "lucide-react-native";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+type FilterOption = {
+  id: string;
+  label: string;
+  value: string;
+};
+
+type SortOption = {
+  id: string;
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+};
 
 export default function EventsUserScreen() {
   const router = useRouter();
@@ -38,6 +54,11 @@ export default function EventsUserScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showFilters, setShowFilters] = useState(false);
+  const [showSortModal, setShowSortModal] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [selectedSort, setSelectedSort] = useState("date");
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
+  const [selectedDate, setSelectedDate] = useState<string>("all");
 
   const loadData = useCallback(async () => {
     try {
@@ -75,17 +96,121 @@ export default function EventsUserScreen() {
     setViewMode(viewMode === "list" ? "grid" : "list");
   };
 
-  const filteredEvents = allEvents.filter((event) =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (event.description?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-    event.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSortPress = () => {
+    setShowSortModal(true);
+  };
+
+  const handleFilterToggle = (filterId: string) => {
+    setSelectedFilters(prev => 
+      prev.includes(filterId) 
+        ? prev.filter(id => id !== filterId)
+        : [...prev, filterId]
+    );
+  };
+
+  const handleSortSelect = (sortId: string) => {
+    setSelectedSort(sortId);
+    setShowSortModal(false);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedFilters([]);
+    setPriceRange({ min: 0, max: 1000 });
+    setSelectedDate("all");
+  };
+
+  const filterOptions: FilterOption[] = [
+    { id: "free", label: "Free Events", value: "free" },
+    { id: "today", label: "Today", value: "today" },
+    { id: "weekend", label: "This Weekend", value: "weekend" },
+    { id: "month", label: "This Month", value: "month" },
+    { id: "music", label: "Music", value: "music" },
+    { id: "sports", label: "Sports", value: "sports" },
+    { id: "tech", label: "Technology", value: "tech" },
+    { id: "food", label: "Food & Drink", value: "food" },
+  ];
+
+  const sortOptions: SortOption[] = [
+    { id: "date", label: "Date (Earliest)", value: "date", icon: <Calendar size={16} color={Colors.text} /> },
+    { id: "date-desc", label: "Date (Latest)", value: "date-desc", icon: <Calendar size={16} color={Colors.text} /> },
+    { id: "price", label: "Price (Low to High)", value: "price", icon: <DollarSign size={16} color={Colors.text} /> },
+    { id: "price-desc", label: "Price (High to Low)", value: "price-desc", icon: <DollarSign size={16} color={Colors.text} /> },
+    { id: "rating", label: "Rating (High to Low)", value: "rating", icon: <Star size={16} color={Colors.text} /> },
+    { id: "popularity", label: "Popularity", value: "popularity", icon: <Users size={16} color={Colors.text} /> },
+  ];
+
+  const recentSearches = [
+    "music festival",
+    "tech conference",
+    "food expo",
+    "art exhibition"
+  ];
+
+  const popularSearches = [
+    "summer events",
+    "live music",
+    "sports games",
+    "business networking"
+  ];
+
+  const filteredAndSortedEvents = useMemo(() => {
+    let filtered = allEvents.filter((event) => {
+      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.description?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      // Apply filters
+      if (selectedFilters.includes("free") && event.price > 0) return false;
+      if (selectedFilters.includes("music") && event.category !== "music") return false;
+      if (selectedFilters.includes("sports") && event.category !== "sports") return false;
+      if (selectedFilters.includes("tech") && event.category !== "tech") return false;
+      if (selectedFilters.includes("food") && event.category !== "food") return false;
+
+      // Date filters
+      if (selectedDate === "today") {
+        const today = new Date();
+        const eventDate = new Date(event.date);
+        if (eventDate.toDateString() !== today.toDateString()) return false;
+      }
+
+      // Price range
+      if (event.price < priceRange.min || event.price > priceRange.max) return false;
+
+      return true;
+    });
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (selectedSort) {
+        case "date":
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case "date-desc":
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case "price":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "rating":
+          return (b.rating || 0) - (a.rating || 0);
+        case "popularity":
+          return (b.attendees || 0) - (a.attendees || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [allEvents, searchQuery, selectedFilters, selectedSort, priceRange, selectedDate]);
 
   const renderEventItem = ({ item }: { item: any }) => (
     <EventCard
       event={item}
       variant={viewMode === "grid" ? "compact" : "list"}
       onPress={() => handleEventPress(item.id)}
+      onFavorite={() => console.log("Favorite", item.id)}
+      onShare={() => console.log("Share", item.id)}
     />
   );
 
@@ -96,15 +221,15 @@ export default function EventsUserScreen() {
       </View>
       <Text style={styles.emptyStateTitle}>No events found</Text>
       <Text style={styles.emptyStateMessage}>
-        {searchQuery
-          ? `No events match "${searchQuery}". Try adjusting your search.`
+        {searchQuery || selectedFilters.length > 0
+          ? "No events match your current filters. Try adjusting your search or filters."
           : "There are no events available at the moment."}
       </Text>
-      {searchQuery && (
+      {(searchQuery || selectedFilters.length > 0) && (
         <Button
-          title="Clear Search"
+          title="Clear All Filters"
           variant="outline"
-          onPress={() => setSearchQuery("")}
+          onPress={clearAllFilters}
           style={styles.clearSearchButton}
         />
       )}
@@ -113,21 +238,82 @@ export default function EventsUserScreen() {
 
   const renderFilters = () => (
     <View style={styles.filtersContainer}>
-      <View style={styles.filterRow}>
-        <TouchableOpacity style={styles.filterChip} activeOpacity={0.7}>
-          <Text style={styles.filterChipText}>All Events</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterChip} activeOpacity={0.7}>
-          <Text style={styles.filterChipText}>Today</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterChip} activeOpacity={0.7}>
-          <Text style={styles.filterChipText}>This Week</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterChip} activeOpacity={0.7}>
-          <Text style={styles.filterChipText}>Free</Text>
-        </TouchableOpacity>
+      <View style={styles.filterHeader}>
+        <Text style={styles.filterTitle}>Filters</Text>
+        {selectedFilters.length > 0 && (
+          <TouchableOpacity onPress={clearAllFilters} style={styles.clearFiltersButton}>
+            <Text style={styles.clearFiltersText}>Clear All</Text>
+          </TouchableOpacity>
+        )}
       </View>
+      
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        {filterOptions.map((filter) => (
+          <TouchableOpacity
+            key={filter.id}
+            style={[
+              styles.filterChip,
+              selectedFilters.includes(filter.id) && styles.filterChipActive
+            ]}
+            onPress={() => handleFilterToggle(filter.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.filterChipText,
+              selectedFilters.includes(filter.id) && styles.filterChipTextActive
+            ]}>
+              {filter.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
+  );
+
+  const renderSortModal = () => (
+    <Modal
+      visible={showSortModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowSortModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Sort Events</Text>
+            <TouchableOpacity onPress={() => setShowSortModal(false)}>
+              <X size={24} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView style={styles.sortOptionsList}>
+            {sortOptions.map((option) => (
+              <TouchableOpacity
+                key={option.id}
+                style={[
+                  styles.sortOption,
+                  selectedSort === option.id && styles.sortOptionActive
+                ]}
+                onPress={() => handleSortSelect(option.id)}
+              >
+                <View style={styles.sortOptionContent}>
+                  {option.icon}
+                  <Text style={[
+                    styles.sortOptionText,
+                    selectedSort === option.id && styles.sortOptionTextActive
+                  ]}>
+                    {option.label}
+                  </Text>
+                </View>
+                {selectedSort === option.id && (
+                  <View style={styles.sortOptionCheck} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
   );
 
   if (loading && !refreshing) {
@@ -153,34 +339,67 @@ export default function EventsUserScreen() {
             placeholder="Search events, venues, or categories..."
             value={searchQuery}
             onChangeText={setSearchQuery}
-            onFilter={handleFilterPress}
+            onSearch={handleSearch}
             showFilter={true}
+            showSuggestions={true}
+            recentSearches={recentSearches}
+            popularSearches={popularSearches}
           />
         </View>
 
-        {/* View Mode Toggle */}
+        {/* Controls Section */}
         <View style={styles.controlsSection}>
-          <View style={styles.viewModeToggle}>
-            <TouchableOpacity
-              style={[
-                styles.viewModeButton,
-                viewMode === "list" && styles.viewModeButtonActive,
-              ]}
-              onPress={() => setViewMode("list")}
-              activeOpacity={0.7}
-            >
-              <List size={20} color={viewMode === "list" ? Colors.primary : Colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.viewModeButton,
-                viewMode === "grid" && styles.viewModeButtonActive,
-              ]}
-              onPress={() => setViewMode("grid")}
-              activeOpacity={0.7}
-            >
-              <Grid3X3 size={20} color={viewMode === "grid" ? Colors.primary : Colors.textSecondary} />
-            </TouchableOpacity>
+          <View style={styles.controlsRow}>
+            <View style={styles.viewModeToggle}>
+              <TouchableOpacity
+                style={[
+                  styles.viewModeButton,
+                  viewMode === "list" && styles.viewModeButtonActive,
+                ]}
+                onPress={() => setViewMode("list")}
+                activeOpacity={0.7}
+              >
+                <List size={20} color={viewMode === "list" ? Colors.primary : Colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.viewModeButton,
+                  viewMode === "grid" && styles.viewModeButtonActive,
+                ]}
+                onPress={() => setViewMode("grid")}
+                activeOpacity={0.7}
+              >
+                <Grid3X3 size={20} color={viewMode === "grid" ? Colors.primary : Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.rightControls}>
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={handleSortPress}
+                activeOpacity={0.7}
+              >
+                <Sliders size={20} color={Colors.text} />
+                <Text style={styles.sortButtonText}>Sort</Text>
+                <ChevronDown size={16} color={Colors.text} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.filterButton,
+                  selectedFilters.length > 0 && styles.filterButtonActive
+                ]}
+                onPress={handleFilterPress}
+                activeOpacity={0.7}
+              >
+                <Filter size={20} color={selectedFilters.length > 0 ? Colors.white : Colors.text} />
+                {selectedFilters.length > 0 && (
+                  <View style={styles.filterBadge}>
+                    <Text style={styles.filterBadgeText}>{selectedFilters.length}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -190,13 +409,17 @@ export default function EventsUserScreen() {
         {/* Events List */}
         <View style={styles.eventsSection}>
           <SectionHeader
-            title={`${filteredEvents.length} Events`}
-            subtitle={searchQuery ? `Results for "${searchQuery}"` : "Discover amazing events"}
+            title={`${filteredAndSortedEvents.length} Events`}
+            subtitle={
+              searchQuery || selectedFilters.length > 0
+                ? `Filtered results`
+                : "Discover amazing events"
+            }
             showSeeAll={false}
           />
           
           <FlatList
-            data={filteredEvents}
+            data={filteredAndSortedEvents}
             keyExtractor={(item) => item.id}
             renderItem={renderEventItem}
             key={viewMode}
@@ -212,6 +435,8 @@ export default function EventsUserScreen() {
           />
         </View>
       </View>
+
+      {renderSortModal()}
     </SafeAreaView>
   );
 }
@@ -233,12 +458,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
+  controlsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   viewModeToggle: {
     flexDirection: "row",
     backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 4,
-    alignSelf: "flex-start",
   },
   viewModeButton: {
     paddingHorizontal: 16,
@@ -251,14 +480,76 @@ const styles = StyleSheet.create({
   viewModeButtonActive: {
     backgroundColor: "rgba(230, 0, 126, 0.1)",
   },
+  rightControls: {
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+  },
+  sortButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: Colors.text,
+  },
+  filterButton: {
+    position: "relative",
+    padding: 8,
+    backgroundColor: Colors.card,
+    borderRadius: 8,
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+  },
+  filterBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   filtersContainer: {
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
-  filterRow: {
+  filterHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  filterTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+  },
+  clearFiltersButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  clearFiltersText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: "500",
+  },
+  filterRow: {
     gap: 12,
-    flexWrap: "wrap",
   },
   filterChip: {
     paddingHorizontal: 16,
@@ -268,10 +559,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
   },
+  filterChipActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   filterChipText: {
     fontSize: 14,
     fontWeight: "500",
     color: Colors.text,
+  },
+  filterChipTextActive: {
+    color: Colors.white,
   },
   eventsSection: {
     flex: 1,
@@ -326,5 +624,65 @@ const styles = StyleSheet.create({
   },
   clearSearchButton: {
     minWidth: 120,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "70%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.card,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.text,
+  },
+  sortOptionsList: {
+    padding: 20,
+  },
+  sortOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  sortOptionActive: {
+    backgroundColor: "rgba(230, 0, 126, 0.1)",
+  },
+  sortOptionContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  sortOptionText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  sortOptionTextActive: {
+    color: Colors.primary,
+    fontWeight: "500",
+  },
+  sortOptionCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

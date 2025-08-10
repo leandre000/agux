@@ -1,6 +1,7 @@
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
+import NetworkError from "@/components/NetworkError";
 import { API_BASE_URL } from "@/config/api";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
@@ -9,7 +10,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
-import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function LoginScreen() {
     identifier: "",
     password: "",
   });
+  const [networkError, setNetworkError] = useState(false);
 
   const validateForm = () => {
     const errors = { identifier: "", password: "" };
@@ -37,16 +39,29 @@ export default function LoginScreen() {
     if (!validateForm()) return;
 
     try {
+      setNetworkError(false);
       await login({ identifier, password });
       router.replace("/(tabs)");
-    } catch {
-      // error handled in store
-      // Optionally log or toast error here
+    } catch (error: any) {
+      // Check if it's a network error
+      if (error?.message?.includes('Network Error') || 
+          error?.message?.includes('timeout') ||
+          error?.code === 'NETWORK_ERROR') {
+        setNetworkError(true);
+      } else {
+        // Show error alert for other errors
+        Alert.alert(
+          "Login Failed",
+          error?.message || "Please check your credentials and try again.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
+      setNetworkError(false);
       const redirectUrl = Linking.createURL("/auth/login");
       const authUrl = `${API_BASE_URL}/auth/google`; // server route prefix commonly '/auth'
       const result = await WebBrowser.openAuthSessionAsync(
@@ -75,10 +90,38 @@ export default function LoginScreen() {
           return;
         }
       }
-    } catch {
-      // ignore, surfaced via UI if needed
+    } catch (error: any) {
+      if (error?.message?.includes('Network Error') || 
+          error?.message?.includes('timeout')) {
+        setNetworkError(true);
+      } else {
+        Alert.alert(
+          "Google Login Failed",
+          "Unable to connect to Google. Please try again.",
+          [{ text: "OK" }]
+        );
+      }
     }
   };
+
+  const handleRetry = () => {
+    setNetworkError(false);
+    setValidationErrors({ identifier: "", password: "" });
+  };
+
+  // Show network error if there's a network issue
+  if (networkError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <Header title="Login" showBack />
+        <NetworkError 
+          message="Unable to connect to our servers. Please check your internet connection."
+          onRetry={handleRetry}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -102,15 +145,15 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             error={validationErrors.password}
-            isPassword
+            secureTextEntry
             style={styles.input}
           />
 
           <TouchableOpacity
-            onPress={() => router.push("/auth/forgot-password")}
             style={styles.forgotPasswordLink}
+            onPress={() => router.push("/auth/forgot-password")}
           >
-            <Text style={styles.forgotPasswordText}>Forgot Password</Text>
+            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
 

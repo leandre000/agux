@@ -1,14 +1,14 @@
+import Colors from "@/constants/Colors";
+import { Eye, EyeOff, LucideIcon } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { LucideIcon, Eye, EyeOff } from "lucide-react-native";
-import Colors from "@/constants/Colors";
 
 interface InputProps extends TextInputProps {
   label?: string;

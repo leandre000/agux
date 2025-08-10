@@ -10,8 +10,13 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
   const router = useRouter();
+
+  useEffect(() => {
+    // Check authentication status on mount
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -24,7 +29,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Checking authentication...</Text>
       </View>
     );
   }

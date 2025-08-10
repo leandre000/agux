@@ -49,6 +49,7 @@ interface AuthStore extends AuthState {
   verifyAccount: (code: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  checkAuthStatus: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -62,6 +63,35 @@ export const useAuthStore = create<AuthStore>()(
       setLoading: (isLoading) => set({ isLoading }),
 
       setError: (error) => set({ error }),
+
+      checkAuthStatus: async () => {
+        try {
+          const token = await readToken();
+          if (token) {
+            // Verify token with backend
+            const response = await authedApi.get('/api/users/me');
+            if (response.status === 200) {
+              const user = response.data;
+              const mappedUser: User = {
+                id: user.user_id,
+                email: user.email,
+                username: user.name,
+              };
+              set({ user: mappedUser, isAuthenticated: true, isLoading: false });
+            } else {
+              // Token invalid, clear it
+              await clearToken();
+              set({ user: null, isAuthenticated: false, isLoading: false });
+            }
+          } else {
+            set({ user: null, isAuthenticated: false, isLoading: false });
+          }
+        } catch (error) {
+          // Network error or invalid token
+          await clearToken();
+          set({ user: null, isAuthenticated: false, isLoading: false });
+        }
+      },
 
       login: async (credentials) => {
         set({ isLoading: true, error: null });
@@ -87,9 +117,20 @@ export const useAuthStore = create<AuthStore>()(
           };
           set({ user: mappedUser, isAuthenticated: true, isLoading: false });
         } catch (error: any) {
+          let errorMessage = "Login failed. Please check your credentials.";
+          
+          if (error?.response?.status === 401) {
+            errorMessage = "Invalid email/phone or password. Please try again.";
+          } else if (error?.response?.status === 404) {
+            errorMessage = "User not found. Please check your credentials.";
+          } else if (error?.response?.status >= 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
           set({
-            error:
-              error?.message || "Login failed. Please check your credentials.",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -101,15 +142,43 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const body: RegisterBody = {
             email: userData.email!,
-            password: userData.password,
-            name: userData.username || "",
-            phone_number: (userData as any).phone || "",
+            password: userData.password!,
+            name: userData.username!,
+            phone_number: userData.phone_number,
           };
-          await authedApi.post<RegisterResponse>("/api/users/register", body);
-          set({ isLoading: false });
+
+          const data = (
+            await authedApi.post<RegisterResponse>("/api/users/register", body)
+          ).data;
+
+          if (data.user) {
+            // Registration successful, now login
+            await get().login({
+              identifier: userData.email!,
+              password: userData.password!,
+            });
+          } else {
+            set({
+              error: data.message || "Registration failed. Please try again.",
+              isLoading: false,
+            });
+            throw new Error(data.message || "Registration failed");
+          }
         } catch (error: any) {
+          let errorMessage = "Registration failed. Please try again.";
+          
+          if (error?.response?.status === 409) {
+            errorMessage = "User already exists with this email/phone.";
+          } else if (error?.response?.status === 400) {
+            errorMessage = "Invalid registration data. Please check your information.";
+          } else if (error?.response?.status >= 500) {
+            errorMessage = "Server error. Please try again later.";
+          } else if (error?.message) {
+            errorMessage = error.message;
+          }
+          
           set({
-            error: error?.message || "Registration failed. Please try again.",
+            error: errorMessage,
             isLoading: false,
           });
           throw error;
@@ -117,45 +186,39 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        await clearToken();
-        set({ user: null, isAuthenticated: false });
-      },
-
-      logoutWithConfirmation: async () => {
-        return new Promise((resolve) => {
-          // This will be handled by the component calling this function
-          resolve(true);
-        });
-      },
-
-      updateUser: (userData) => {
-        const currentUser = get().user;
-        if (currentUser) {
-          set({ user: { ...currentUser, ...userData } });
+        try {
+          await clearToken();
+          set({ user: null, isAuthenticated: false, isLoading: false });
+        } catch (error) {
+          // Even if clearing token fails, reset state
+          set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
 
-      verifyAccount: async (_code) => {
+      updateUser: (userData) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...userData } : null,
+        }));
+      },
+
+      verifyAccount: async (code) => {
         set({ isLoading: true, error: null });
         try {
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          await authedApi.post("/api/users/verify", { code });
           set({ isLoading: false });
         } catch (error: any) {
           set({
-            error: "Verification failed. Please try again.",
+            error: error?.message || "Verification failed. Please try again.",
             isLoading: false,
           });
           throw error;
         }
       },
 
-      // Request password reset code (backend expects identifier: email or phone)
       resetPassword: async (email) => {
         set({ isLoading: true, error: null });
         try {
-          await authedApi.post("/api/password-reset/request", {
-            identifier: email,
-          });
+          await authedApi.post("/api/users/forgot-password", { email });
           set({ isLoading: false });
         } catch (error: any) {
           set({
@@ -166,27 +229,14 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      // Complete password reset with verification_code + new password
       updatePassword: async (newPassword) => {
         set({ isLoading: true, error: null });
         try {
-          const identifier = (get() as any).resetIdentifier as
-            | string
-            | undefined;
-          const verification_code = (get() as any).resetCode as
-            | string
-            | undefined;
-
-          await authedApi.post("/api/password-reset/reset", {
-            identifier,
-            verification_code,
-            new_password: newPassword,
-          });
+          await authedApi.post("/api/users/reset-password", { newPassword });
           set({ isLoading: false });
         } catch (error: any) {
           set({
-            error:
-              error?.message || "Password update failed. Please try again.",
+            error: error?.message || "Password update failed. Please try again.",
             isLoading: false,
           });
           throw error;
@@ -194,14 +244,11 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: "agura-auth-storage",
+      name: "agura-auth",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        // keep reset flow context if present to complete without re-entry
-        resetIdentifier: (state as any).resetIdentifier,
-        resetCode: (state as any).resetCode,
       }),
     }
   )

@@ -1,4 +1,4 @@
-import { clearToken, getToken as readToken } from "@/lib/authToken";
+import { clearToken } from "@/lib/authToken";
 import { AppError } from "@/lib/errorHandler";
 import axios, {
     AxiosError,
@@ -31,6 +31,23 @@ function normalizeError(error: unknown): Error {
     const axErr = error as AxiosError<ApiErrorShape>;
     const status = axErr.response?.status;
     const data = axErr.response?.data;
+    
+    // Check for network errors
+    if (axErr.code === 'NETWORK_ERROR' || !axErr.response) {
+      const networkError = new Error('Network Error - Unable to connect to server');
+      // @ts-expect-error attach extras for callers if needed
+      networkError.code = 'NETWORK_ERROR';
+      return networkError;
+    }
+    
+    // Check for timeout errors
+    if (axErr.code === 'ECONNABORTED') {
+      const timeoutError = new Error('Request timeout - Server took too long to respond');
+      // @ts-expect-error attach extras for callers if needed
+      timeoutError.code = 'TIMEOUT_ERROR';
+      return timeoutError;
+    }
+    
     const msg =
       (data && (data.message || data.error)) ||
       axErr.message ||
@@ -77,7 +94,7 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
   instance.interceptors.response.use(
     (response: any) => response,
     async (error: any) => {
-      const err = normalizeError(error) as Error & { status?: number };
+      const err = normalizeError(error) as Error & { status?: number; code?: string };
       
       // Convert to AppError for better handling
       const appError = new AppError(err.message, err.status, err.data);
@@ -99,25 +116,17 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
         } catch {}
       } else if (appError.status === 404) {
         // Handle 404 errors gracefully
-        console.warn('Resource not found:', appError.message);
-      } else if (appError.status === 503 || appError.status === 502) {
-        // Handle backend maintenance or temporary issues
-        console.warn('Backend temporarily unavailable:', appError.message);
-      } else if (appError.status && appError.status >= 500) {
-        // Handle server errors
-        console.error('Server error:', appError.message);
+        console.warn('API endpoint not found:', error.config?.url);
+      } else if (appError.status >= 500) {
+        // Log server errors for monitoring
+        console.error('Server error:', {
+          status: appError.status,
+          url: error.config?.url,
+          message: appError.message
+        });
       }
       
-      // Special handling for database errors (even if they come as 200 responses with error in body)
-      if (appError.isDatabaseError) {
-        console.error('Database error detected:', appError.message);
-        // Log to production monitoring service
-        if (PRODUCTION_CONFIG.FEATURES.ERROR_REPORTING) {
-          // In production, you would send this to your error reporting service
-          console.log('Database error reported to monitoring service');
-        }
-      }
-      
+      // Re-throw the error for component-level handling
       throw appError;
     }
   );
@@ -125,46 +134,46 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
   return instance;
 }
 
-// Default API without auth injection. Prefer creating authed client where needed.
-export const api = createApiClient({
-  getToken: async () => await readToken(),
-});
-
+// Helper functions for common HTTP methods
 export async function apiGet<T = unknown>(
   url: string,
   config?: AxiosRequestConfig
-) {
-  const res = await api.get<T>(url, config);
-  return (res as any).data ?? res.data;
+): Promise<{ data: T; status: number }> {
+  const response = await createApiClient().get<T>(url, config);
+  return { data: response.data, status: response.status };
 }
+
 export async function apiPost<T = unknown, B = unknown>(
   url: string,
   body?: B,
   config?: AxiosRequestConfig
-) {
-  const res = await api.post<T>(url, body, config);
-  return (res as any).data ?? res.data;
+): Promise<{ data: T; status: number }> {
+  const response = await createApiClient().post<T>(url, body, config);
+  return { data: response.data, status: response.status };
 }
+
 export async function apiPut<T = unknown, B = unknown>(
   url: string,
   body?: B,
   config?: AxiosRequestConfig
-) {
-  const res = await api.put<T>(url, body, config);
-  return (res as any).data ?? res.data;
+): Promise<{ data: T; status: number }> {
+  const response = await createApiClient().put<T>(url, body, config);
+  return { data: response.data, status: response.status };
 }
+
 export async function apiPatch<T = unknown, B = unknown>(
   url: string,
   body?: B,
   config?: AxiosRequestConfig
-) {
-  const res = await api.patch<T>(url, body, config);
-  return (res as any).data ?? res.data;
+): Promise<{ data: T; status: number }> {
+  const response = await createApiClient().patch<T>(url, body, config);
+  return { data: response.data, status: response.status };
 }
+
 export async function apiDelete<T = unknown>(
   url: string,
   config?: AxiosRequestConfig
-) {
-  const res = await api.delete<T>(url, config);
-  return (res as any).data ?? res.data;
+): Promise<{ data: T; status: number }> {
+  const response = await createApiClient().delete<T>(url, config);
+  return { data: response.data, status: response.status };
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { WifiOff, RefreshCw } from 'lucide-react-native';
+import { RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 
 interface NetworkErrorProps {
@@ -11,36 +10,32 @@ interface NetworkErrorProps {
 }
 
 export default function NetworkError({ 
-  message = "Request failed with status code 404", 
+  message = "Network connection issue", 
   onRetry, 
   showRetry = true 
 }: NetworkErrorProps) {
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#1a1a1a', '#2d2d2d', '#1a1a1a']}
-        style={styles.background}
-      >
-        <View style={styles.content}>
-          <View style={styles.iconContainer}>
-            <WifiOff size={48} color="#e6007e" />
-          </View>
-          
-          <Text style={styles.title}>Connection Error</Text>
-          <Text style={styles.message}>{message}</Text>
-          
-          {showRetry && onRetry && (
-            <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-              <RefreshCw size={20} color="#ffffff" />
-              <Text style={styles.retryButtonText}>Retry</Text>
-            </TouchableOpacity>
-          )}
-          
-          <Text style={styles.helpText}>
-            Please check your internet connection and try again
-          </Text>
-        </View>
-      </LinearGradient>
+      <View style={styles.iconContainer}>
+        <WifiOff size={48} color={Colors.primary} />
+      </View>
+      
+      <Text style={styles.title}>Connection Error</Text>
+      <Text style={styles.message}>{message}</Text>
+      
+      {showRetry && onRetry && (
+        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+          <RefreshCw size={20} color="#FFFFFF" />
+          <Text style={styles.retryText}>Try Again</Text>
+        </TouchableOpacity>
+      )}
+      
+      <View style={styles.tipsContainer}>
+        <Text style={styles.tipsTitle}>Quick Tips:</Text>
+        <Text style={styles.tip}>• Check your internet connection</Text>
+        <Text style={styles.tip}>• Try switching between WiFi and mobile data</Text>
+        <Text style={styles.tip}>• Restart the app if the problem persists</Text>
+      </View>
     </View>
   );
 }
@@ -48,53 +43,63 @@ export default function NetworkError({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  background: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  content: {
-    padding: 20,
-    alignItems: 'center',
-    maxWidth: 300,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 24,
   },
   iconContainer: {
     marginBottom: 24,
+    padding: 16,
+    borderRadius: 50,
+    backgroundColor: 'rgba(230, 0, 126, 0.1)',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 12,
     textAlign: 'center',
-    marginBottom: 16,
   },
   message: {
     fontSize: 16,
-    color: '#cccccc',
-    textAlign: 'center',
+    color: Colors.textSecondary,
     marginBottom: 32,
-    lineHeight: 22,
+    textAlign: 'center',
+    lineHeight: 24,
   },
   retryButton: {
-    backgroundColor: '#e6007e',
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
-    marginBottom: 24,
+    borderRadius: 25,
+    marginBottom: 32,
   },
-  retryButtonText: {
-    color: '#ffffff',
+  retryText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
   },
-  helpText: {
+  tipsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  tipsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  tip: {
     fontSize: 14,
-    color: '#999999',
-    textAlign: 'center',
+    color: Colors.textSecondary,
+    marginBottom: 8,
     lineHeight: 20,
   },
 });
