@@ -1,175 +1,360 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { Calendar, MapPin, ArrowUpRight } from 'lucide-react-native';
-import { Link } from 'expo-router';
-import Colors from '@/constants/Colors';
-import { Event } from '@/store/events-store';
+import React from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+} from "react-native";
+import { Calendar, MapPin, Star, Clock, Users } from "lucide-react-native";
+import Colors from "@/constants/Colors";
 
 interface EventCardProps {
-  event: Event;
-  variant?: 'featured' | 'list';
+  event: {
+    id: string;
+    title: string;
+    location?: string;
+    image?: any;
+    price?: number;
+    booked?: boolean;
+    category?: string;
+    date?: string;
+    time?: string;
+    attendees?: number;
+    rating?: number;
+  };
+  onPress?: () => void;
+  variant?: "default" | "featured" | "compact";
 }
 
-const { width } = Dimensions.get('window');
+export default function EventCard({ 
+  event, 
+  onPress, 
+  variant = "default" 
+}: EventCardProps) {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
-const EventCard: React.FC<EventCardProps> = ({ event, variant = 'list' }) => {
-  const isFeatured = variant === 'featured';
+  const formatTime = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors: { [key: string]: string } = {
+      music: "#e6007e",
+      sports: "#3b82f6",
+      food: "#f59e0b",
+      tech: "#10b981",
+      art: "#8b5cf6",
+      business: "#6b7280",
+    };
+    return colors[category?.toLowerCase()] || Colors.primary;
+  };
+
+  if (variant === "compact") {
+    return (
+      <TouchableOpacity style={styles.compactCard} onPress={onPress} activeOpacity={0.8}>
+        <Image source={event.image} style={styles.compactImage} />
+        <View style={styles.compactContent}>
+          <Text style={styles.compactTitle} numberOfLines={1}>
+            {event.title}
+          </Text>
+          <View style={styles.compactMeta}>
+            <View style={styles.compactMetaItem}>
+              <Calendar size={14} color={Colors.textSecondary} />
+              <Text style={styles.compactMetaText}>
+                {formatDate(event.date || "")}
+              </Text>
+            </View>
+            {event.location && (
+              <View style={styles.compactMetaItem}>
+                <MapPin size={14} color={Colors.textSecondary} />
+                <Text style={styles.compactMetaText} numberOfLines={1}>
+                  {event.location}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
 
   return (
-    <View style={[
-      styles.container,
-      isFeatured ? styles.featuredContainer : styles.listContainer
-    ]}>
-      <Image
-        source={
-          event.imageUrl 
-            ? { uri: event.imageUrl }
-            : event.image || require('@/assets/images/m1.png')
-        }
-        style={[
-          styles.image,
-          isFeatured ? styles.featuredImage : styles.listImage
-        ]}
-        contentFit="cover"
-        transition={300}
-      />
-      
-      {isFeatured ? (
-        <View style={styles.featuredContent}>
-          <Text style={styles.featuredTitle}>{event.title}</Text>
-          <View style={styles.featuredDetails}>
-            <View style={styles.detailRow}>
-              <Calendar size={16} color={Colors.text} />
-              <Text style={styles.detailText}>{event.date}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MapPin size={16} color={Colors.text} />
-              <Text style={styles.detailText}>{event.location}</Text>
-            </View>
+    <TouchableOpacity 
+      style={[
+        styles.card, 
+        variant === "featured" && styles.featuredCard
+      ]} 
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.imageContainer}>
+        <Image source={event.image} style={styles.image} />
+        {variant === "featured" && (
+          <View style={styles.featuredBadge}>
+            <Star size={16} color="#ffffff" fill="#ffffff" />
+            <Text style={styles.featuredText}>Featured</Text>
           </View>
-        </View>
-      ) : (
-        <View style={styles.listContent}>
-          <View style={styles.listTextContent}>
-            <Text style={styles.listTitle}>{event.title}</Text>
-            <Text style={styles.priceText}>{event.price}</Text>
-            <View style={styles.detailRow}>
-              <Calendar size={14} color={Colors.textSecondary} />
-              <Text style={styles.listDetailText}>{event.date}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <MapPin size={14} color={Colors.textSecondary} />
-              <Text style={styles.listDetailText}>{event.location}</Text>
-            </View>
+        )}
+        {event.category && (
+          <View style={[
+            styles.categoryBadge, 
+            { backgroundColor: getCategoryColor(event.category) }
+          ]}>
+            <Text style={styles.categoryText}>{event.category}</Text>
+          </View>
+        )}
+        {event.booked && (
+          <View style={styles.bookedBadge}>
+            <Text style={styles.bookedText}>Booked</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={2}>
+          {event.title}
+        </Text>
+        
+        <View style={styles.metaContainer}>
+          <View style={styles.metaItem}>
+            <Calendar size={18} color={Colors.textSecondary} />
+            <Text style={styles.metaText}>
+              {formatDate(event.date || "")}
+            </Text>
           </View>
           
-          <Link href={`/event/${event.id}`} asChild>
-            <TouchableOpacity style={styles.viewDetailsButton}>
-              <ArrowUpRight size={18} color={Colors.text} />
-              <Text style={styles.viewDetailsText}>View Details</Text>
-            </TouchableOpacity>
-          </Link>
+          {event.time && (
+            <View style={styles.metaItem}>
+              <Clock size={18} color={Colors.textSecondary} />
+              <Text style={styles.metaText}>
+                {formatTime(event.date || "")}
+              </Text>
+            </View>
+          )}
+          
+          {event.location && (
+            <View style={styles.metaItem}>
+              <MapPin size={18} color={Colors.textSecondary} />
+              <Text style={styles.metaText} numberOfLines={1}>
+                {event.location}
+              </Text>
+            </View>
+          )}
+          
+          {event.attendees && (
+            <View style={styles.metaItem}>
+              <Users size={18} color={Colors.textSecondary} />
+              <Text style={styles.metaText}>
+                {event.attendees} attending
+              </Text>
+            </View>
+          )}
         </View>
-      )}
-    </View>
+
+        <View style={styles.footer}>
+          {event.price !== undefined && (
+            <View style={styles.priceContainer}>
+              <Text style={styles.priceLabel}>Price:</Text>
+              <Text style={styles.price}>
+                ${event.price === 0 ? "Free" : event.price}
+              </Text>
+            </View>
+          )}
+          
+          {event.rating && (
+            <View style={styles.ratingContainer}>
+              <Star size={16} color="#fbbf24" fill="#fbbf24" />
+              <Text style={styles.rating}>{event.rating}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
-    overflow: 'hidden',
+  card: {
     backgroundColor: Colors.card,
+    borderRadius: 16,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    overflow: "hidden",
   },
-  featuredContainer: {
-    width: width - 40,
-    height: 220,
-    marginHorizontal: 4,
+  featuredCard: {
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
-  listContainer: {
-    flexDirection: 'row',
+  compactCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
     marginBottom: 16,
-    height: 120,
+    flexDirection: "row",
+    padding: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  imageContainer: {
+    position: "relative",
   },
   image: {
-    backgroundColor: Colors.inputBackground,
+    width: "100%",
+    height: 200,
+    resizeMode: "cover",
   },
-  featuredImage: {
-    width: '100%',
-    height: '100%',
-  },
-  listImage: {
-    width: 120,
-    height: '100%',
-  },
-  featuredContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  featuredTitle: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  featuredDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  compactImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
     marginRight: 16,
-    marginBottom: 4,
   },
-  detailText: {
-    color: Colors.text,
-    marginLeft: 6,
-    fontSize: 14,
-  },
-  listContent: {
-    flex: 1,
-    padding: 12,
-    justifyContent: 'space-between',
-  },
-  listTextContent: {
-    flex: 1,
-  },
-  listTitle: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  priceText: {
-    color: Colors.primary,
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  listDetailText: {
-    color: Colors.textSecondary,
-    marginLeft: 6,
-    fontSize: 12,
-  },
-  viewDetailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-end',
-    backgroundColor: 'rgba(230, 0, 126, 0.1)',
-    paddingVertical: 6,
+  featuredBadge: {
+    position: "absolute",
+    top: 16,
+    left: 16,
+    backgroundColor: Colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 4,
+  },
+  featuredText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  categoryBadge: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
   },
-  viewDetailsText: {
-    color: Colors.text,
+  categoryText: {
+    color: "#ffffff",
     fontSize: 12,
-    marginLeft: 4,
+    fontWeight: "600",
+    textTransform: "capitalize",
+  },
+  bookedBadge: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#10b981",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  bookedText: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  content: {
+    padding: 20,
+  },
+  compactContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.text,
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  compactTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  metaContainer: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  compactMeta: {
+    gap: 8,
+  },
+  compactMetaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: "500",
+    flex: 1,
+  },
+  compactMetaText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontWeight: "500",
+    flex: 1,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0, 0, 0, 0.1)",
+  },
+  priceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  priceLabel: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: "500",
+  },
+  price: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  rating: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.text,
   },
 });
-
-export default EventCard;

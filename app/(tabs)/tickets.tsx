@@ -1,118 +1,265 @@
-import Colors from '@/constants/Colors';
-import { useTicketsStore } from '@/store/tickets-store';
-import { useRouter } from 'expo-router';
-import { Calendar, Clock, MapPin, Ticket } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { 
+  Ticket, 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  QrCode,
+  Download,
+  Share2,
+  ArrowRight,
+  Clock3
+} from "lucide-react-native";
+import Header from "@/components/Header";
+import Button from "@/components/Button";
+import Colors from "@/constants/Colors";
 
 export default function TicketsScreen() {
   const router = useRouter();
-  const { userTickets, fetchUserTickets } = useTicketsStore();
-  const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      await fetchUserTickets();
-    } catch (error) {
-      console.error('Error loading tickets:', error);
-    }
-  }, [fetchUserTickets]);
+  // Mock ticket data - replace with actual data from your store
+  const tickets = [
+    {
+      id: "1",
+      eventTitle: "Agura Launch Event",
+      eventDate: "2025-01-15T18:00:00.000Z",
+      eventLocation: "Downtown Convention Center",
+      ticketType: "VIP Pass",
+      ticketNumber: "AGU-001-2025",
+      qrCode: "https://example.com/qr/1",
+      status: "active",
+      price: 25,
+    },
+    {
+      id: "2",
+      eventTitle: "Summer Music Festival",
+      eventDate: "2025-01-20T19:00:00.000Z",
+      eventLocation: "Central Park",
+      ticketType: "General Admission",
+      ticketNumber: "SMF-002-2025",
+      qrCode: "https://example.com/qr/2",
+      status: "active",
+      price: 45,
+    },
+    {
+      id: "3",
+      eventTitle: "Tech Startup Meetup",
+      eventDate: "2025-01-10T18:30:00.000Z",
+      eventLocation: "Innovation Hub",
+      ticketType: "Free Entry",
+      ticketNumber: "TSM-003-2025",
+      qrCode: "https://example.com/qr/3",
+      status: "expired",
+      price: 0,
+    },
+  ];
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const activeTickets = tickets.filter(ticket => ticket.status === "active");
+  const expiredTickets = tickets.filter(ticket => ticket.status === "expired");
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }, [load]);
-
-  const handleTicketPress = (ticketId: string) => {
-    router.push('/profile/settings');
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
-  const renderTicket = ({ item }: { item: any }) => (
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleTicketPress = (ticketId: string) => {
+    router.push(`/ticket/${ticketId}`);
+  };
+
+  const handleDownloadTicket = (ticket: any) => {
+    // Implement ticket download functionality
+    console.log("Downloading ticket:", ticket.id);
+  };
+
+  const handleShareTicket = (ticket: any) => {
+    // Implement ticket sharing functionality
+    console.log("Sharing ticket:", ticket.id);
+  };
+
+  const renderTicketCard = (ticket: any) => (
     <TouchableOpacity
-      style={styles.ticketCard}
-      onPress={() => handleTicketPress(item.id)}
-      activeOpacity={0.7}
+      key={ticket.id}
+      style={[
+        styles.ticketCard,
+        ticket.status === "expired" && styles.expiredTicketCard,
+      ]}
+      onPress={() => handleTicketPress(ticket.id)}
+      activeOpacity={0.8}
     >
       <View style={styles.ticketHeader}>
-        <View style={styles.ticketIcon}>
-          <Ticket size={24} color={Colors.primary} />
-        </View>
-        <View style={styles.ticketInfo}>
-          <Text style={styles.eventTitle}>{item.eventTitle}</Text>
-          <Text style={styles.ticketType}>{item.ticketType}</Text>
+        <View style={styles.ticketTypeContainer}>
+          <Ticket size={20} color={Colors.primary} />
+          <Text style={styles.ticketType}>{ticket.ticketType}</Text>
         </View>
         <View style={styles.ticketStatus}>
-          <Text style={[styles.statusText, { color: item.status === 'active' ? Colors.success : Colors.warning }]}>
-            {item.status}
+          <View style={[
+            styles.statusDot,
+            ticket.status === "active" ? styles.statusActive : styles.statusExpired
+          ]} />
+          <Text style={[
+            styles.statusText,
+            ticket.status === "active" ? styles.statusTextActive : styles.statusTextExpired
+          ]}>
+            {ticket.status === "active" ? "Active" : "Expired"}
           </Text>
         </View>
       </View>
 
-      <View style={styles.ticketDetails}>
+      <Text style={styles.eventTitle}>{ticket.eventTitle}</Text>
+      
+      <View style={styles.eventDetails}>
         <View style={styles.detailRow}>
           <Calendar size={16} color={Colors.textSecondary} />
-          <Text style={styles.detailText}>{item.eventDate}</Text>
+          <Text style={styles.detailText}>
+            {formatDate(ticket.eventDate)} at {formatTime(ticket.eventDate)}
+          </Text>
         </View>
-        <View style={styles.detailRow}>
-          <Clock size={16} color={Colors.textSecondary} />
-          <Text style={styles.detailText}>{item.eventTime}</Text>
-        </View>
+        
         <View style={styles.detailRow}>
           <MapPin size={16} color={Colors.textSecondary} />
-          <Text style={styles.detailText}>{item.eventLocation}</Text>
+          <Text style={styles.detailText}>{ticket.eventLocation}</Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <Clock3 size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>
+            {ticket.status === "active" ? "Event hasn't started" : "Event has ended"}
+          </Text>
         </View>
       </View>
 
       <View style={styles.ticketFooter}>
-        <Text style={styles.ticketId}>Ticket ID: {item.id}</Text>
-        <Text style={styles.price}>${item.price}</Text>
+        <View style={styles.ticketNumber}>
+          <Text style={styles.ticketNumberLabel}>Ticket #</Text>
+          <Text style={styles.ticketNumberValue}>{ticket.ticketNumber}</Text>
+        </View>
+        
+        <View style={styles.ticketActions}>
+          {ticket.status === "active" && (
+            <>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleDownloadTicket(ticket)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Download size={18} color={Colors.primary} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handleShareTicket(ticket)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Share2 size={18} color={Colors.primary} />
+              </TouchableOpacity>
+            </>
+          )}
+          
+          <TouchableOpacity
+            style={styles.viewButton}
+            onPress={() => handleTicketPress(ticket.id)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <ArrowRight size={18} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
-  if (userTickets.length === 0) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.emptyState}>
-          <Ticket size={64} color={Colors.textSecondary} />
-          <Text style={styles.emptyStateTitle}>No Tickets Yet</Text>
-          <Text style={styles.emptyStateText}>
-            You haven&apos;t purchased any tickets yet. Start exploring events to get your first ticket!
-          </Text>
-          <TouchableOpacity
-            style={styles.exploreButton}
-            onPress={() => router.push('/events/user')}
-          >
-            <Text style={styles.exploreButtonText}>Explore Events</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Tickets</Text>
-        <Text style={styles.subtitle}>Manage your event tickets</Text>
-      </View>
-
-      <FlatList
-        data={userTickets}
-        keyExtractor={(item) => String(item.id || item.ticket_id || Math.random())}
-        renderItem={renderTicket}
-        contentContainerStyle={styles.ticketList}
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Header title="My Tickets" showBack />
+      
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      />
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <View style={styles.headerIcon}>
+            <Ticket size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.headerTitle}>My Tickets</Text>
+          <Text style={styles.headerSubtitle}>
+            {activeTickets.length} active tickets
+          </Text>
+        </View>
+
+        {/* Active Tickets */}
+        {activeTickets.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Active Tickets</Text>
+            {activeTickets.map(renderTicketCard)}
+          </View>
+        )}
+
+        {/* Expired Tickets */}
+        {expiredTickets.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Past Events</Text>
+            {expiredTickets.map(renderTicketCard)}
+          </View>
+        )}
+
+        {/* Empty State */}
+        {tickets.length === 0 && (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+              <Ticket size={48} color={Colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No Tickets Yet</Text>
+            <Text style={styles.emptyMessage}>
+              You haven't purchased any tickets yet. Start exploring events to get your first ticket!
+            </Text>
+            <Button
+              title="Browse Events"
+              variant="primary"
+              size="large"
+              fullWidth={true}
+              onPress={() => router.push("/(tabs)/events-user")}
+              style={styles.browseButton}
+            />
+          </View>
+        )}
+
+        {/* Call to Action */}
+        {tickets.length > 0 && (
+          <View style={styles.ctaSection}>
+            <Button
+              title="Browse More Events"
+              variant="outline"
+              size="large"
+              fullWidth={true}
+              onPress={() => router.push("/(tabs)/events-user")}
+            />
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -122,128 +269,210 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  title: {
-    color: Colors.text,
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-    marginTop: 4,
-  },
-  ticketList: {
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
-  ticketCard: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    height: 150,
-  },
-  ticketHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
-  },
-  ticketIcon: {
-    marginRight: 12,
-  },
-  ticketInfo: {
+  scrollView: {
     flex: 1,
   },
-  eventTitle: {
-    color: Colors.text,
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  headerSection: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+    backgroundColor: Colors.primary,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  headerIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  headerSubtitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  section: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 20,
+  },
+  ticketCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  expiredTicketCard: {
+    opacity: 0.6,
+    backgroundColor: "#f8f9fa",
+  },
+  ticketHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  ticketTypeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   ticketType: {
-    color: Colors.textSecondary,
     fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
+    textTransform: "uppercase",
   },
   ticketStatus: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusActive: {
+    backgroundColor: "#10b981",
+  },
+  statusExpired: {
+    backgroundColor: "#6b7280",
   },
   statusText: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "500",
+    textTransform: "uppercase",
   },
-  ticketDetails: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+  statusTextActive: {
+    color: "#10b981",
+  },
+  statusTextExpired: {
+    color: "#6b7280",
+  },
+  eventTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 16,
+    lineHeight: 24,
+  },
+  eventDetails: {
+    marginBottom: 20,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 8,
   },
   detailText: {
-    color: Colors.textSecondary,
     fontSize: 14,
-    marginLeft: 8,
+    color: Colors.textSecondary,
+    flex: 1,
   },
   ticketFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#2C2C2E',
+    borderTopColor: "rgba(0, 0, 0, 0.1)",
   },
-  ticketId: {
+  ticketNumber: {
+    flex: 1,
+  },
+  ticketNumberLabel: {
+    fontSize: 12,
     color: Colors.textSecondary,
-    fontSize: 14,
+    marginBottom: 4,
   },
-  price: {
-    color: Colors.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
+  ticketNumberValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.text,
+    fontFamily: "monospace",
+  },
+  ticketActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(230, 0, 126, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  viewButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(230, 0, 126, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 64,
+    alignItems: "center",
+    paddingHorizontal: 40,
+    paddingVertical: 60,
+    marginTop: 40,
   },
-  emptyStateTitle: {
-    color: Colors.text,
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 16,
-  },
-  emptyStateText: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-    marginTop: 8,
+  emptyIconContainer: {
     marginBottom: 24,
+    opacity: 0.5,
   },
-  exploreButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  exploreButtonText: {
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
     color: Colors.text,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  emptyMessage: {
     fontSize: 16,
-    fontWeight: 'bold',
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  browseButton: {
+    minWidth: 200,
+  },
+  ctaSection: {
+    paddingHorizontal: 20,
+    marginTop: 40,
   },
 });

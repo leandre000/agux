@@ -1,91 +1,244 @@
-import Button from '@/components/Button';
-import EventCard from '@/components/EventCard';
-import SearchBar from '@/components/SearchBar';
-import Colors from '@/constants/Colors';
-import { useAuthStore } from '@/store/auth-store';
-import { useEventsStore } from '@/store/events-store';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Button from "@/components/Button";
+import EventCard from "@/components/EventCard";
+import Header from "@/components/Header";
+import SearchBar from "@/components/SearchBar";
+import SectionHeader from "@/components/SectionHeader";
+import Colors from "@/constants/Colors";
+import { useAuthStore } from "@/store/auth-store";
+import { useRouter } from "expo-router";
+import {
+    ArrowRight,
+    Bell,
+    Calendar,
+    Star,
+    User
+} from "lucide-react-native";
+import React, { useState } from "react";
+import {
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function TabOneScreen() {
+export default function HomeScreen() {
   const router = useRouter();
-  const { allEvents, fetchAll } = useEventsStore();
   const { user } = useAuthStore();
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const loadData = useCallback(async () => {
-    try {
-      await fetchAll();
-    } catch (error) {
-      console.error('Error loading events:', error);
+  const featuredEvents = [
+    {
+      id: "1",
+      title: "Agura Launch Event",
+      location: "Downtown Convention Center",
+      image: require("@/assets/images/m1.png"),
+      price: 25,
+      category: "tech",
+      date: "2025-01-15T18:00:00.000Z",
+      attendees: 150,
+      rating: 4.8,
+    },
+    {
+      id: "2",
+      title: "Summer Music Festival",
+      location: "Central Park",
+      image: require("@/assets/images/m2.png"),
+      price: 45,
+      category: "music",
+      date: "2025-01-20T19:00:00.000Z",
+      attendees: 500,
+      rating: 4.9,
+    },
+  ];
+
+  const upcomingEvents = [
+    {
+      id: "3",
+      title: "Food & Wine Expo",
+      location: "City Hall Plaza",
+      image: require("@/assets/images/m1.png"),
+      price: 35,
+      category: "food",
+      date: "2025-01-25T17:00:00.000Z",
+      attendees: 200,
+      rating: 4.7,
+    },
+    {
+      id: "4",
+      title: "Tech Startup Meetup",
+      location: "Innovation Hub",
+      image: require("@/assets/images/m2.png"),
+      price: 0,
+      category: "tech",
+      date: "2025-01-30T18:30:00.000Z",
+      attendees: 75,
+      rating: 4.6,
+    },
+  ];
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
-  }, [fetchAll]);
+  };
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const handleEventPress = (eventId: string) => {
+    router.push(`/event/${eventId}`);
+  };
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
-  }, [loadData]);
+  const handleViewAllEvents = () => {
+    router.push("/(tabs)/events-user");
+  };
 
-  const handleSearch = useCallback(() => {
-    // Navigate to search results or filter events
-    router.push("/(tabs)");
-  }, [router]);
-
-  const filteredEvents = allEvents.filter(event => 
-    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (event.description?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-  );
+  const handleViewAllUpcoming = () => {
+    router.push("/(tabs)/events/upcoming");
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Welcome back, {user?.username || 'User'}!</Text>
-        <Text style={styles.subtitle}>Discover amazing events happening around you</Text>
-      </View>
-
-      <SearchBar
-        placeholder="Search events..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onSearchPress={handleSearch}
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Header 
+        title="Home" 
+        showBell={true}
+        onBellPress={() => router.push("/notifications")}
       />
-
-      <View style={styles.eventsSection}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Events</Text>
-          <TouchableOpacity onPress={() => router.push('/events/user')}>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeTitle}>
+            Welcome back, {user?.name || "Guest"}! 👋
+          </Text>
+          <Text style={styles.welcomeSubtitle}>
+            Discover amazing events happening around you
+          </Text>
         </View>
 
-        <FlatList
-          data={filteredEvents.slice(0, 5)}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <EventCard
-              event={item}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
+        {/* Search Section */}
+        <View style={styles.searchSection}>
+          <SearchBar
+            placeholder="Search events, venues, or categories..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFilter={() => router.push("/filters")}
+            showFilter={true}
+          />
+        </View>
 
-        <Button
-          title="View All Events"
-          onPress={() => router.push('/events/user')}
-          style={styles.viewAllButton}
-        />
-      </View>
+        {/* Quick Actions */}
+        <View style={styles.quickActionsSection}>
+          <SectionHeader 
+            title="Quick Actions" 
+            variant="compact"
+          />
+          <View style={styles.quickActionsGrid}>
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push("/(tabs)/events-user")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.quickActionIcon}>
+                <Calendar size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.quickActionText}>Browse Events</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push("/(tabs)/tickets")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.quickActionIcon}>
+                <Star size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.quickActionText}>My Tickets</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push("/(tabs)/profile")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.quickActionIcon}>
+                <User size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.quickActionText}>Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push("/notifications")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.quickActionIcon}>
+                <Bell size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.quickActionText}>Notifications</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Featured Events */}
+        <View style={styles.featuredSection}>
+          <SectionHeader 
+            title="Featured Events" 
+            subtitle="Handpicked events you'll love"
+            showSeeAll={true}
+            onSeeAllPress={handleViewAllEvents}
+          />
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredScrollContent}
+          >
+            {featuredEvents.map((event) => (
+              <View key={event.id} style={styles.featuredEventContainer}>
+                <EventCard
+                  event={event}
+                  variant="featured"
+                  onPress={() => handleEventPress(event.id)}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Upcoming Events */}
+        <View style={styles.upcomingSection}>
+          <SectionHeader 
+            title="Upcoming Events" 
+            subtitle="Events happening soon"
+            showSeeAll={true}
+            onSeeAllPress={handleViewAllUpcoming}
+          />
+          {upcomingEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              variant="compact"
+              onPress={() => handleEventPress(event.id)}
+            />
+          ))}
+        </View>
+
+        {/* Call to Action */}
+        <View style={styles.ctaSection}>
+          <Button
+            title="View All Events"
+            variant="primary"
+            size="large"
+            icon={ArrowRight}
+            iconPosition="right"
+            fullWidth={true}
+            onPress={handleViewAllEvents}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -95,43 +248,96 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  scrollView: {
+    flex: 1,
   },
-  title: {
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  welcomeSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    backgroundColor: Colors.primary,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  welcomeTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 8,
+    textAlign: "center",
   },
-  subtitle: {
+  welcomeSubtitle: {
     fontSize: 16,
-    color: Colors.textSecondary,
-    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.9)",
+    textAlign: "center",
+    fontWeight: "500",
   },
-  eventsSection: {
+  searchSection: {
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  quickActionsSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginBottom: 16,
+  quickActionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    justifyContent: "space-between",
   },
-  seeAllText: {
-    color: Colors.text,
+  quickActionCard: {
+    width: "48%",
+    backgroundColor: Colors.card,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  quickActionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(230, 0, 126, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  quickActionText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
+    color: Colors.text,
+    textAlign: "center",
   },
-  viewAllButton: {
-    marginTop: 20,
-    alignSelf: 'center',
+  featuredSection: {
+    paddingHorizontal: 20,
+    marginTop: 40,
+  },
+  featuredScrollContent: {
+    paddingRight: 20,
+  },
+  featuredEventContainer: {
+    width: 320,
+    marginRight: 16,
+  },
+  upcomingSection: {
+    paddingHorizontal: 20,
+    marginTop: 40,
+  },
+  ctaSection: {
+    paddingHorizontal: 20,
+    marginTop: 40,
   },
 });

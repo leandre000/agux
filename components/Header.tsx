@@ -1,143 +1,149 @@
-import Colors from '@/constants/Colors';
-import { useAuthStore } from '@/store/auth-store';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { Bell, ChevronLeft, Search } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { ArrowLeft, Menu, Bell, Search } from "lucide-react-native";
+import Colors from "@/constants/Colors";
 
 interface HeaderProps {
-    title?: string;
-    showBack?: boolean;
-    showLogo?: boolean;
-    showProfile?: boolean;
-    showSearch?: boolean;
-    onSearchPress?: () => void;
-    onNotificationPress?: () => void;
+  title: string;
+  showBack?: boolean;
+  showMenu?: boolean;
+  showBell?: boolean;
+  showSearch?: boolean;
+  onMenuPress?: () => void;
+  onBellPress?: () => void;
+  onSearchPress?: () => void;
+  rightComponent?: React.ReactNode;
 }
 
-const Header: React.FC<HeaderProps> = ({
-    title,
-    showBack = false,
-    showLogo = false,
-    showProfile = false,
-    showSearch = false,
-    onSearchPress,
-    onNotificationPress,
-}) => {
-    const router = useRouter();
-    const { user } = useAuthStore();
+export default function Header({
+  title,
+  showBack = false,
+  showMenu = false,
+  showBell = false,
+  showSearch = false,
+  onMenuPress,
+  onBellPress,
+  onSearchPress,
+  rightComponent,
+}: HeaderProps) {
+  const router = useRouter();
 
-    const profileImageSource = user?.profileImage
-        ? { uri: user.profileImage }
-        : require('@/assets/images/profile.jpg');
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push("/(tabs)");
+    }
+  };
 
-    return (
-        <View style={styles.container}>
-            <View style={styles.leftContainer}>
-                {showBack && (
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <ChevronLeft size={24} color={Colors.text} />
-                    </TouchableOpacity>
-                )}
-
-                {showLogo && (
-                    <Image
-                        source={require('@/assets/images/splash-icon.png')}
-                        style={styles.logoImage}
-                    />
-                )}
-
-                {title && <Text style={styles.title}>{title}</Text>}
-            </View>
-
-            <View style={styles.rightContainer}>
-                {showSearch && (
-                    <TouchableOpacity style={styles.iconButton} onPress={onSearchPress}>
-                        <Search size={24} color={Colors.text} />
-                    </TouchableOpacity>
-                )}
-                {/* Notification bell always visible with red dot */}
-                <TouchableOpacity 
-                    style={styles.iconButton} 
-                    onPress={onNotificationPress || (() => router.push('/notifications'))}
-                >
-                    <View style={{ position: 'relative' }}>
-                        <Bell size={24} color={Colors.text} />
-                        <View style={styles.notificationDot} />
-                    </View>
-                </TouchableOpacity>
-                {showProfile && (
-                    <TouchableOpacity style={styles.profileButton} onPress={() => router.push('/profile')}>
-                        <Image
-                            source={profileImageSource}
-                            style={styles.profileImage}
-                        />
-                    </TouchableOpacity>
-                )}
-            </View>
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <View style={styles.header}>
+        <View style={styles.leftSection}>
+          {showBack && (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={handleBack}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
+          
+          {showMenu && (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={onMenuPress}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Menu size={24} color="#ffffff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
         </View>
-    );
-};
+
+        <View style={styles.titleSection}>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+        </View>
+
+        <View style={styles.rightSection}>
+          {showSearch && (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={onSearchPress}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Search size={24} color="#ffffff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
+          
+          {showBell && (
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={onBellPress}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Bell size={24} color="#ffffff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
+          
+          {rightComponent}
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        width: '100%',
-        height: 64,
-        overflow: 'hidden',
-    },
-    leftContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    rightContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backButton: {
-        marginRight: 16,
-    },
-    logoImage: {
-        width: 160,
-        height: 160,
-        resizeMode: 'contain',
-        alignSelf: 'center',
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: Colors.text,
-        marginLeft: 8,
-    },
-    iconButton: {
-        marginLeft: 16,
-    },
-    profileButton: {
-        marginLeft: 16,
-    },
-    profileImage: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: Colors.card,
-    },
-    notificationDot: {
-        position: 'absolute',
-        top: -2,
-        right: -2,
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: 'red',
-        borderWidth: 1,
-        borderColor: '#fff',
-        zIndex: 1,
-    },
+  container: {
+    backgroundColor: Colors.primary,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    minHeight: 60,
+  },
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    minWidth: 60,
+  },
+  titleSection: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
+  rightSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    minWidth: 60,
+    justifyContent: "flex-end",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#ffffff",
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 4,
+  },
 });
-
-export default Header;

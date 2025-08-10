@@ -1,10 +1,31 @@
-import Colors from '@/constants/Colors';
-import { useAuthStore } from '@/store/auth-store';
-import { useRouter } from 'expo-router';
-import { Heart, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react-native';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { 
+  User, 
+  Settings, 
+  Bell, 
+  Shield, 
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  Edit3,
+  CreditCard,
+  Heart,
+  FileText
+} from "lucide-react-native";
+import Header from "@/components/Header";
+import Button from "@/components/Button";
+import Colors from "@/constants/Colors";
+import { useAuthStore } from "@/store/auth-store";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -13,78 +34,153 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.replace('/auth/login');
+      router.replace("/auth/login");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout failed:", error);
     }
   };
 
-  const menuItems = [
+  const profileMenuItems = [
     {
-      icon: <User size={24} color={Colors.text} />,
-      title: 'Personal Information',
-      onPress: () => router.push('/profile/settings'),
+      id: "profile",
+      title: "Edit Profile",
+      subtitle: "Update your personal information",
+      icon: Edit3,
+      onPress: () => router.push("/profile/setup"),
+      color: Colors.primary,
     },
     {
-      icon: <Heart size={24} color={Colors.text} />,
-      title: 'My Categories',
-      onPress: () => router.push('/profile/settings'),
+      id: "notifications",
+      title: "Notifications",
+      subtitle: "Manage your notification preferences",
+      icon: Bell,
+      onPress: () => router.push("/profile/notifications"),
+      color: "#10b981",
     },
     {
-      icon: <Settings size={24} color={Colors.text} />,
-      title: 'Settings',
-      onPress: () => router.push('/profile/settings'),
+      id: "payment",
+      title: "Payment Methods",
+      subtitle: "Manage your payment options",
+      icon: CreditCard,
+      onPress: () => router.push("/profile/payment-methods"),
+      color: "#f59e0b",
     },
     {
-      icon: <HelpCircle size={24} color={Colors.text} />,
-      title: 'Help & Support',
-      onPress: () => router.push('/profile/help-support'),
+      id: "tickets",
+      title: "My Tickets",
+      subtitle: "View and manage your tickets",
+      icon: FileText,
+      onPress: () => router.push("/(tabs)/tickets"),
+      color: "#8b5cf6",
     },
     {
-      icon: <Shield size={24} color={Colors.text} />,
-      title: 'Privacy & Security',
-      onPress: () => router.push('/profile/settings'),
+      id: "favorites",
+      title: "Favorites",
+      subtitle: "Events you've saved",
+      icon: Heart,
+      onPress: () => router.push("/profile/favorites"),
+      color: "#ef4444",
+    },
+    {
+      id: "settings",
+      title: "Settings",
+      subtitle: "App preferences and configuration",
+      icon: Settings,
+      onPress: () => router.push("/profile/settings"),
+      color: "#6b7280",
+    },
+    {
+      id: "help",
+      title: "Help & Support",
+      subtitle: "Get help and contact support",
+      icon: HelpCircle,
+      onPress: () => router.push("/profile/help-support"),
+      color: "#3b82f6",
+    },
+    {
+      id: "privacy",
+      title: "Privacy & Security",
+      subtitle: "Manage your privacy settings",
+      icon: Shield,
+      onPress: () => router.push("/profile/privacy"),
+      color: "#059669",
     },
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
-      </View>
-
-      <View style={styles.profileSection}>
-        <Image
-          source={{ uri: user?.profileImage || 'https://via.placeholder.com/80' }}
-          style={styles.profileImage}
-        />
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{user?.username || 'User'}</Text>
-          <Text style={styles.profileEmail}>{user?.email || 'user@example.com'}</Text>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Header title="Profile" showBack />
+      
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
+          <View style={styles.avatarContainer}>
+            <Image
+              source={require("@/assets/images/profile.jpg")}
+              style={styles.avatar}
+            />
+            <TouchableOpacity style={styles.editAvatarButton}>
+              <Edit3 size={16} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={styles.userName}>{user?.name || "User Name"}</Text>
+          <Text style={styles.userEmail}>{user?.email || "user@example.com"}</Text>
+          
+          <Button
+            title="Edit Profile"
+            variant="outline"
+            size="small"
+            icon={Edit3}
+            onPress={() => router.push("/profile/setup")}
+            style={styles.editProfileButton}
+          />
         </View>
-      </View>
 
-      <View style={styles.menuSection}>
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.menuItem}
-            onPress={item.onPress}
-            activeOpacity={0.7}
-          >
-            <View style={styles.menuItemLeft}>
-              {item.icon}
-              <Text style={styles.menuItemTitle}>{item.title}</Text>
-            </View>
-            <Text style={styles.menuItemArrow}>›</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        {/* Menu Items */}
+        <View style={styles.menuSection}>
+          {profileMenuItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItem}
+              onPress={item.onPress}
+              activeOpacity={0.7}
+            >
+              <View style={styles.menuItemLeft}>
+                <View style={[styles.menuIcon, { backgroundColor: `${item.color}15` }]}>
+                  <item.icon size={20} color={item.color} />
+                </View>
+                <View style={styles.menuItemText}>
+                  <Text style={styles.menuItemTitle}>{item.title}</Text>
+                  <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                </View>
+              </View>
+              <ChevronRight size={20} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <LogOut size={24} color={Colors.error} />
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+        {/* Logout Section */}
+        <View style={styles.logoutSection}>
+          <Button
+            title="Logout"
+            variant="ghost"
+            size="large"
+            icon={LogOut}
+            onPress={handleLogout}
+            style={styles.logoutButton}
+          />
+        </View>
+
+        {/* App Version */}
+        <View style={styles.versionSection}>
+          <Text style={styles.versionText}>Agura v1.0.0</Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -94,84 +190,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  profileHeader: {
+    alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    paddingVertical: 32,
+    backgroundColor: Colors.primary,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  title: {
-    color: Colors.text,
+  avatarContainer: {
+    position: "relative",
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: "#ffffff",
+  },
+  editAvatarButton: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#ffffff",
+  },
+  userName: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "700",
+    color: "#ffffff",
+    marginBottom: 8,
+    textAlign: "center",
   },
-  profileSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  userEmail: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.9)",
+    marginBottom: 24,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  editProfileButton: {
+    minWidth: 120,
+  },
+  menuSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 32,
-  },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 16,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  profileEmail: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-  },
-  menuSection: {
-    marginHorizontal: 20,
-    marginBottom: 32,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  menuIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  menuItemText: {
+    flex: 1,
   },
   menuItemTitle: {
-    color: Colors.text,
     fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 15,
+    fontWeight: "600",
+    color: Colors.text,
+    marginBottom: 4,
   },
-  menuItemArrow: {
+  menuItemSubtitle: {
+    fontSize: 14,
     color: Colors.textSecondary,
-    fontSize: 20,
+    lineHeight: 18,
+  },
+  logoutSection: {
+    paddingHorizontal: 20,
+    marginTop: 32,
   },
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.error,
-    borderRadius: 12,
-    paddingVertical: 15,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    borderColor: "#ef4444",
   },
-  logoutText: {
-    color: Colors.text,
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
+  versionSection: {
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  versionText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: "500",
   },
 });
