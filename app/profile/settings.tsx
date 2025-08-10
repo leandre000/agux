@@ -52,7 +52,7 @@ export default function SettingsScreen() {
             try {
               await logout();
               router.replace('/onboarding');
-            } catch (error) {
+            } catch {
               Alert.alert('Error', 'Failed to logout. Please try again.');
             }
           },

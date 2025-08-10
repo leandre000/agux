@@ -4,7 +4,7 @@ import { MenuItem, useFoodStore } from '@/store/food-store';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,7 +31,7 @@ export default function EventMenuScreen() {
     }
   }, [id, setCurrentEventId, loadMenuItems]);
 
-  const loadMenuItems = async () => {
+  const loadMenuItems = useCallback(async () => {
     if (!id) return;
     
     try {
@@ -40,7 +40,7 @@ export default function EventMenuScreen() {
     } catch (error: any) {
       console.error('Failed to load menu items:', error);
     }
-  };
+  }, [id, clearError, fetchMenuItems]);
 
   const handleOrderItem = (item: MenuItem) => {
     if (!item.available) return;

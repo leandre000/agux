@@ -11,7 +11,7 @@ import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 export default function ResetPasswordScreen() {
   const router = useRouter();
 
-  const { updatePassword, isLoading, error } = useAuthStore() as any;
+  const { updatePassword, isLoading } = useAuthStore() as any;
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

@@ -5,7 +5,7 @@ import { TicketCategory, useTicketsStore } from "@/store/tickets-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -52,7 +52,7 @@ export default function EventDetailScreen() {
     }
   }, [id, loadEventData]);
 
-  const loadEventData = async () => {
+  const loadEventData = useCallback(async () => {
     if (!id) return;
     
     try {
@@ -79,7 +79,7 @@ export default function EventDetailScreen() {
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to load event details");
     }
-  };
+  }, [id, fetchEvent, fetchTicketCategories]);
 
   const handleBuyTicket = (category: TicketCategory) => {
     if (!category.available_quantity || category.available_quantity <= 0) {

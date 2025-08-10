@@ -3,14 +3,14 @@ import Colors from '@/constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { CheckCircle } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FoodPaymentSuccessScreen() {
   const router = useRouter();
   const { id, ticketId } = useLocalSearchParams<{ id?: string; ticketId?: string }>();
-  const scaleValue = new Animated.Value(0);
+  const scaleValue = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     // Animate the checkmark icon

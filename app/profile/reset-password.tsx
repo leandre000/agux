@@ -52,7 +52,7 @@ export default function ResetPasswordScreen() {
           }
         ]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to update password. Please try again.');
     } finally {
       setIsLoading(false);

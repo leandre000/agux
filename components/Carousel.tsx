@@ -29,7 +29,7 @@ export default function Carousel({ children }: { children: React.ReactNode[] }) 
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [activeIndex]);
+    }, [activeIndex, children.length]);
 
     return (
         <View>

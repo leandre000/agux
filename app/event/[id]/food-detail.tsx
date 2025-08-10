@@ -4,7 +4,7 @@ import { useFoodStore } from '@/store/food-store';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft, Minus, Plus } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,7 +31,7 @@ export default function FoodDetailScreen() {
     }
   }, [id, itemId, currentMenuItems.length, loadMenuItems]);
 
-  const loadMenuItems = async () => {
+  const loadMenuItems = useCallback(async () => {
     if (!id) return;
     
     try {
@@ -40,7 +40,7 @@ export default function FoodDetailScreen() {
     } catch (error: any) {
       console.error('Failed to load menu items:', error);
     }
-  };
+  }, [id, clearError, fetchMenuItems]);
 
   const handleAddToCart = () => {
     if (!foodItem || !foodItem.available) return;

@@ -38,16 +38,12 @@ export default function NotificationSettingsScreen() {
   const [ordersAlert, setOrdersAlert] = useState(false);
   const [sortEventsAlert, setSortEventsAlert] = useState(false);
 
-  const handleSave = () => {
-    // Save notification settings to backend/storage
-    console.log('Notification settings:', {
-      eventAlert,
-      ordersAlert,
-      sortEventsAlert,
-    });
-    
-    router.back();
-  };
+  // Save notification settings to backend/storage
+  console.log('Notification settings:', {
+    eventAlert,
+    ordersAlert,
+    sortEventsAlert,
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

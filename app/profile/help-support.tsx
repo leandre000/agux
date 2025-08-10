@@ -84,7 +84,7 @@ interface FAQItemProps {
   onToggle: (id: string) => void;
 }
 
-const FAQItem: React.FC<FAQItemProps> = ({ item, isExpanded, onToggle }) => (
+const FAQItemComponent: React.FC<FAQItemProps> = ({ item, isExpanded, onToggle }) => (
   <View style={styles.faqItem}>
     <TouchableOpacity 
       style={styles.faqQuestion} 
@@ -110,7 +110,7 @@ interface ContactOptionProps {
   option: ContactOption;
 }
 
-const ContactOption: React.FC<ContactOptionProps> = ({ option }) => (
+const ContactOptionComponent: React.FC<ContactOptionProps> = ({ option }) => (
   <TouchableOpacity 
     style={styles.contactOption} 
     onPress={option.action}
@@ -125,7 +125,7 @@ const ContactOption: React.FC<ContactOptionProps> = ({ option }) => (
     </View>
     <ExternalLink size={20} color={Colors.textSecondary} />
   </TouchableOpacity>
-);
+ );
 
 export default function HelpSupportScreen() {
   const router = useRouter();
@@ -164,7 +164,7 @@ export default function HelpSupportScreen() {
             <Text style={styles.sectionTitle}>Get in Touch</Text>
             <View style={styles.contactContainer}>
               {contactOptions.map((option) => (
-                <ContactOption key={option.id} option={option} />
+                <ContactOptionComponent key={option.id} option={option} />
               ))}
             </View>
           </View>
@@ -174,7 +174,7 @@ export default function HelpSupportScreen() {
             <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
             <View style={styles.faqContainer}>
               {faqData.map((item) => (
-                <FAQItem
+                <FAQItemComponent
                   key={item.id}
                   item={item}
                   isExpanded={expandedFAQ === item.id}

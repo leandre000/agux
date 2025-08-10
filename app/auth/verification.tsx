@@ -20,7 +20,7 @@ export default function VerificationScreen() {
     try {
       await verifyAccount(code);
       router.push('/profile/setup');
-    } catch (error) {
+    } catch {
       // Error is handled in the store
     }
   };

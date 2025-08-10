@@ -1,7 +1,7 @@
 import Colors from '@/constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,8 +21,8 @@ export default function ConfirmationScreen() {
 
 
   // Animation values
-  const checkScale = new Animated.Value(0);
-  const checkOpacity = new Animated.Value(0);
+  const checkScale = useMemo(() => new Animated.Value(0), []);
+  const checkOpacity = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     // Animate check mark appearance

@@ -73,7 +73,7 @@ export default function RegisterEmailScreen() {
         username: name
       });
       router.push('/auth/verification');
-    } catch (error) {
+    } catch {
       // Error handled in the store
     }
   };

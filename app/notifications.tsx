@@ -3,7 +3,7 @@ import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -75,7 +75,7 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Mock notifications data (would come from backend)
-  const mockNotifications: Notification[] = [
+  const mockNotifications: Notification[] = useMemo(() => [
     {
       id: '1',
       type: 'order_success',
@@ -142,9 +142,9 @@ export default function NotificationsScreen() {
       timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000 - 6 * 60 * 60 * 1000), // Yesterday
       isRead: true,
     },
-  ];
+  ], []);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       // In real app, fetch from API
       // const data = await NotificationsAPI.getNotifications();
@@ -153,7 +153,7 @@ export default function NotificationsScreen() {
       console.error('Failed to load notifications:', error);
       setNotifications(mockNotifications);
     }
-  };
+  }, [mockNotifications]);
 
   useEffect(() => {
     loadNotifications();

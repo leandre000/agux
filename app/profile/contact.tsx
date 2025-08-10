@@ -1,14 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, User, Settings, HelpCircle, Phone, LogOut } from 'lucide-react-native';
+import { User, Settings, HelpCircle, Phone } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
 import { useAuthStore } from '@/store/auth-store';
-import { Alert } from 'react-native';
 
 interface ProfileOptionProps {
   icon: React.ReactNode;
@@ -61,7 +60,7 @@ export default function ProfileWithLogoutScreen() {
             try {
               await logout();
               router.replace('/onboarding');
-            } catch (error) {
+            } catch {
               Alert.alert('Error', 'Failed to logout. Please try again.');
             }
           },

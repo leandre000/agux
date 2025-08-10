@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  Keyboard,
-  NativeSyntheticEvent,
-  TextInputKeyPressEventData,
-} from 'react-native';
 import Colors from '@/constants/Colors';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    Keyboard,
+    NativeSyntheticEvent,
+    StyleSheet,
+    TextInput,
+    TextInputKeyPressEventData,
+    View,
+} from 'react-native';
 
 interface VerificationInputProps {
   length?: number;
@@ -16,7 +16,7 @@ interface VerificationInputProps {
 
 const VerificationInput: React.FC<VerificationInputProps> = ({ length = 5, onCodeFilled }) => {
   const [code, setCode] = useState<string[]>(Array(length).fill(''));
-  const inputRefs = useRef<Array<TextInput | null>>([]);
+  const inputRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
     
