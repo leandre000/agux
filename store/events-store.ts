@@ -1,6 +1,7 @@
-import { create } from "zustand";
-import { AxiosRequestConfig } from "axios";
 import { createApiClient } from "@/config/api";
+import { AxiosRequestConfig } from "axios";
+import { create } from "zustand";
+import { AppError, handleError } from "@/lib/errorHandler";
 
 // Align with minimal fields expected by UI components
 export type EventCategory = "music" | "sports" | "business" | "tech" | "other";
@@ -106,8 +107,10 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         loading: false,
       });
     } catch (err: any) {
-      set({ error: err?.message || "Failed to load events", loading: false });
-      throw err;
+      // Use our new error handler
+      const appError = handleError(err, 'events-store.fetchAll');
+      set({ error: appError.getUserFriendlyMessage(), loading: false });
+      throw appError;
     }
   },
 
@@ -120,7 +123,9 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
       set({ loading: false });
       return mapped;
     } catch (err: any) {
-      set({ error: err?.message || "Failed to load event", loading: false });
+      // Use our new error handler
+      const appError = handleError(err, 'events-store.fetchById');
+      set({ error: appError.getUserFriendlyMessage(), loading: false });
       return null;
     }
   },

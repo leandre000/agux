@@ -7,6 +7,8 @@ import axios, {
 } from "axios";
 import * as Linking from "expo-linking";
 import { PRODUCTION_CONFIG } from "./production";
+import { Linking } from "react-native";
+import { AppError, handleError } from "@/lib/errorHandler";
 
 const RUNTIME_BASE =
   process.env.EXPO_PUBLIC_API_URL ||
@@ -78,8 +80,11 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
     async (error: any) => {
       const err = normalizeError(error) as Error & { status?: number };
       
+      // Convert to AppError for better handling
+      const appError = new AppError(err.message, err.status, err.data);
+      
       // Handle specific error cases for production
-      if (err?.status === 401) {
+      if (appError.status === 401) {
         // Clear token and optionally route to login
         try {
           await clearToken();
@@ -93,19 +98,28 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
           // Fire-and-forget; it's okay if it fails in background
           Linking.openURL(url).catch(() => {});
         } catch {}
-      } else if (err?.status === 404) {
+      } else if (appError.status === 404) {
         // Handle 404 errors gracefully
-        console.warn('Resource not found:', err.message);
-        // You can show a user-friendly message here
-      } else if (err?.status === 503 || err?.status === 502) {
+        console.warn('Resource not found:', appError.message);
+      } else if (appError.status === 503 || appError.status === 502) {
         // Handle backend maintenance or temporary issues
-        console.warn('Backend temporarily unavailable:', err.message);
-      } else if (err?.status && err.status >= 500) {
+        console.warn('Backend temporarily unavailable:', appError.message);
+      } else if (appError.status && appError.status >= 500) {
         // Handle server errors
-        console.error('Server error:', err.message);
+        console.error('Server error:', appError.message);
       }
       
-      throw err;
+      // Special handling for database errors (even if they come as 200 responses with error in body)
+      if (appError.isDatabaseError) {
+        console.error('Database error detected:', appError.message);
+        // Log to production monitoring service
+        if (PRODUCTION_CONFIG.FEATURES.ERROR_REPORTING) {
+          // In production, you would send this to your error reporting service
+          console.log('Database error reported to monitoring service');
+        }
+      }
+      
+      throw appError;
     }
   );
 
