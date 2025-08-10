@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
+import Button from '@/components/Button';
+import CategoryButton from '@/components/CategoryButton';
+import Header from '@/components/Header';
 import { useAuthStore } from '@/store/auth-store';
 import { useEventsStore } from '@/store/events-store';
-import Colors from '@/constants/Colors';
-import Button from '@/components/Button';
-import Header from '@/components/Header';
-import CategoryButton from '@/components/CategoryButton';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 import { EventCategory } from '@/mocks/events';
 
@@ -37,7 +36,7 @@ export default function CategoriesScreen() {
 
   const handleSave = () => {
     updateUser({ categories: selectedCategories });
-    setSelectedCategories(selectedCategories);
+    setSelectedCategories(selectedCategories as any);
     router.replace('/(tabs)');
   };
 

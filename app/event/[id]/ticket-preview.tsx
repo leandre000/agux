@@ -1,20 +1,18 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import Header from '@/components/Header';
 import Colors from '@/constants/Colors';
-import { ChevronLeft } from 'lucide-react-native';
-import QRCode from 'react-native-qrcode-svg';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-import * as IntentLauncher from 'expo-intent-launcher';
-import * as Permissions from 'expo-permissions';
-import * as MediaLibrary from 'expo-media-library';
-import { useTicketsStore } from "@/store/tickets-store";
 import { useEventsStore } from "@/store/events-store";
+import { useTicketsStore } from "@/store/tickets-store";
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import * as Print from 'expo-print';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Sharing from 'expo-sharing';
+import { ChevronLeft } from 'lucide-react-native';
+import React from 'react';
+import { Alert, Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -26,7 +24,7 @@ export default function TicketPreviewScreen() {
   let ticketId = params.ticketId;
   if (Array.isArray(ticketId)) ticketId = ticketId[0];
   
-  const { userTickets, loading } = useTicketsStore();
+  const { userTickets } = useTicketsStore();
   const { allEvents } = useEventsStore();
   
   // Find the specific ticket
@@ -64,7 +62,7 @@ export default function TicketPreviewScreen() {
               </div>
               <div style="background: #18181b; border-radius: 16px; padding: 18px 24px; width: 320px;">
                 <div style="font-weight: bold; color: #e6007e; font-size: 18px; margin-bottom: 8px;">${eventName}</div>
-                <div style="font-size: 15px; color: #fff; margin-bottom: 4px;">${ticketType} (${ticketCount})</div>
+                <div style="font-size: 15px; color: #fff; margin-bottom: 4px;">${ticketType} (1)</div>
                 <div style="font-size: 15px; color: #fff; margin-bottom: 4px;">${venue}</div>
                 <div style="font-size: 15px; color: #fff; margin-bottom: 4px;">Amount: ${amount} Rwf</div>
                 <div style="font-size: 14px; color: #fff; margin-bottom: 2px;">Bought at: ${boughtAt}</div>
@@ -75,7 +73,6 @@ export default function TicketPreviewScreen() {
         </html>
       `;
       const { uri } = await Print.printToFileAsync({ html });
-      let fileUri = uri;
       if (Platform.OS === 'android') {
         // Save to Downloads using StorageAccessFramework
         const permissions = await MediaLibrary.requestPermissionsAsync();
@@ -83,7 +80,6 @@ export default function TicketPreviewScreen() {
           Alert.alert('Permission required', 'Please grant storage permission to save the ticket.');
           return;
         }
-        const fileName = `ticket_${eventId}_${Date.now()}.pdf`;
         const asset = await MediaLibrary.createAssetAsync(uri);
         const album = await MediaLibrary.getAlbumAsync('Download');
         if (album == null) {
@@ -93,14 +89,13 @@ export default function TicketPreviewScreen() {
         }
         Alert.alert('Ticket Saved', 'Your ticket PDF has been saved to your Downloads folder.');
       } else if (Platform.OS === 'ios') {
-        const fileName = `ticket_${eventId}_${Date.now()}.pdf`;
-        const dest = `${FileSystem.documentDirectory}${fileName}`;
+        const dest = `${FileSystem.documentDirectory}ticket_${eventId}_${Date.now()}.pdf`;
         await FileSystem.copyAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest);
       } else {
         window.open(uri, '_blank');
       }
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Could not generate PDF.');
     }
   };

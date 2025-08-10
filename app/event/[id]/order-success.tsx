@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function OrderSuccessScreen() {
   const router = useRouter();
@@ -71,7 +71,7 @@ export default function OrderSuccessScreen() {
     };
 
     animateSuccess();
-  }, []);
+  }, [checkmarkRotate, checkmarkScale, dotsOpacity, dotsScale]);
 
   const handleGoBackToOrders = () => {
     router.push(`/event/${id}/orders`);
@@ -147,7 +147,7 @@ export default function OrderSuccessScreen() {
           
           <Text style={styles.successTitle}>Your order has been successfully placed</Text>
           <Text style={styles.successMessage}>
-            Sit and relax while your orders is being worked on. It'll take 5min before you get it
+            Sit and relax while your orders is being worked on. It&apos;ll take 5min before you get it
           </Text>
         </View>
 

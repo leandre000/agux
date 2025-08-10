@@ -1,15 +1,15 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "@/store/auth-store";
-import Colors from "@/constants/Colors";
 import Button from "@/components/Button";
-import Input from "@/components/Input";
 import Header from "@/components/Header";
+import Input from "@/components/Input";
+import { API_BASE_URL } from "@/config/api";
+import Colors from "@/constants/Colors";
+import { useAuthStore } from "@/store/auth-store";
+import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
-import { API_BASE_URL } from "@/config/api";
+import React, { useState } from "react";
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -127,12 +127,12 @@ export default function LoginScreen() {
           <Button
             title="Continue with Google"
             onPress={handleGoogleLogin}
-            style={[styles.loginButton, styles.googleButton]}
+            style={styles.googleButton}
             textStyle={styles.googleButtonText}
           />
 
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Text style={styles.signupText}>Don&apos;t have an account? </Text>
             <TouchableOpacity onPress={() => router.push("/auth/register")}>
               <Text style={styles.signupLink}>Signup</Text>
             </TouchableOpacity>
@@ -195,6 +195,8 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: "#666",
+    borderRadius: 25,
+    paddingVertical: 16,
     marginBottom: 32,
   },
   googleButtonText: {

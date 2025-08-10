@@ -1,23 +1,23 @@
+import Header from "@/components/Header";
+import Colors from "@/constants/Colors";
+import { Event, useEventsStore } from "@/store/events-store";
+import { TicketCategory, useTicketsStore } from "@/store/tickets-store";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Image as RNImage,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
+    ActivityIndicator,
+    Alert,
+    Image as RNImage,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
-import Header from "@/components/Header";
-import Colors from "@/constants/Colors";
-import { useEventsStore, Event } from "@/store/events-store";
-import { useTicketsStore, TicketCategory } from "@/store/tickets-store";
 
 export const options = {
   headerShown: false,
@@ -28,14 +28,13 @@ function formatPrice(price: number, currency: string = 'RWF'): string {
 }
 
 export default function EventDetailScreen() {
-  const { id, booked } = useLocalSearchParams<{
+  const { id } = useLocalSearchParams<{
     id: string;
-    booked?: string;
   }>();
   const router = useRouter();
   
   const { fetchById: fetchEvent, loading: eventsLoading, error: eventsError } = useEventsStore();
-  const { fetchTicketCategories, ticketCategories, loading: ticketsLoading, error: ticketsError } = useTicketsStore();
+  const { fetchTicketCategories, loading: ticketsLoading, error: ticketsError } = useTicketsStore();
   
   const [event, setEvent] = useState<Event | null>(null);
   const [categories, setCategories] = useState<TicketCategory[]>([]);
@@ -51,7 +50,7 @@ export default function EventDetailScreen() {
     if (id) {
       loadEventData();
     }
-  }, [id]);
+  }, [id, loadEventData]);
 
   const loadEventData = async () => {
     if (!id) return;

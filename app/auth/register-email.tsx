@@ -11,7 +11,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function RegisterEmailScreen() {
   const router = useRouter();
-  const { register, isLoading, error } = useAuthStore();
+  const { register, isLoading } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -126,7 +126,7 @@ export default function RegisterEmailScreen() {
           />
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+
 
         <Button
           title="Sign Up"

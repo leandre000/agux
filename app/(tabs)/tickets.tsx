@@ -1,160 +1,118 @@
-import React, { useEffect, useState } from "react";
-import { Text, ScrollView, RefreshControl, View, StyleSheet, TouchableOpacity, Image } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import Colors from "@/constants/Colors";
-import Header from "@/components/Header";
-import { TicketsAPI } from "@/lib/api";
+import { Colors } from '@/constants/Colors';
+import { useTicketsStore } from '@/store/tickets-store';
+import { useRouter } from 'expo-router';
+import { Calendar, Clock, MapPin, Ticket } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function EventTicketsScreen() {
+export default function TicketsScreen() {
   const router = useRouter();
-  const [tickets, setTickets] = useState<any[]>([]);
+  const { tickets, loadTickets } = useTicketsStore();
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Mock tickets data for demonstration with realistic pricing
-  const mockTickets = [
-    {
-      id: '1',
-      title: 'Baba Experience',
-      category: 'VVIP Tickets',
-      quantity: 2,
-      price: '25,000 RWF',
-      image: require('@/assets/images/m1.png'),
-      status: 'active',
-    },
-    {
-      id: '2',
-      title: 'Music Festival',
-      category: 'VIP Tickets',
-      quantity: 1,
-      price: '8,000 RWF',
-      image: require('@/assets/images/m2.png'),
-      status: 'active',
-    },
-    {
-      id: '3',
-      title: 'Comedy Night',
-      category: 'Regular Tickets',
-      quantity: 3,
-      price: '3,000 RWF',
-      image: require('@/assets/images/m1.png'),
-      status: 'active',
-    },
-    {
-      id: '4',
-      title: 'Art Exhibition',
-      category: 'Premium Tickets',
-      quantity: 1,
-      price: '15,000 RWF',
-      image: require('@/assets/images/m2.png'),
-      status: 'active',
-    },
-    {
-      id: '5',
-      title: 'Sports Event',
-      category: 'VIP Tickets',
-      quantity: 2,
-      price: '8,000 RWF',
-      image: require('@/assets/images/m1.png'),
-      status: 'active',
-    },
-  ];
-
-  async function load() {
+  const load = useCallback(async () => {
     try {
-      setError(null);
-      // Replace with actual API call when backend is ready
-      // const data = await TicketsAPI.getMyTickets();
-      setTickets(mockTickets);
-    } catch (e: any) {
-      setError(e?.message || "Failed to load your tickets");
-      setTickets(mockTickets); // Fallback to mock data
+      await loadTickets();
+    } catch (error) {
+      console.error('Error loading tickets:', error);
     }
-  }
+  }, [loadTickets]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
-  // Empty state component
-  const EmptyState = ({ message }: { message: string }) => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyStateText}>{message}</Text>
-    </View>
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }, [load]);
+
+  const handleTicketPress = (ticketId: string) => {
+    router.push(`/ticket/${ticketId}`);
+  };
+
+  const renderTicket = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.ticketCard}
+      onPress={() => handleTicketPress(item.id)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.ticketHeader}>
+        <View style={styles.ticketIcon}>
+          <Ticket size={24} color={Colors.primary} />
+        </View>
+        <View style={styles.ticketInfo}>
+          <Text style={styles.eventTitle}>{item.eventTitle}</Text>
+          <Text style={styles.ticketType}>{item.ticketType}</Text>
+        </View>
+        <View style={styles.ticketStatus}>
+          <Text style={[styles.statusText, { color: item.status === 'active' ? Colors.success : Colors.warning }]}>
+            {item.status}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.ticketDetails}>
+        <View style={styles.detailRow}>
+          <Calendar size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>{item.eventDate}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Clock size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>{item.eventTime}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <MapPin size={16} color={Colors.textSecondary} />
+          <Text style={styles.detailText}>{item.eventLocation}</Text>
+        </View>
+      </View>
+
+      <View style={styles.ticketFooter}>
+        <Text style={styles.ticketId}>Ticket ID: {item.id}</Text>
+        <Text style={styles.price}>${item.price}</Text>
+      </View>
+    </TouchableOpacity>
   );
 
-  // Ticket card component
-  const TicketCard = ({ ticket }: { ticket: any }) => (
-    <View style={styles.ticketCard}>
-      <Image source={ticket.image} style={styles.ticketImage} />
-      <View style={styles.ticketOverlay}>
-        <Text style={styles.ticketTitle}>{ticket.title}</Text>
-        <Text style={styles.ticketCategory}>{ticket.category}</Text>
-        <Text style={styles.ticketPrice}>{ticket.price}</Text>
-        <TouchableOpacity 
-          style={styles.viewTicketButton}
-          onPress={() => router.push(`/event/${ticket.id}/ticket-preview`)}
-        >
-          <Text style={styles.viewTicketText}>View Ticket</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.quantityBadge}>
-        <Text style={styles.quantityText}>{ticket.quantity}</Text>
-      </View>
-    </View>
-  );
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar style="light" />
-      <Header
-        showLogo
-        showProfile
-        showSearch
-        onSearchPress={() => {}}
-      />
-      
-      <View style={styles.content}>
-        <View style={styles.titleRow}>
-          <Text style={styles.screenTitle}>Event Tickets</Text>
-          <TouchableOpacity>
-            <Text style={styles.recentText}>Recent</Text>
+  if (tickets.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyState}>
+          <Ticket size={64} color={Colors.textSecondary} />
+          <Text style={styles.emptyStateTitle}>No Tickets Yet</Text>
+          <Text style={styles.emptyStateText}>
+            You haven&apos;t purchased any tickets yet. Start exploring events to get your first ticket!
+          </Text>
+          <TouchableOpacity
+            style={styles.exploreButton}
+            onPress={() => router.push('/events/user')}
+          >
+            <Text style={styles.exploreButtonText}>Explore Events</Text>
           </TouchableOpacity>
         </View>
+      </SafeAreaView>
+    );
+  }
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={async () => {
-                setRefreshing(true);
-                await load();
-                setRefreshing(false);
-              }}
-              tintColor={Colors.text}
-            />
-          }
-        >
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          {tickets.length === 0 ? (
-            <EmptyState message="No tickets found" />
-          ) : (
-            tickets.map((ticket) => (
-              <TicketCard key={ticket.id} ticket={ticket} />
-            ))
-          )}
-        </ScrollView>
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>My Tickets</Text>
+        <Text style={styles.subtitle}>Manage your event tickets</Text>
       </View>
+
+      <FlatList
+        data={tickets}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTicket}
+        contentContainerStyle={styles.ticketList}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -164,115 +122,128 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
-    flex: 1,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  header: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
-  screenTitle: {
+  title: {
     color: Colors.text,
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
   },
-  recentText: {
+  subtitle: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: 16,
+    marginTop: 4,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  ticketList: {
     paddingHorizontal: 20,
     paddingBottom: 32,
   },
   ticketCard: {
-    position: 'relative',
     backgroundColor: '#1C1C1E',
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
-    height: 200,
+    height: 150,
   },
-  ticketImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-  ticketOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  ticketHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
   },
-  ticketTitle: {
+  ticketIcon: {
+    marginRight: 12,
+  },
+  ticketInfo: {
+    flex: 1,
+  },
+  eventTitle: {
     color: Colors.text,
-    fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 4,
+    fontWeight: 'bold',
   },
-  ticketCategory: {
+  ticketType: {
     color: Colors.textSecondary,
     fontSize: 14,
-    marginBottom: 4,
   },
-  ticketPrice: {
-    color: Colors.text,
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  viewTicketButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  ticketStatus: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     alignSelf: 'flex-start',
   },
-  viewTicketText: {
-    color: Colors.text,
-    fontWeight: '600',
-    fontSize: 13,
-  },
-  quantityBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#4CAF50',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    minWidth: 24,
-    alignItems: 'center',
-  },
-  quantityText: {
-    color: '#fff',
+  statusText: {
+    fontSize: 12,
     fontWeight: 'bold',
+  },
+  ticketDetails: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  detailText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  ticketFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2C2C2E',
+  },
+  ticketId: {
+    color: Colors.textSecondary,
     fontSize: 14,
   },
+  price: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   emptyState: {
-    paddingVertical: 64,
-    alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 64,
+  },
+  emptyStateTitle: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
   },
   emptyStateText: {
     color: Colors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 24,
+    marginTop: 8,
+    marginBottom: 24,
   },
-  errorContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  exploreButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
-  errorText: {
-    color: Colors.error,
-    fontSize: 14,
-    textAlign: 'center',
+  exploreButtonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

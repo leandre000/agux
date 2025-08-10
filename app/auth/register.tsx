@@ -1,15 +1,15 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-} from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import Colors from "@/constants/Colors";
+import React from "react";
+import {
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
+
 import Header from "@/components/Header";
 import SocialLoginButton from "@/components/SocialLoginButton";
 

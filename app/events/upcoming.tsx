@@ -1,15 +1,15 @@
-import React from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useEventsStore } from "@/store/events-store";
-import Colors from "@/constants/Colors";
-import Header from "@/components/Header";
 import EventCard from "@/components/EventCard";
+import Header from "@/components/Header";
+import Colors from "@/constants/Colors";
+import { useEventsStore } from "@/store/events-store";
+import { useRouter } from "expo-router";
+import React from "react";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function UpcomingEventsScreen() {
   const router = useRouter();
-  const { allEvents, fetchAll, loading, error } = useEventsStore();
+  const { allEvents, fetchAll, loading } = useEventsStore();
 
   React.useEffect(() => {
     // Load events on mount

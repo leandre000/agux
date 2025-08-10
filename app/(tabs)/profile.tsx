@@ -1,137 +1,90 @@
-import Header from '@/components/Header';
-import Colors from '@/constants/Colors';
+import { Colors } from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Bell, ChevronRight, CreditCard, HelpCircle, LogOut, Settings, User, Phone } from 'lucide-react-native';
+import { Heart, HelpCircle, LogOut, Settings, Shield, User } from 'lucide-react-native';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-
-interface ProfileOptionProps {
-  icon: React.ReactNode;
-  title: string;
-  onPress: () => void;
-  showChevron?: boolean;
-  destructive?: boolean;
-}
-
-const ProfileOption: React.FC<ProfileOptionProps> = ({ 
-  icon, 
-  title, 
-  onPress, 
-  showChevron = true,
-  destructive = false 
-}) => (
-  <TouchableOpacity style={styles.optionContainer} onPress={onPress} activeOpacity={0.7}>
-    <View style={[styles.optionIconContainer, destructive && styles.destructiveIconContainer]}>
-      {icon}
-    </View>
-    <Text style={[styles.optionTitle, destructive && styles.destructiveText]}>{title}</Text>
-    {showChevron && <ChevronRight size={20} color={Colors.text} />}
-  </TouchableOpacity>
-);
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
 
-  // Mock user data (would come from backend)
-  const userData = {
-    name: user?.username || 'Donye Collins',
-    email: user?.email || 'iamcollinsdonye@gmail.com',
-    profileImage: user?.profileImage || require('@/assets/images/profile.jpg'),
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace('/auth/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  const handleMyAccount = () => router.push('/profile/setup');
-  const handleSettings = () => router.push('/profile/settings');
-  const handleHelpCenter = () => router.push('/profile/help-support');
-  const handleContact = () => router.push('/profile/contact');
-
-  const handleLogout = () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to logout?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace('/auth/login');
-            } catch (error) {
-              Alert.alert("Error", "Failed to logout. Please try again.");
-            }
-          }
-        }
-      ]
-    );
-  };
+  const menuItems = [
+    {
+      icon: <User size={24} color={Colors.textPrimary} />,
+      title: 'Personal Information',
+      onPress: () => router.push('/profile/personal-info'),
+    },
+    {
+      icon: <Heart size={24} color={Colors.textPrimary} />,
+      title: 'My Categories',
+      onPress: () => router.push('/profile/categories'),
+    },
+    {
+      icon: <Settings size={24} color={Colors.textPrimary} />,
+      title: 'Settings',
+      onPress: () => router.push('/profile/settings'),
+    },
+    {
+      icon: <HelpCircle size={24} color={Colors.textPrimary} />,
+      title: 'Help & Support',
+      onPress: () => router.push('/profile/help-support'),
+    },
+    {
+      icon: <Shield size={24} color={Colors.textPrimary} />,
+      title: 'Privacy & Security',
+      onPress: () => router.push('/profile/privacy-security'),
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="light" />
-      <Header showLogo showProfile showSearch />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Profile</Text>
+      </View>
 
-      <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <Text style={styles.screenTitle}>Profile</Text>
-          <TouchableOpacity>
-            <Text style={styles.editProfileText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.profileCard}>
-          <Image
-            source={userData.profileImage}
-            style={styles.profileImage}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{userData.name}</Text>
-            <Text style={styles.profileEmail}>{userData.email}</Text>
-          </View>
-        </View>
-
-        <View style={styles.optionsContainer}>
-          <ProfileOption
-            icon={<User size={24} color={Colors.text} />}
-            title="My Account"
-            onPress={handleMyAccount}
-          />
-
-          <ProfileOption
-            icon={<Settings size={24} color={Colors.text} />}
-            title="Settings"
-            onPress={handleSettings}
-          />
-
-          <ProfileOption
-            icon={<HelpCircle size={24} color={Colors.text} />}
-            title="Help Center"
-            onPress={handleHelpCenter}
-          />
-
-          <ProfileOption
-            icon={<Phone size={24} color={Colors.text} />}
-            title="Contact"
-            onPress={handleContact}
-          />
-
-          <ProfileOption
-            icon={<LogOut size={24} color="#ff4444" />}
-            title="Logout"
-            onPress={handleLogout}
-            showChevron={false}
-            destructive={true}
-          />
+      <View style={styles.profileSection}>
+        <Image
+          source={{ uri: user?.profilePicture || 'https://via.placeholder.com/80' }}
+          style={styles.profileImage}
+        />
+        <View style={styles.profileInfo}>
+          <Text style={styles.profileName}>{user?.username || 'User'}</Text>
+          <Text style={styles.profileEmail}>{user?.email || 'user@example.com'}</Text>
         </View>
       </View>
+
+      <View style={styles.menuSection}>
+        {menuItems.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.menuItem}
+            onPress={item.onPress}
+            activeOpacity={0.7}
+          >
+            <View style={styles.menuItemLeft}>
+              {item.icon}
+              <Text style={styles.menuItemTitle}>{item.title}</Text>
+            </View>
+            <Text style={styles.menuItemArrow}>›</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <LogOut size={24} color={Colors.error} />
+        <Text style={styles.logoutText}>Logout</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -141,32 +94,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
-    flex: 1,
+  header: {
     paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  screenTitle: {
+  title: {
     color: Colors.text,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
   },
-  editProfileText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  profileCard: {
+  profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.card,
     borderRadius: 16,
     padding: 20,
+    marginHorizontal: 20,
     marginBottom: 32,
   },
   profileImage: {
@@ -188,35 +132,46 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: 14,
   },
-  optionsContainer: {
-    flex: 1,
+  menuSection: {
+    marginHorizontal: 20,
+    marginBottom: 32,
   },
-  optionContainer: {
+  menuItem: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
-  optionIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
+  menuItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemTitle: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 15,
+  },
+  menuItemArrow: {
+    color: Colors.textSecondary,
+    fontSize: 20,
+  },
+  logoutButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
-  },
-  destructiveIconContainer: {
     backgroundColor: Colors.error,
+    borderRadius: 12,
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
   },
-  optionTitle: {
-    flex: 1,
-    fontSize: 16,
+  logoutText: {
     color: Colors.text,
-    fontWeight: '500',
-  },
-  destructiveText: {
-    color: Colors.error,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 10,
   },
 });

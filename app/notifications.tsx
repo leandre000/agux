@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
+import React, { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Notification {
   id: string;
@@ -157,7 +157,7 @@ export default function NotificationsScreen() {
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -168,7 +168,7 @@ export default function NotificationsScreen() {
   const handleNotificationPress = (notification: Notification) => {
     // Mark as read and navigate if needed
     if (notification.actionUrl) {
-      router.push(notification.actionUrl);
+      router.push(notification.actionUrl as any);
     }
   };
 
@@ -248,7 +248,7 @@ export default function NotificationsScreen() {
               <View style={styles.emptyState}>
                 <Text style={styles.emptyStateText}>No notifications yet</Text>
                 <Text style={styles.emptyStateSubtext}>
-                  You'll see your notifications here when you have some
+                  You&apos;ll see your notifications here when you have some
                 </Text>
               </View>
             )}

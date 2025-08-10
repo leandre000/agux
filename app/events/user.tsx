@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEventsStore } from '@/store/events-store';
-import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { useEventsStore } from '@/store/events-store';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AllEventsScreen() {
   const router = useRouter();
@@ -109,7 +109,7 @@ export default function AllEventsScreen() {
         showLogo
         showProfile
         showSearch
-        onSearchPress={() => router.push("/search")}
+        onSearchPress={() => router.push("/(tabs)")}
       />
       
       <View style={styles.content}>

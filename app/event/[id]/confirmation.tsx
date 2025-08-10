@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '@/constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Colors from '@/constants/Colors';
+import React, { useEffect } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ConfirmationScreen() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function ConfirmationScreen() {
   const ticketCount = parseInt(params.count || '1', 10);
   const amount = params.amount || '0';
   const categoryName = params.categoryName ? decodeURIComponent(params.categoryName) : 'Standard';
-  const ticketIds = params.ticketIds ? params.ticketIds.split(',') : [];
+
 
   // Animation values
   const checkScale = new Animated.Value(0);
@@ -42,7 +42,7 @@ export default function ConfirmationScreen() {
         }),
       ]),
     ]).start();
-  }, []);
+  }, [checkScale, checkOpacity]);
 
   const handleGoBack = () => {
     router.push('/(tabs)');

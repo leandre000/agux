@@ -95,11 +95,11 @@ export default function PaymentMethodsScreen() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
 
   const handleAddPaymentMethod = () => {
-    router.push('/profile/add-payment-method');
+    router.push('/profile/settings' as any);
   };
 
   const handleEditPaymentMethod = (method: PaymentMethod) => {
-    router.push(`/profile/edit-payment-method/${method.id}`);
+    router.push('/profile/settings' as any);
   };
 
   const handleDeletePaymentMethod = (method: PaymentMethod) => {

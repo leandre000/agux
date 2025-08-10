@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
-import { StatusBar } from 'expo-status-bar';
-import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ChevronLeft } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Seat {
   id: string;
@@ -73,13 +73,13 @@ export default function SeatSelectionScreen() {
     let seatStyle = [styles.seat];
     
     if (seat.isBooked) {
-      seatStyle.push(styles.seatBooked);
+      seatStyle.push(styles.seatBooked as any);
     } else if (seat.isSelected) {
-      seatStyle.push(styles.seatSelected);
+      seatStyle.push(styles.seatSelected as any);
     } else if (seat.isVip) {
-      seatStyle.push(styles.seatVip);
+      seatStyle.push(styles.seatVip as any);
     } else {
-      seatStyle.push(styles.seatAvailable);
+      seatStyle.push(styles.seatAvailable as any);
     }
 
     return (

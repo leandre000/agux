@@ -3,14 +3,14 @@ import Header from "@/components/Header";
 import Input from "@/components/Input";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ identifier?: string }>();
+
   const { updatePassword, isLoading, error } = useAuthStore() as any;
 
   const [newPassword, setNewPassword] = useState("");
@@ -81,7 +81,7 @@ export default function ResetPasswordScreen() {
           />
         </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+
 
         <Button
           title="Save Password"

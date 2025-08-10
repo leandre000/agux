@@ -8,7 +8,6 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
     return (
         <View style={styles.tabBarContainer}>
             {state.routes.map((route: any, index: number) => {
-                const { options } = descriptors[route.key];
                 const isFocused = state.index === index;
                 let icon;
                 if (route.name === 'index') icon = <Home size={26} color={isFocused ? Colors.primary : Colors.textSecondary} />;

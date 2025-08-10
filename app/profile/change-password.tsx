@@ -73,7 +73,7 @@ export default function ChangePasswordScreen() {
           },
         ]
       );
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to update password. Please try again.');
     } finally {
       setIsLoading(false);
@@ -120,7 +120,7 @@ export default function ChangePasswordScreen() {
           <View style={styles.securityNotice}>
             <Lock size={20} color={Colors.primary} />
             <Text style={styles.securityText}>
-              For security reasons, you'll need to enter your current password to change it.
+              For security reasons, you&apos;ll need to enter your current password to change it.
             </Text>
           </View>
 

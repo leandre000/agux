@@ -1,191 +1,96 @@
-import EventCard from "@/components/EventCard";
-import Header from "@/components/Header";
-import ListEventCard from "@/components/ListEventCard";
-import SearchBar from "@/components/SearchBar";
-import SectionHeader from "@/components/SectionHeader";
-import Colors from "@/constants/Colors";
-import { useEventsStore } from "@/store/events-store";
-import { useTicketsStore } from "@/store/tickets-store";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useState, useEffect } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  RefreshControl,
-  ActivityIndicator,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Button } from '@/components/Button';
+import { EventCard } from '@/components/EventCard';
+import { SearchBar } from '@/components/SearchBar';
+import { Colors } from '@/constants/Colors';
+import { useAuthStore } from '@/store/auth-store';
+import { useEventsStore } from '@/store/events-store';
+import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
+export default function TabOneScreen() {
   const router = useRouter();
-  const { featuredEvents, allEvents, fetchAll, loading, error } = useEventsStore();
-  const { fetchUserTickets } = useTicketsStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { events, loadEvents } = useEventsStore();
+  const { user } = useAuthStore();
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter events based on search
-  const filteredEvents = allEvents.filter(event =>
-    event.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const loadData = useCallback(async () => {
+    try {
+      await loadEvents();
+    } catch (error) {
+      console.error('Error loading events:', error);
+    }
+  }, [loadEvents]);
 
   useEffect(() => {
     loadData();
-  }, []);
-
-  const loadData = async () => {
-    try {
-      await Promise.all([
-        fetchAll(),
-        fetchUserTickets(),
-      ]);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    }
-  };
+  }, [loadData]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await loadData();
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
 
-  const handleSeeAllUpcoming = useCallback(() => {
-    router.push("/events/upcoming");
+  const handleSearch = useCallback(() => {
+    // Navigate to search results or filter events
+    router.push("/(tabs)");
   }, [router]);
 
-  const handleSeeAllAvailable = useCallback(() => {
-    router.push("/events/upcoming");
+  const handleEventPress = useCallback((eventId: string) => {
+    router.push(`/event/${eventId}`);
   }, [router]);
 
-  const handleSeeAllBooked = useCallback(() => {
-    router.push("/events/user");
-  }, [router]);
-
-  const handleSeeAllOrders = useCallback(() => {
-    router.push("/(tabs)/tickets");
-  }, [router]);
-
-  // Empty state component
-  const EmptyState = ({ message }: { message: string }) => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyStateText}>{message}</Text>
-    </View>
+  const filteredEvents = events.filter(event => 
+    event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar style="light" />
-      <Header
-        showLogo
-        showProfile
-        showSearch
-        onSearchPress={() => {}}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Welcome back, {user?.username || 'User'}!</Text>
+        <Text style={styles.subtitle}>Discover amazing events happening around you</Text>
+      </View>
+
+      <SearchBar
+        placeholder="Search events..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onSearchPress={handleSearch}
       />
-      
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <SearchBar
-            placeholder="Search Event"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+
+      <View style={styles.eventsSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured Events</Text>
+          <TouchableOpacity onPress={() => router.push('/events/user')}>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Upcoming Events */}
-        <SectionHeader 
-          title="Upcoming Events"
-          showSeeAll
-          onSeeAllPress={handleSeeAllUpcoming}
+        <FlatList
+          data={filteredEvents.slice(0, 5)}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard
+              event={item}
+              onPress={() => handleEventPress(item.id)}
+            />
+          )}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
-        {featuredEvents.length === 0 ? (
-          <EmptyState message="No upcoming events available at the moment" />
-        ) : (
-          <View style={styles.featuredEventContainer}>
-            {featuredEvents.slice(0, 1).map((event) => (
-              <TouchableOpacity
-                key={event.id}
-                onPress={() => router.push(`/event/${event.id}`)}
-                style={styles.featuredEventCard}
-              >
-                <EventCard
-                  event={event}
-                  variant="featured"
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
 
-        {/* Available Events */}
-        <SectionHeader 
-          title="Available Events"
-          showSeeAll
-          onSeeAllPress={handleSeeAllAvailable}
+        <Button
+          title="View All Events"
+          onPress={() => router.push('/events/user')}
+          style={styles.viewAllButton}
         />
-        {allEvents.length === 0 ? (
-          <EmptyState message="No events available right now" />
-        ) : (
-          allEvents.slice(0, 2).map((event) => (
-            <TouchableOpacity 
-              key={`available-${event.id}`}
-              onPress={() => router.push(`/event/${event.id}`)}
-            >
-              <ListEventCard event={event} />
-            </TouchableOpacity>
-          ))
-        )}
-
-        {/* Booked Events */}
-        <SectionHeader 
-          title="Booked Events"
-          showSeeAll
-          onSeeAllPress={handleSeeAllBooked}
-        />
-        {allEvents.filter(e => e.booked).length === 0 ? (
-          <EmptyState message="You haven't booked any events yet" />
-        ) : (
-          allEvents
-            .filter(e => e.booked)
-            .slice(0, 2)
-            .map((event) => (
-              <TouchableOpacity 
-                key={`booked-${event.id}`}
-                onPress={() => router.push(`/event/${event.id}`)}
-              >
-                <ListEventCard event={event} isBooked />
-              </TouchableOpacity>
-            ))
-        )}
-
-        {/* Orders */}
-        <SectionHeader 
-          title="Orders"
-          showSeeAll
-          onSeeAllPress={handleSeeAllOrders}
-        />
-        <View style={styles.ordersSection}>
-          <EmptyState message="No orders to display" />
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -195,37 +100,41 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  searchContainer: {
+  header: {
     paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  eventsSection: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  featuredEventContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
   },
-  featuredEventCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
+  seeAllText: {
+    fontSize: 14,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
   },
-  ordersSection: {
-    paddingHorizontal: 20,
-  },
-  emptyState: {
-    paddingHorizontal: 20,
-    paddingVertical: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyStateText: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
+  viewAllButton: {
+    marginTop: 20,
   },
 });

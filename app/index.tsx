@@ -1,21 +1,19 @@
 import { useAuthStore } from '@/store/auth-store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
-import React = require('react');
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function SplashScreen() {
     const router = useRouter();
     const { isAuthenticated } = useAuthStore();
-    const [isLoading, setIsLoading] = useState(true);
+
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            setIsLoading(false);
             if (isAuthenticated) {
                 router.replace('/(tabs)');
             } else {

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { MenuItem, useFoodStore } from '@/store/food-store';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
-import { useFoodStore, MenuItem } from '@/store/food-store';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EventMenuScreen() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function EventMenuScreen() {
       setCurrentEventId(id);
       loadMenuItems();
     }
-  }, [id]);
+  }, [id, setCurrentEventId, loadMenuItems]);
 
   const loadMenuItems = async () => {
     if (!id) return;

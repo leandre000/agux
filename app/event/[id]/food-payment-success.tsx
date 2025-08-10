@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { CheckCircle } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
+import React, { useEffect } from 'react';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FoodPaymentSuccessScreen() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function FoodPaymentSuccessScreen() {
       tension: 100,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [scaleValue]);
 
   const handleBackToMenu = () => {
     router.push(`/event/${id}/menu`);
@@ -59,7 +59,7 @@ export default function FoodPaymentSuccessScreen() {
           )}
           
           <View style={styles.nextSteps}>
-            <Text style={styles.nextStepsTitle}>What's Next?</Text>
+            <Text style={styles.nextStepsTitle}>What&apos;s Next?</Text>
             <Text style={styles.nextStepsText}>
               • Your order will be prepared for pickup at the event
               {'\n'}• Check your order status in the Orders section

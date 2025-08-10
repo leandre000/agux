@@ -43,7 +43,7 @@ const ListEventCardBase = ({ event, isBooked }: Props) => {
           style={styles.listDetailsButton}
           onPress={() =>
             router.push({
-              pathname: `/event/${event.id}`,
+              pathname: `/event/${event.id}` as any,
               params: { booked: isBooked ? "1" : undefined },
             })
           }

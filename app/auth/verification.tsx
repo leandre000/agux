@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/auth-store';
-import Colors from '@/constants/Colors';
 import Button from '@/components/Button';
 import Header from '@/components/Header';
 import VerificationInput from '@/components/VerificationInput';
+import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/auth-store';
+import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 
 export default function VerificationScreen() {
   const router = useRouter();
-  const { verifyAccount, isLoading, error } = useAuthStore();
+  const { verifyAccount, isLoading } = useAuthStore();
 
   const [code, setCode] = useState('');
 
@@ -40,7 +40,7 @@ export default function VerificationScreen() {
           onCodeFilled={setCode}
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+
 
         <Button
           title="Verify Account"

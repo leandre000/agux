@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import { useFoodStore } from '@/store/food-store';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft, Minus, Plus } from 'lucide-react-native';
-import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
-import { useFoodStore, MenuItem } from '@/store/food-store';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FoodDetailScreen() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function FoodDetailScreen() {
     if (id && currentMenuItems.length === 0) {
       loadMenuItems();
     }
-  }, [id, itemId]);
+  }, [id, itemId, currentMenuItems.length, loadMenuItems]);
 
   const loadMenuItems = async () => {
     if (!id) return;
