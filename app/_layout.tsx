@@ -27,13 +27,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/forgot-password" />
         <Stack.Screen name="auth/reset-password" />
         <Stack.Screen name="auth/verification" />
-        <Stack.Screen name="profile/setup" />
-        <Stack.Screen name="profile/categories" />
-        <Stack.Screen name="profile/settings" />
-        <Stack.Screen name="profile/change-password" />
-        <Stack.Screen name="profile/payment-methods" />
-        <Stack.Screen name="profile/notifications" />
-        <Stack.Screen name="profile/help-support" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
         <Stack.Screen name="events/user" />
       </Stack>

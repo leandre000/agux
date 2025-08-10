@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Clock, Home, Ticket, User, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import AuthGuard from '@/components/AuthGuard';
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
     return (
@@ -36,18 +37,20 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
 export default function TabLayout() {
     return (
-        <Tabs
-            tabBar={props => <CustomTabBar {...props} />}
-            screenOptions={{
-                headerShown: false,
-            }}
-        >
-            <Tabs.Screen name="index" options={{ title: 'Home' }} />
-            <Tabs.Screen name="menu" options={{ title: 'Menu' }} />
-            <Tabs.Screen name="tickets" options={{ title: 'Recent Events' }} />
-            <Tabs.Screen name="events-user" options={{ title: 'Available/Booked Events' }} />
-            <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-        </Tabs>
+        <AuthGuard>
+            <Tabs
+                tabBar={props => <CustomTabBar {...props} />}
+                screenOptions={{
+                    headerShown: false,
+                }}
+            >
+                <Tabs.Screen name="index" options={{ title: 'Home' }} />
+                <Tabs.Screen name="menu" options={{ title: 'Menu' }} />
+                <Tabs.Screen name="tickets" options={{ title: 'Recent Events' }} />
+                <Tabs.Screen name="events-user" options={{ title: 'Available/Booked Events' }} />
+                <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+            </Tabs>
+        </AuthGuard>
     );
 }
 
