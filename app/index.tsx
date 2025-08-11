@@ -1,6 +1,5 @@
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
@@ -19,23 +18,16 @@ export default function SplashScreen() {
             } else {
                 router.replace('./onboarding');
             }
-        }, 2000); // Show splash for 2 seconds
+        }, 1500); // Reduced to 1.5 seconds for faster loading
 
         return () => clearTimeout(timer);
     }, [isAuthenticated, router]);
 
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={[Colors.primary, Colors.primaryDark]}
-                style={styles.background}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-            >
-                <View style={styles.logoContainer}>
-                    <Text style={styles.logoText}>agura</Text>
-                </View>
-            </LinearGradient>
+            <View style={styles.logoContainer}>
+                <Text style={styles.logoText}>agura</Text>
+            </View>
         </View>
     );
 }
@@ -45,24 +37,21 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    background: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        backgroundColor: Colors.primary, // Solid pink background
     },
     logoContainer: {
         alignItems: 'center',
         justifyContent: 'center',
     },
     logoText: {
-        fontSize: 48,
-        fontWeight: '700',
+        fontSize: 56,
+        fontWeight: '800',
         color: '#FFFFFF',
-        letterSpacing: 2,
+        letterSpacing: 3,
         textTransform: 'lowercase',
         fontFamily: 'System',
+        textShadowColor: 'rgba(0, 0, 0, 0.1)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
     },
 });

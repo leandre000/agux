@@ -37,7 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
 export default function TabLayout() {
     return (
-        <AuthGuard>
+        <AuthGuard requireAuth={true} redirectTo="/auth/login">
             <Tabs
                 tabBar={props => <CustomTabBar {...props} />}
                 screenOptions={{

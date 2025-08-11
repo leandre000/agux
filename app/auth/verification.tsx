@@ -3,27 +3,48 @@ import Header from '@/components/Header';
 import VerificationInput from '@/components/VerificationInput';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
+import { useFormValidation, commonValidations } from '@/hooks/useFormValidation';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import * as Yup from 'yup';
+
+interface VerificationFormValues {
+  code: string;
+}
+
+const verificationValidationSchema = {
+  code: Yup.string()
+    .length(5, 'Verification code must be exactly 5 characters')
+    .required('Verification code is required'),
+};
 
 export default function VerificationScreen() {
   const router = useRouter();
   const { verifyAccount, isLoading } = useAuthStore();
 
-  const [code, setCode] = useState('');
-
-  const handleVerify = async () => {
-    if (!code || code.length !== 5) return;
-
-    try {
-      await verifyAccount(code);
-      router.push('/profile/setup');
-    } catch {
-      // Error is handled in the store
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<VerificationFormValues>(
+    {
+      code: '',
+    },
+    verificationValidationSchema,
+    async (values) => {
+      try {
+        await verifyAccount(values.code);
+        router.push('/profile/setup');
+      } catch {
+        // Error is handled in the store
+      }
     }
-  };
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -37,16 +58,15 @@ export default function VerificationScreen() {
 
         <VerificationInput
           length={5}
-          onCodeFilled={setCode}
+          onCodeFilled={(code) => setFieldValue('code', code)}
         />
-
-
 
         <Button
           title="Verify Account"
-          onPress={handleVerify}
-          loading={isLoading}
+          onPress={formik.handleSubmit}
+          loading={isSubmitting || isLoading}
           style={styles.verifyButton}
+          disabled={!formik.isValid || !formik.dirty}
         />
       </View>
     </SafeAreaView>

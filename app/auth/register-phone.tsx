@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
@@ -8,36 +8,44 @@ import Input from '@/components/Input';
 import Header from '@/components/Header';
 import SocialLoginButton from '@/components/SocialLoginButton';
 import AuthLayout from '@/components/AuthLayout';
+import { useFormValidation, commonValidations } from '@/hooks/useFormValidation';
 
+interface PhoneRegisterFormValues {
+  phone: string;
+  password: string;
+}
+
+const phoneRegisterValidationSchema = {
+  phone: commonValidations.phone,
+  password: commonValidations.password,
+};
 
 export default function RegisterPhoneScreen() {
   const router = useRouter();
   const { register, isLoading, error } = useAuthStore();
 
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [validationErrors, setValidationErrors] = useState({ phone: '', password: '' });
-
-  const validateForm = () => {
-    const errors = { phone: '', password: '' };
-    if (!phone) errors.phone = 'Please enter your phone number';
-    else if (!/^\d{10,}$/.test(phone.replace(/\D/g, '')))
-      errors.phone = 'Please enter a valid phone number';
-    if (!password) errors.password = 'Please enter a password';
-    else if (password.length < 6) errors.password = 'Password must be at least 6 characters';
-    setValidationErrors(errors);
-    return !errors.phone && !errors.password;
-  };
-
-  const handleSignUp = async () => {
-    if (!validateForm()) return;
-    try {
-      await register({ phone, password });
-      router.push('/auth/verification');
-    } catch {
-      // handled in store
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<PhoneRegisterFormValues>(
+    {
+      phone: '',
+      password: '',
+    },
+    phoneRegisterValidationSchema,
+    async (values) => {
+      try {
+        await register({ phone: values.phone, password: values.password });
+        router.push('/auth/verification');
+      } catch {
+        // handled in store
+      }
     }
-  };
+  );
 
   return (
     <AuthLayout>
@@ -46,25 +54,28 @@ export default function RegisterPhoneScreen() {
         <View style={styles.inputContainer}>
           <Input
             placeholder="Phone Number"
-            value={phone}
-            onChangeText={setPhone}
-            error={validationErrors.phone}
+            value={getFieldValue('phone')}
+            onChangeText={(text) => setFieldValue('phone', text)}
+            onBlur={() => setFieldTouched('phone')}
+            error={getFieldError('phone')}
             keyboardType="phone-pad"
           />
           <Input
             placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            error={validationErrors.password}
+            value={getFieldValue('password')}
+            onChangeText={(text) => setFieldValue('password', text)}
+            onBlur={() => setFieldTouched('password')}
+            error={getFieldError('password')}
             secureTextEntry
           />
         </View>
         {error && <Text style={styles.errorText}>{error}</Text>}
         <Button
           title="Sign Up"
-          onPress={handleSignUp}
-          loading={isLoading}
+          onPress={formik.handleSubmit}
+          loading={isSubmitting || isLoading}
           style={styles.signUpButton}
+          disabled={!formik.isValid || !formik.dirty}
         />
         <View style={styles.socialContainer}>
           <View style={styles.divider}>

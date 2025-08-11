@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
 import CustomSplashScreen from '@/components/CustomSplashScreen';
+import { AuthGuard } from '@/components/AuthGuard';
 
 export default function RootLayout() {
   const [isSplashVisible, setIsSplashVisible] = React.useState(true);
@@ -21,7 +22,7 @@ export default function RootLayout() {
 
   const content = (
     <>
-      <StatusBar style="light" backgroundColor="#e6007e" />
+      <StatusBar style="light" backgroundColor={Colors.primary} />
       <CustomSplashScreen visible={isSplashVisible} />
       <Stack
         screenOptions={{
@@ -34,16 +35,65 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ animation: 'none' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'none' }} />
-        <Stack.Screen name="auth/login" />
-        <Stack.Screen name="auth/register" />
-        <Stack.Screen name="auth/register-email" />
-        <Stack.Screen name="auth/register-phone" />
-        <Stack.Screen name="auth/forgot-password" />
-        <Stack.Screen name="auth/reset-password" />
-        <Stack.Screen name="auth/verification" />
+        
+        {/* Auth screens - require guest access */}
+        <Stack.Screen 
+          name="auth/login" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/register" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/register-email" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/register-phone" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/forgot-password" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/reset-password" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        <Stack.Screen 
+          name="auth/verification" 
+          options={{ 
+            animation: 'slide_from_bottom',
+            gestureEnabled: true 
+          }} 
+        />
+        
+        {/* Protected screens - require authentication */}
         <Stack.Screen name="profile" />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
         <Stack.Screen name="events/user" />
+        <Stack.Screen name="event" />
+        <Stack.Screen name="notifications" />
+        <Stack.Screen name="modal" />
       </Stack>
     </>
   );

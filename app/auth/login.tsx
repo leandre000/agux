@@ -5,6 +5,7 @@ import NetworkError from "@/components/NetworkError";
 import { API_BASE_URL } from "@/config/api";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
+import { useFormValidation, commonValidations } from "@/hooks/useFormValidation";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -12,52 +13,56 @@ import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+interface LoginFormValues {
+  identifier: string;
+  password: string;
+}
+
+const loginValidationSchema = {
+  identifier: commonValidations.required('Email or phone number'),
+  password: commonValidations.required('Password'),
+};
+
 export default function LoginScreen() {
   const router = useRouter();
   const { login, isLoading, error } = useAuthStore();
-
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [validationErrors, setValidationErrors] = useState({
-    identifier: "",
-    password: "",
-  });
   const [networkError, setNetworkError] = useState(false);
 
-  const validateForm = () => {
-    const errors = { identifier: "", password: "" };
-
-    if (!identifier) errors.identifier = "Enter phone number or email";
-    if (!password) errors.password = "Please enter your password";
-
-    setValidationErrors(errors);
-
-    return !errors.identifier && !errors.password;
-  };
-
-  const handleLogin = async () => {
-    if (!validateForm()) return;
-
-    try {
-      setNetworkError(false);
-      await login({ identifier, password });
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      // Check if it's a network error
-      if (error?.message?.includes('Network Error') || 
-          error?.message?.includes('timeout') ||
-          error?.code === 'NETWORK_ERROR') {
-        setNetworkError(true);
-      } else {
-        // Show error alert for other errors
-        Alert.alert(
-          "Login Failed",
-          error?.message || "Please check your credentials and try again.",
-          [{ text: "OK" }]
-        );
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<LoginFormValues>(
+    {
+      identifier: "",
+      password: "",
+    },
+    loginValidationSchema,
+    async (values) => {
+      try {
+        setNetworkError(false);
+        await login(values);
+        router.replace("/(tabs)");
+      } catch (error: any) {
+        // Check if it's a network error
+        if (error?.message?.includes('Network Error') || 
+            error?.message?.includes('timeout') ||
+            error?.code === 'NETWORK_ERROR') {
+          setNetworkError(true);
+        } else {
+          // Show error alert for other errors
+          Alert.alert(
+            "Login Failed",
+            error?.message || "Please check your credentials and try again.",
+            [{ text: "OK" }]
+          );
+        }
       }
     }
-  };
+  );
 
   const handleGoogleLogin = async () => {
     try {
@@ -106,7 +111,6 @@ export default function LoginScreen() {
 
   const handleRetry = () => {
     setNetworkError(false);
-    setValidationErrors({ identifier: "", password: "" });
   };
 
   // Show network error if there's a network issue
@@ -132,9 +136,10 @@ export default function LoginScreen() {
         <View style={styles.inputContainer}>
           <Input
             placeholder="Phone Number or Gmail"
-            value={identifier}
-            onChangeText={setIdentifier}
-            error={validationErrors.identifier}
+            value={getFieldValue('identifier')}
+            onChangeText={(text) => setFieldValue('identifier', text)}
+            onBlur={() => setFieldTouched('identifier')}
+            error={getFieldError('identifier')}
             autoCapitalize="none"
             keyboardType="email-address"
             style={styles.input}
@@ -142,9 +147,10 @@ export default function LoginScreen() {
 
           <Input
             placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            error={validationErrors.password}
+            value={getFieldValue('password')}
+            onChangeText={(text) => setFieldValue('password', text)}
+            onBlur={() => setFieldTouched('password')}
+            error={getFieldError('password')}
             secureTextEntry
             style={styles.input}
           />
@@ -162,9 +168,10 @@ export default function LoginScreen() {
 
           <Button
             title="Login"
-            onPress={handleLogin}
-            loading={isLoading}
+            onPress={formik.handleSubmit}
+            loading={isSubmitting || isLoading}
             style={styles.loginButton}
+            disabled={!formik.isValid || !formik.dirty}
           />
 
           <Button

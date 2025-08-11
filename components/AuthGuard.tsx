@@ -1,47 +1,79 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '@/store/auth-store';
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Colors from '@/constants/Colors';
 
 interface AuthGuardProps {
   children: React.ReactNode;
+  requireAuth?: boolean;
+  requireGuest?: boolean;
+  redirectTo?: string;
   fallback?: React.ReactNode;
 }
 
-export default function AuthGuard({ children, fallback }: AuthGuardProps) {
-  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
+export default function AuthGuard({
+  children,
+  requireAuth = false,
+  requireGuest = false,
+  redirectTo,
+  fallback
+}: AuthGuardProps) {
+  const { isAuthenticated, user, checkAuthStatus, isLoading } = useAuthStore();
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check authentication status on mount
-    checkAuthStatus();
+    const initializeAuth = async () => {
+      try {
+        await checkAuthStatus();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    initializeAuth();
   }, [checkAuthStatus]);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Redirect to login if not authenticated
-      router.replace('/auth/login');
-    }
-  }, [isAuthenticated, isLoading, router]);
+    if (isChecking || isLoading) return;
 
-  if (isLoading) {
+    // Handle authentication requirements
+    if (requireAuth && !isAuthenticated) {
+      const target = redirectTo || '/auth/login';
+      router.replace(target);
+      return;
+    }
+
+    // Handle guest-only requirements
+    if (requireGuest && isAuthenticated) {
+      const target = redirectTo || '/(tabs)';
+      router.replace(target);
+      return;
+    }
+  }, [isAuthenticated, requireAuth, requireGuest, redirectTo, router, isChecking, isLoading]);
+
+  // Show loading state while checking authentication
+  if (isChecking || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={styles.loadingText}>Checking authentication...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
 
-  if (!isAuthenticated) {
-    return fallback || (
-      <View style={styles.unauthorizedContainer}>
-        <Text style={styles.unauthorizedText}>Please log in to continue</Text>
-      </View>
-    );
+  // Show fallback if provided and conditions aren't met
+  if (fallback && (
+    (requireAuth && !isAuthenticated) ||
+    (requireGuest && isAuthenticated)
+  )) {
+    return <>{fallback}</>;
   }
 
+  // Render children if all conditions are met
   return <>{children}</>;
 }
 
@@ -53,19 +85,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   loadingText: {
-    color: Colors.text,
     marginTop: 16,
-    fontSize: 16,
-  },
-  unauthorizedContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background,
-  },
-  unauthorizedText: {
     color: Colors.text,
-    fontSize: 18,
-    textAlign: 'center',
+    fontSize: 16,
   },
 });

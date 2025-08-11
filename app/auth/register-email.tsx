@@ -5,78 +5,58 @@ import Input from '@/components/Input';
 import SocialLoginButton from '@/components/SocialLoginButton';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/auth-store';
+import { useFormValidation, commonValidations } from '@/hooks/useFormValidation';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+interface RegisterFormValues {
+  email: string;
+  phone: string;
+  password: string;
+  name: string;
+}
+
+const registerValidationSchema = {
+  name: commonValidations.name,
+  email: commonValidations.email,
+  phone: commonValidations.phone,
+  password: commonValidations.password,
+};
 
 export default function RegisterEmailScreen() {
   const router = useRouter();
   const { register, isLoading } = useAuthStore();
 
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [validationErrors, setValidationErrors] = useState({
-    email: '',
-    phone: '',
-    password: '',
-    name: '',
-  });
-
-  const validateForm = () => {
-    const errors = {
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<RegisterFormValues>(
+    {
       email: '',
       phone: '',
       password: '',
       name: '',
-    };
-
-    if (!name) {
-      errors.name = 'Please enter your name';
-    } else if (name.length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    },
+    registerValidationSchema,
+    async (values) => {
+      try {
+        await register({ 
+          email: values.email, 
+          phone: values.phone, 
+          password: values.password, 
+          username: values.name
+        });
+        router.push('/auth/verification');
+      } catch {
+        // Error handled in the store
+      }
     }
-
-    if (!email) {
-      errors.email = 'Please enter your email';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      errors.email = 'Please enter a valid email';
-    }
-
-    if (!phone) {
-      errors.phone = 'Please enter your phone number';
-    } else if (!/^\+?[0-9]{7,15}$/.test(phone)) {
-      errors.phone = 'Please enter a valid phone number';
-    }
-
-    if (!password) {
-      errors.password = 'Please enter a password';
-    } else if (password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-      errors.password = 'Password must contain uppercase, lowercase, and number';
-    }
-
-    setValidationErrors(errors);
-    return !errors.email && !errors.phone && !errors.password && !errors.name;
-  };
-
-  const handleSignUp = async () => {
-    if (!validateForm()) return;
-
-    try {
-      await register({ 
-        email, 
-        phone, 
-        password, 
-        username: name
-      });
-      router.push('/auth/verification');
-    } catch {
-      // Error handled in the store
-    }
-  };
+  );
 
   const handleLogin = () => {
     router.push('/auth/login');
@@ -94,45 +74,48 @@ export default function RegisterEmailScreen() {
         <View style={styles.inputContainer}>
           <Input
             placeholder="Full Name"
-            value={name}
-            onChangeText={setName}
-            error={validationErrors.name}
+            value={getFieldValue('name')}
+            onChangeText={(text) => setFieldValue('name', text)}
+            onBlur={() => setFieldTouched('name')}
+            error={getFieldError('name')}
             autoCapitalize="words"
           />
 
           <Input
             placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            error={validationErrors.email}
+            value={getFieldValue('email')}
+            onChangeText={(text) => setFieldValue('email', text)}
+            onBlur={() => setFieldTouched('email')}
+            error={getFieldError('email')}
             autoCapitalize="none"
             keyboardType="email-address"
           />
 
           <Input
             placeholder="Phone Number"
-            value={phone}
-            onChangeText={setPhone}
-            error={validationErrors.phone}
+            value={getFieldValue('phone')}
+            onChangeText={(text) => setFieldValue('phone', text)}
+            onBlur={() => setFieldTouched('phone')}
+            error={getFieldError('phone')}
             keyboardType="phone-pad"
           />
 
           <Input
             placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            error={validationErrors.password}
+            value={getFieldValue('password')}
+            onChangeText={(text) => setFieldValue('password', text)}
+            onBlur={() => setFieldTouched('password')}
+            error={getFieldError('password')}
             secureTextEntry
           />
         </View>
 
-
-
         <Button
           title="Sign Up"
-          onPress={handleSignUp}
-          loading={isLoading}
+          onPress={formik.handleSubmit}
+          loading={isSubmitting || isLoading}
           style={styles.signUpButton}
+          disabled={!formik.isValid || !formik.dirty}
         />
 
         <View style={styles.socialContainer}>

@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import AuthGuard from '@/components/AuthGuard';
 
 const { height } = Dimensions.get('window');
 
@@ -21,47 +22,49 @@ export default function WelcomeScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <View style={styles.innerContent}>
-                <View style={styles.carouselContainer}>
-                    <Carousel>
-                        <Image
-                            source={{ uri: Images.concertImage1 }}
-                            style={styles.image}
-                            contentFit="cover"
-                        />
-                        <Image
-                            source={{ uri: Images.concertImage2 }}
-                            style={styles.image}
-                            contentFit="cover"
-                        />
-                    </Carousel>
-                </View>
-                <View style={styles.contentContainer}>
-                    <Text style={styles.title}>
-                        Enjoy Endless Events{"\n"}Experiences with <Text style={styles.highlight}>Agura</Text>
-                    </Text>
-                    <Text style={styles.description}>
-                        Agura ticketing platform is here for your events — grab your tickets and have fun, all in one place.
-                    </Text>
-                    <View style={styles.buttonRow}>
-                        <Button
-                            title="Login"
-                            variant="primary"
-                            style={styles.loginButton}
-                            onPress={handleLogin}
-                        />
-                        <Button
-                            title="Sign Up"
-                            variant="outline"
-                            style={styles.signUpButton}
-                            onPress={handleSignUp}
-                        />
+        <AuthGuard requireGuest={true} redirectTo="/(tabs)">
+            <View style={styles.container}>
+                <StatusBar style="light" />
+                <View style={styles.innerContent}>
+                    <View style={styles.carouselContainer}>
+                        <Carousel>
+                            <Image
+                                source={{ uri: Images.concertImage1 }}
+                                style={styles.image}
+                                contentFit="cover"
+                            />
+                            <Image
+                                source={{ uri: Images.concertImage2 }}
+                                style={styles.image}
+                                contentFit="cover"
+                            />
+                        </Carousel>
+                    </View>
+                    <View style={styles.contentContainer}>
+                        <Text style={styles.title}>
+                            Enjoy Endless Events{"\n"}Experiences with <Text style={styles.highlight}>Agura</Text>
+                        </Text>
+                        <Text style={styles.description}>
+                            Agura ticketing platform is here for your events — grab your tickets and have fun, all in one place.
+                        </Text>
+                        <View style={styles.buttonRow}>
+                            <Button
+                                title="Login"
+                                variant="primary"
+                                style={styles.loginButton}
+                                onPress={handleLogin}
+                            />
+                            <Button
+                                title="Sign Up"
+                                variant="outline"
+                                style={styles.signUpButton}
+                                onPress={handleSignUp}
+                            />
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
+        </AuthGuard>
     );
 }
 

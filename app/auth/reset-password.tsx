@@ -3,54 +3,49 @@ import Header from "@/components/Header";
 import Input from "@/components/Input";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
+import { useFormValidation, commonValidations } from "@/hooks/useFormValidation";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+
+interface ResetPasswordFormValues {
+  newPassword: string;
+  confirmPassword: string;
+}
+
+const resetPasswordValidationSchema = {
+  newPassword: commonValidations.password,
+  confirmPassword: commonValidations.confirmPassword,
+};
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
-
   const { updatePassword, isLoading } = useAuthStore() as any;
 
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [validationErrors, setValidationErrors] = useState({
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  const validateForm = () => {
-    const errors = {
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<ResetPasswordFormValues>(
+    {
       newPassword: "",
       confirmPassword: "",
-    };
-
-    if (!newPassword) {
-      errors.newPassword = "Please enter a new password";
-    } else if (newPassword.length < 8) {
-      errors.newPassword = "Password must be at least 8 characters";
+    },
+    resetPasswordValidationSchema,
+    async (values) => {
+      try {
+        // Update password logic here
+        await updatePassword(values.newPassword);
+        router.replace("/auth/login");
+      } catch {
+        // handled in store
+      }
     }
-    if (!confirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
-    } else if (confirmPassword !== newPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-
-    setValidationErrors(errors);
-    return !errors.newPassword && !errors.confirmPassword;
-  };
-
-  const handleSavePassword = async () => {
-    if (!validateForm()) return;
-    try {
-      // Update password logic here
-      await updatePassword(newPassword);
-      router.replace("/auth/login");
-    } catch {
-      // handled in store
-    }
-  };
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,29 +60,30 @@ export default function ResetPasswordScreen() {
         <View style={styles.inputContainer}>
           <Input
             placeholder="New Password"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            error={validationErrors.newPassword}
+            value={getFieldValue('newPassword')}
+            onChangeText={(text) => setFieldValue('newPassword', text)}
+            onBlur={() => setFieldTouched('newPassword')}
+            error={getFieldError('newPassword')}
             secureTextEntry
             style={styles.input}
           />
           <Input
             placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            error={validationErrors.confirmPassword}
+            value={getFieldValue('confirmPassword')}
+            onChangeText={(text) => setFieldValue('confirmPassword', text)}
+            onBlur={() => setFieldTouched('confirmPassword')}
+            error={getFieldError('confirmPassword')}
             secureTextEntry
             style={styles.input}
           />
         </View>
 
-
-
         <Button
           title="Save Password"
-          onPress={handleSavePassword}
-          loading={isLoading}
+          onPress={formik.handleSubmit}
+          loading={isSubmitting || isLoading}
           style={styles.saveButton}
+          disabled={!formik.isValid || !formik.dirty}
         />
       </View>
     </SafeAreaView>

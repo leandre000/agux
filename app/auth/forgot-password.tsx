@@ -3,39 +3,47 @@ import Header from "@/components/Header";
 import Input from "@/components/Input";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
+import { useFormValidation, commonValidations } from "@/hooks/useFormValidation";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+
+interface ForgotPasswordFormValues {
+  identifier: string;
+}
+
+const forgotPasswordValidationSchema = {
+  identifier: commonValidations.required('Email or phone number'),
+};
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const { resetPassword, isLoading, error } = useAuthStore();
 
-  const [identifier, setIdentifier] = useState("");
-  const [validationError, setValidationError] = useState("");
-
-  const validateForm = () => {
-    // Backend accepts email or phone as 'identifier'
-    if (!identifier) {
-      setValidationError("Enter phone number or email");
-      return false;
+  const {
+    formik,
+    getFieldError,
+    getFieldValue,
+    setFieldValue,
+    setFieldTouched,
+    isSubmitting,
+  } = useFormValidation<ForgotPasswordFormValues>(
+    {
+      identifier: "",
+    },
+    forgotPasswordValidationSchema,
+    async (values) => {
+      try {
+        // store should remember identifier for subsequent steps
+        await resetPassword(values.identifier);
+        // Pass identifier along to the next screen for convenience
+        router.push({ pathname: "/auth/reset-password", params: { identifier: values.identifier } });
+      } catch {
+        // handled in store
+      }
     }
-    setValidationError("");
-    return true;
-  };
-
-  const handleSendCode = async () => {
-    if (!validateForm()) return;
-    try {
-      // store should remember identifier for subsequent steps
-      await resetPassword(identifier);
-      // Pass identifier along to the next screen for convenience
-      router.push({ pathname: "/auth/reset-password", params: { identifier } });
-    } catch {
-      // handled in store
-    }
-  };
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,9 +58,10 @@ export default function ForgotPasswordScreen() {
         <View style={styles.inputContainer}>
           <Input
             placeholder="Phone Number or Gmail"
-            value={identifier}
-            onChangeText={setIdentifier}
-            error={validationError}
+            value={getFieldValue('identifier')}
+            onChangeText={(text) => setFieldValue('identifier', text)}
+            onBlur={() => setFieldTouched('identifier')}
+            error={getFieldError('identifier')}
             autoCapitalize="none"
             keyboardType="email-address"
             style={styles.input}
@@ -63,9 +72,10 @@ export default function ForgotPasswordScreen() {
         
         <Button
           title="Send Verification Code"
-          onPress={handleSendCode}
-          loading={isLoading}
+          onPress={formik.handleSubmit}
+          loading={isSubmitting || isLoading}
           style={styles.sendButton}
+          disabled={!formik.isValid || !formik.dirty}
         />
       </View>
     </SafeAreaView>
