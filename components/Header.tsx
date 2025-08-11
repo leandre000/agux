@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ArrowLeft, Menu, Bell, Search } from "lucide-react-native";
+import { ChevronLeft, Menu, Bell, Search } from "lucide-react-native";
 import Colors from "@/constants/Colors";
 
 interface HeaderProps {
@@ -52,7 +52,7 @@ export default function Header({
               onPress={handleBack}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
+              <ChevronLeft size={24} color="#ffffff" strokeWidth={2.5} />
             </TouchableOpacity>
           )}
           
@@ -107,7 +107,7 @@ export default function Header({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.primary,
+    backgroundColor: "#000000",
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

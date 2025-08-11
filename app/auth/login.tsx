@@ -113,6 +113,10 @@ export default function LoginScreen() {
     setNetworkError(false);
   };
 
+  const handleSubmit = () => {
+    formik.handleSubmit();
+  };
+
   // Show network error if there's a network issue
   if (networkError) {
     return (
@@ -154,13 +158,6 @@ export default function LoginScreen() {
             secureTextEntry
             style={styles.input}
           />
-
-          <TouchableOpacity
-            style={styles.forgotPasswordLink}
-            onPress={() => router.push("/auth/forgot-password")}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.bottomSection}>
@@ -168,7 +165,7 @@ export default function LoginScreen() {
 
           <Button
             title="Login"
-            onPress={formik.handleSubmit}
+            onPress={handleSubmit}
             loading={isSubmitting || isLoading}
             style={styles.loginButton}
             disabled={!formik.isValid || !formik.dirty}
@@ -215,15 +212,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 16,
     color: "#fff",
-  },
-  forgotPasswordLink: {
-    alignSelf: "flex-start",
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  forgotPasswordText: {
-    color: "#fff",
-    fontSize: 14,
   },
   bottomSection: {
     width: "100%",

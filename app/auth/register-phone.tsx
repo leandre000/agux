@@ -40,12 +40,17 @@ export default function RegisterPhoneScreen() {
     async (values) => {
       try {
         await register({ phone: values.phone, password: values.password });
-        router.push('/auth/verification');
+        // Registration successful, user will be automatically logged in and redirected
+        router.replace('/(tabs)');
       } catch {
         // handled in store
       }
     }
   );
+
+  const handleSubmit = () => {
+    formik.handleSubmit();
+  };
 
   return (
     <AuthLayout>
@@ -72,7 +77,7 @@ export default function RegisterPhoneScreen() {
         {error && <Text style={styles.errorText}>{error}</Text>}
         <Button
           title="Sign Up"
-          onPress={formik.handleSubmit}
+          onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           style={styles.signUpButton}
           disabled={!formik.isValid || !formik.dirty}

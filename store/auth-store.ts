@@ -46,9 +46,6 @@ interface AuthStore extends AuthState {
   updateUser: (userData: Partial<User>) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  verifyAccount: (code: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updatePassword: (newPassword: string) => Promise<void>;
   checkAuthStatus: () => Promise<void>;
 }
 
@@ -199,48 +196,6 @@ export const useAuthStore = create<AuthStore>()(
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : null,
         }));
-      },
-
-      verifyAccount: async (code) => {
-        set({ isLoading: true, error: null });
-        try {
-          await authedApi.post("/api/users/verify", { code });
-          set({ isLoading: false });
-        } catch (error: any) {
-          set({
-            error: error?.message || "Verification failed. Please try again.",
-            isLoading: false,
-          });
-          throw error;
-        }
-      },
-
-      resetPassword: async (email) => {
-        set({ isLoading: true, error: null });
-        try {
-          await authedApi.post("/api/users/forgot-password", { email });
-          set({ isLoading: false });
-        } catch (error: any) {
-          set({
-            error: error?.message || "Password reset failed. Please try again.",
-            isLoading: false,
-          });
-          throw error;
-        }
-      },
-
-      updatePassword: async (newPassword) => {
-        set({ isLoading: true, error: null });
-        try {
-          await authedApi.post("/api/users/reset-password", { newPassword });
-          set({ isLoading: false });
-        } catch (error: any) {
-          set({
-            error: error?.message || "Password update failed. Please try again.",
-            isLoading: false,
-          });
-          throw error;
-        }
       },
     }),
     {

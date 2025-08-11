@@ -141,7 +141,7 @@ export default function SecureRoute({
           text: 'OK',
           onPress: async () => {
             await logout();
-            router.replace('/auth/login');
+            router.replace('/auth/login' as any);
           },
         },
       ]
@@ -158,7 +158,7 @@ export default function SecureRoute({
           text: 'OK',
           onPress: async () => {
             await logout();
-            router.replace('/auth/login');
+            router.replace('/auth/login' as any);
           },
         },
       ]
@@ -200,7 +200,7 @@ export default function SecureRoute({
         } else {
           // Fallback to logout if biometric fails
           await logout();
-          router.replace('/auth/login');
+          router.replace('/auth/login' as any);
         }
       };
 
@@ -215,14 +215,14 @@ export default function SecureRoute({
     // Handle authentication requirements
     if (requireAuth && !isAuthenticated) {
       const target = redirectTo || '/auth/login';
-      router.replace(target);
+      router.replace(target as any);
       return;
     }
 
     // Handle guest-only requirements
     if (requireGuest && isAuthenticated) {
       const target = redirectTo || '/(tabs)';
-      router.replace(target);
+      router.replace(target as any);
       return;
     }
 

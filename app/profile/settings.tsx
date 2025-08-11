@@ -1,11 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { StatusBar } from 'expo-status-bar';
+import { ChevronLeft } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import Header from '@/components/Header';
 import { useAuthStore } from '@/store/auth-store';
 
 interface SettingsOptionProps {
@@ -23,12 +20,14 @@ const SettingsOption: React.FC<SettingsOptionProps> = ({
   showChevron = true,
   destructive = false 
 }) => (
-  <TouchableOpacity style={styles.optionItem} onPress={onPress} activeOpacity={0.7}>
+  <TouchableOpacity style={styles.optionItem} onPress={onPress}>
     <View style={styles.optionContent}>
-      <Text style={[styles.optionTitle, destructive && styles.destructiveText]}>{title}</Text>
+      <Text style={[styles.optionTitle, destructive && styles.destructiveText]}>
+        {title}
+      </Text>
       {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
     </View>
-    {showChevron && <ChevronRight size={20} color={Colors.text} />}
+    {showChevron && <ChevronLeft size={20} color={Colors.textSecondary} />}
   </TouchableOpacity>
 );
 
@@ -37,52 +36,24 @@ export default function SettingsScreen() {
   const { logout } = useAuthStore();
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace('/onboarding');
-            } catch {
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    logout();
+    router.replace('/');
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="light" />
+    <SafeAreaView style={styles.container}>
       <View style={styles.blueHeader}>
-        <Header showLogo showProfile showSearch />
-      </View>
-      
-      <View style={styles.content}>
         <View style={styles.titleRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <ChevronLeft size={24} color={Colors.text} />
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <ChevronLeft size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>Settings</Text>
+          <Text style={[styles.screenTitle, { color: '#fff' }]}>Settings</Text>
         </View>
+      </View>
 
+      <View style={styles.content}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
-          
-          <SettingsOption
-            title="Reset Password"
-            onPress={() => router.push('/auth/reset-password')}
-          />
           
           <SettingsOption
             title="Notifications"

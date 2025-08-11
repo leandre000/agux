@@ -42,7 +42,7 @@ export const SECURITY_CONFIG = {
     },
     EMAIL: {
       MAX_LENGTH: 254,
-      ALLOWED_DOMAINS: [], // Empty means all domains allowed
+      ALLOWED_DOMAINS: [] as string[], // Empty means all domains allowed
     },
     PHONE: {
       MIN_LENGTH: 10,
@@ -70,8 +70,8 @@ export const SECURITY_CONFIG = {
 
   // Network security
   NETWORK: {
-    ALLOWED_PROTOCOLS: ['https:'],
-    BLOCKED_DOMAINS: [],
+    ALLOWED_PROTOCOLS: ['https:'] as const,
+    BLOCKED_DOMAINS: [] as string[],
     CERTIFICATE_PINNING: true,
     ALLOW_INSECURE_LOCALHOST: false,
   },
@@ -143,7 +143,7 @@ export const SecurityUtils = {
     // Domain validation (if configured)
     if (config.ALLOWED_DOMAINS.length > 0) {
       const domain = email.split('@')[1];
-      if (!config.ALLOWED_DOMAINS.includes(domain)) {
+      if (domain && !config.ALLOWED_DOMAINS.includes(domain)) {
         errors.push('Email domain not allowed');
       }
     }
@@ -196,7 +196,7 @@ export const SecurityUtils = {
   isSecureUrl: (url: string): boolean => {
     try {
       const urlObj = new URL(url);
-      return SECURITY_CONFIG.NETWORK.ALLOWED_PROTOCOLS.includes(urlObj.protocol);
+      return SECURITY_CONFIG.NETWORK.ALLOWED_PROTOCOLS.includes(urlObj.protocol as any);
     } catch {
       return false;
     }

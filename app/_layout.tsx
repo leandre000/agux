@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
 import CustomSplashScreen from '@/components/CustomSplashScreen';
-import { AuthGuard } from '@/components/AuthGuard';
+import AuthGuard from '@/components/AuthGuard';
 
 export default function RootLayout() {
   const [isSplashVisible, setIsSplashVisible] = React.useState(true);
@@ -22,7 +22,7 @@ export default function RootLayout() {
 
   const content = (
     <>
-      <StatusBar style="light" backgroundColor={Colors.primary} />
+      <StatusBar style="light" backgroundColor="#000000" />
       <CustomSplashScreen visible={isSplashVisible} />
       <Stack
         screenOptions={{
@@ -60,27 +60,6 @@ export default function RootLayout() {
         />
         <Stack.Screen 
           name="auth/register-phone" 
-          options={{ 
-            animation: 'slide_from_bottom',
-            gestureEnabled: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="auth/forgot-password" 
-          options={{ 
-            animation: 'slide_from_bottom',
-            gestureEnabled: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="auth/reset-password" 
-          options={{ 
-            animation: 'slide_from_bottom',
-            gestureEnabled: true 
-          }} 
-        />
-        <Stack.Screen 
-          name="auth/verification" 
           options={{ 
             animation: 'slide_from_bottom',
             gestureEnabled: true 

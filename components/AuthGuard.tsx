@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useAuthStore } from '@/store/auth-store';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import Colors from '@/constants/Colors';
+import { useAuthStore } from '@/store/auth-store';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -17,49 +16,49 @@ export default function AuthGuard({
   requireAuth = false,
   requireGuest = false,
   redirectTo,
-  fallback
+  fallback,
 }: AuthGuardProps) {
-  const { isAuthenticated, user, checkAuthStatus, isLoading } = useAuthStore();
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuthStore();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const checkAuth = async () => {
       try {
-        await checkAuthStatus();
+        // Wait a bit for auth state to settle
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setIsChecking(false);
       } catch (error) {
         console.error('Auth check failed:', error);
-      } finally {
         setIsChecking(false);
       }
     };
 
-    initializeAuth();
-  }, [checkAuthStatus]);
+    checkAuth();
+  }, []);
 
   useEffect(() => {
-    if (isChecking || isLoading) return;
+    if (isChecking) return;
 
     // Handle authentication requirements
     if (requireAuth && !isAuthenticated) {
       const target = redirectTo || '/auth/login';
-      router.replace(target);
+      router.replace(target as any);
       return;
     }
 
     // Handle guest-only requirements
     if (requireGuest && isAuthenticated) {
       const target = redirectTo || '/(tabs)';
-      router.replace(target);
+      router.replace(target as any);
       return;
     }
-  }, [isAuthenticated, requireAuth, requireGuest, redirectTo, router, isChecking, isLoading]);
+  }, [isAuthenticated, requireAuth, requireGuest, redirectTo, router, isChecking]);
 
   // Show loading state while checking authentication
   if (isChecking || isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -82,11 +81,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: '#000',
   },
   loadingText: {
-    marginTop: 16,
-    color: Colors.text,
+    color: '#fff',
     fontSize: 16,
+    marginTop: 16,
   },
 });

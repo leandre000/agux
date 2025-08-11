@@ -51,7 +51,8 @@ export default function RegisterEmailScreen() {
           password: values.password, 
           username: values.name
         });
-        router.push('/auth/verification');
+        // Registration successful, user will be automatically logged in and redirected
+        router.replace('/(tabs)');
       } catch {
         // Error handled in the store
       }
@@ -65,6 +66,10 @@ export default function RegisterEmailScreen() {
   const handleSocialLogin = (provider: string) => {
     // Implement social auth later
     router.push('/profile/setup');
+  };
+
+  const handleSubmit = () => {
+    formik.handleSubmit();
   };
 
   return (
@@ -112,7 +117,7 @@ export default function RegisterEmailScreen() {
 
         <Button
           title="Sign Up"
-          onPress={formik.handleSubmit}
+          onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           style={styles.signUpButton}
           disabled={!formik.isValid || !formik.dirty}
