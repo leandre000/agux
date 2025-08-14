@@ -2,9 +2,11 @@ import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
 import NetworkError from "@/components/NetworkError";
+import AuthGuard from "@/components/AuthGuard";
 import { API_BASE_URL } from "@/config/api";
 import Colors from "@/constants/Colors";
-import { useAuthStore } from "@/store/auth-store";
+import { login, loginWithGoogle, validateEmail, validatePhone } from "@/lib/api/auth";
+import { setToken } from "@/lib/authToken";
 import { useFormValidation, commonValidations } from "@/hooks/useFormValidation";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
@@ -19,13 +21,18 @@ interface LoginFormValues {
 }
 
 const loginValidationSchema = {
-  identifier: commonValidations.required('Email or phone number'),
+  identifier: (value: string) => {
+    if (!value) return 'Email or phone number is required';
+    if (validateEmail(value) || validatePhone(value)) return null;
+    return 'Please enter a valid email or phone number';
+  },
   password: commonValidations.required('Password'),
 };
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState(false);
 
   const {
@@ -43,74 +50,81 @@ export default function LoginScreen() {
     loginValidationSchema,
     async (values) => {
       try {
+        setIsLoading(true);
+        setError(null);
         setNetworkError(false);
-        await login(values);
-        router.replace("/(tabs)");
+        
+        const response = await login(values);
+        
+        if (response.success && response.token) {
+          await setToken(response.token);
+          router.replace("/(tabs)");
+        } else {
+          setError(response.message || "Login failed. Please try again.");
+        }
       } catch (error: any) {
+        console.error('Login error:', error);
+        
         // Check if it's a network error
         if (error?.message?.includes('Network Error') || 
             error?.message?.includes('timeout') ||
             error?.code === 'NETWORK_ERROR') {
           setNetworkError(true);
         } else {
-          // Show error alert for other errors
-          Alert.alert(
-            "Login Failed",
-            error?.message || "Please check your credentials and try again.",
-            [{ text: "OK" }]
-          );
+          setError(error?.message || "Login failed. Please check your credentials and try again.");
         }
+      } finally {
+        setIsLoading(false);
       }
     }
   );
 
   const handleGoogleLogin = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       setNetworkError(false);
+      
       const redirectUrl = Linking.createURL("/auth/login");
-      const authUrl = `${API_BASE_URL}/auth/google`; // server route prefix commonly '/auth'
+      const authUrl = `${API_BASE_URL}/auth/google`;
+      
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         redirectUrl
       );
 
       if (result.type === "success" && result.url) {
-        // Expect the server to redirect to agura://auth/login?token=...&email=...&name=... or similar
         const parsed = Linking.parse(result.url);
         const query = parsed.queryParams || {};
         const token = String(query.token || "");
         const email = String(query.email || "");
         const name = String(query.name || "");
+        
         if (token) {
-          // Store token via store's internal setter (using login success path)
-          const setState = (useAuthStore as any).setState;
-          await (await import("@/lib/authToken"))
-            .setToken?.(token)
-            .catch(() => {});
-          setState({
-            isAuthenticated: true,
-            user: { id: String(query.user_id || ""), email, username: name },
-          });
+          await setToken(token);
           router.replace("/(tabs)");
           return;
         }
       }
+      
+      setError("Google login was cancelled or failed. Please try again.");
     } catch (error: any) {
+      console.error('Google login error:', error);
+      
       if (error?.message?.includes('Network Error') || 
           error?.message?.includes('timeout')) {
         setNetworkError(true);
       } else {
-        Alert.alert(
-          "Google Login Failed",
-          "Unable to connect to Google. Please try again.",
-          [{ text: "OK" }]
-        );
+        setError("Google login failed. Please try again.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRetry = () => {
     setNetworkError(false);
+    setError(null);
   };
 
   const handleSubmit = () => {
@@ -132,67 +146,70 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-      <Header title="Login" showBack />
+    <AuthGuard requireGuest redirectTo="/(tabs)">
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="light" />
+        <Header title="Login" showBack />
 
-      <View style={styles.content}>
-        <View style={styles.inputContainer}>
-          <Input
-            placeholder="Phone Number or Gmail"
-            value={getFieldValue('identifier')}
-            onChangeText={(text) => setFieldValue('identifier', text)}
-            onBlur={() => setFieldTouched('identifier')}
-            error={getFieldError('identifier')}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            style={styles.input}
-          />
+        <View style={styles.content}>
+          <View style={styles.inputContainer}>
+            <Input
+              placeholder="Email or Phone Number"
+              value={getFieldValue('identifier')}
+              onChangeText={(text) => setFieldValue('identifier', text)}
+              onBlur={() => setFieldTouched('identifier')}
+              error={getFieldError('identifier')}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+            />
 
-          <Input
-            placeholder="Password"
-            value={getFieldValue('password')}
-            onChangeText={(text) => setFieldValue('password', text)}
-            onBlur={() => setFieldTouched('password')}
-            error={getFieldError('password')}
-            secureTextEntry
-            style={styles.input}
-          />
-        </View>
+            <Input
+              placeholder="Password"
+              value={getFieldValue('password')}
+              onChangeText={(text) => setFieldValue('password', text)}
+              onBlur={() => setFieldTouched('password')}
+              error={getFieldError('password')}
+              secureTextEntry
+              autoComplete="password"
+            />
+          </View>
 
-        <View style={styles.bottomSection}>
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          <View style={styles.bottomSection}>
+            {error && <Text style={styles.errorText}>{error}</Text>}
 
-          <Button
-            title="Login"
-            onPress={handleSubmit}
-            loading={isSubmitting || isLoading}
-            style={styles.loginButton}
-            disabled={!formik.isValid || !formik.dirty}
-          />
+            <Button
+              title="Login"
+              onPress={handleSubmit}
+              loading={isSubmitting || isLoading}
+              style={styles.loginButton}
+              disabled={!formik.isValid || !formik.dirty}
+            />
 
-          <Button
-            title="Continue with Google"
-            onPress={handleGoogleLogin}
-            style={styles.googleButton}
-          />
+            <Button
+              title="Continue with Google"
+              onPress={handleGoogleLogin}
+              style={styles.googleButton}
+              disabled={isLoading}
+            />
 
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don&apos;t have an account? </Text>
-            <TouchableOpacity onPress={() => router.push("/auth/register")}>
-              <Text style={styles.signupLink}>Signup</Text>
-            </TouchableOpacity>
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => router.push("/auth/register")}>
+                <Text style={styles.signupLink}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -203,16 +220,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: "100%",
   },
-  input: {
-    backgroundColor: "#1a1a1a",
-    borderWidth: 0,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    color: "#fff",
-  },
   bottomSection: {
     width: "100%",
     paddingBottom: 32,
@@ -221,9 +228,11 @@ const styles = StyleSheet.create({
     color: Colors.error,
     marginBottom: 16,
     textAlign: "center",
+    fontSize: 14,
+    fontWeight: "500",
   },
   loginButton: {
-    backgroundColor: "#E6007E",
+    backgroundColor: Colors.primary,
     borderRadius: 25,
     paddingVertical: 16,
     marginBottom: 24,
@@ -231,25 +240,22 @@ const styles = StyleSheet.create({
   googleButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#666",
+    borderColor: Colors.border,
     borderRadius: 25,
     paddingVertical: 16,
     marginBottom: 32,
-  },
-  googleButtonText: {
-    color: "#fff",
   },
   signupContainer: {
     flexDirection: "row",
     justifyContent: "center",
   },
   signupText: {
-    color: "#aaa",
+    color: Colors.textSecondary,
     fontSize: 14,
   },
   signupLink: {
-    color: "#E6007E",
+    color: Colors.primary,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 });

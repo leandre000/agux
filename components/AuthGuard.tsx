@@ -1,64 +1,69 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/auth-store';
+import { getToken } from '@/lib/authToken';
+import Colors from '@/constants/Colors';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requireAuth?: boolean;
   requireGuest?: boolean;
   redirectTo?: string;
   fallback?: React.ReactNode;
 }
 
-export default function AuthGuard({
-  children,
-  requireAuth = false,
+export default function AuthGuard({ 
+  children, 
   requireGuest = false,
   redirectTo,
-  fallback,
+  fallback
 }: AuthGuardProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuthStore();
-  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Wait a bit for auth state to settle
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setIsChecking(false);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsChecking(false);
-      }
-    };
-
-    checkAuth();
+    checkAuthentication();
   }, []);
 
-  useEffect(() => {
-    if (isChecking) return;
+  const checkAuthentication = async () => {
+    try {
+      setIsLoading(true);
+      const token = await getToken();
+      const hasToken = !!token;
+      
+      setIsAuthenticated(hasToken);
 
-    // Handle authentication requirements
-    if (requireAuth && !isAuthenticated) {
-      const target = redirectTo || '/auth/login';
-      router.replace(target as any);
-      return;
+      // Handle guest-only routes (like login/register)
+      if (requireGuest && hasToken) {
+        const target = redirectTo || '/(tabs)';
+        router.replace(target);
+        return;
+      }
+
+      // Handle authenticated routes
+      if (!requireGuest && !hasToken) {
+        const target = redirectTo || '/auth/login';
+        router.replace(target);
+        return;
+      }
+    } catch (error) {
+      console.error('Authentication check failed:', error);
+      setIsAuthenticated(false);
+      
+      if (!requireGuest) {
+        const target = redirectTo || '/auth/login';
+        router.replace(target);
+      }
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Handle guest-only requirements
-    if (requireGuest && isAuthenticated) {
-      const target = redirectTo || '/(tabs)';
-      router.replace(target as any);
-      return;
-    }
-  }, [isAuthenticated, requireAuth, requireGuest, redirectTo, router, isChecking]);
-
-  // Show loading state while checking authentication
-  if (isChecking || isLoading) {
+  // Show loading spinner while checking authentication
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
@@ -66,13 +71,13 @@ export default function AuthGuard({
 
   // Show fallback if provided and conditions aren't met
   if (fallback && (
-    (requireAuth && !isAuthenticated) ||
-    (requireGuest && isAuthenticated)
+    (requireGuest && isAuthenticated) ||
+    (!requireGuest && !isAuthenticated)
   )) {
     return <>{fallback}</>;
   }
 
-  // Render children if all conditions are met
+  // Show children if conditions are met
   return <>{children}</>;
 }
 
@@ -81,11 +86,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: Colors.background,
   },
   loadingText: {
-    color: '#fff',
-    fontSize: 16,
     marginTop: 16,
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
   },
 });

@@ -1,9 +1,9 @@
+import SecureRoute from '@/components/SecureRoute';
 import Colors from '@/constants/Colors';
 import { Tabs } from 'expo-router';
 import { Clock, Home, Ticket, User, Utensils } from 'lucide-react-native';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
-import AuthGuard from '@/components/AuthGuard';
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
     return (
@@ -37,7 +37,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
 
 export default function TabLayout() {
     return (
-        <AuthGuard requireAuth={true} redirectTo="/auth/login">
+        <SecureRoute redirectTo="/auth/login">
             <Tabs
                 tabBar={props => <CustomTabBar {...props} />}
                 screenOptions={{
@@ -50,7 +50,7 @@ export default function TabLayout() {
                 <Tabs.Screen name="events-user" options={{ title: 'Available/Booked Events' }} />
                 <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
             </Tabs>
-        </AuthGuard>
+        </SecureRoute>
     );
 }
 
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-evenly',
         alignItems: 'center',
-        backgroundColor: '#18181A',
+        backgroundColor: Colors.card,
         borderRadius: 40,
         marginHorizontal: 16,
         marginBottom: Platform.OS === 'ios' ? 24 : 16,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     iconWrapActive: {
-        backgroundColor: '#232326',
+        backgroundColor: Colors.inputBackground,
         borderWidth: 2,
         borderColor: Colors.primary,
         borderRadius: 40,

@@ -12,6 +12,8 @@ import {
 
 import Header from "@/components/Header";
 import SocialLoginButton from "@/components/SocialLoginButton";
+import AuthGuard from "@/components/AuthGuard";
+import Colors from "@/constants/Colors";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -22,60 +24,65 @@ export default function RegisterScreen() {
   const handleRegisterWithGoogle = () => goEmail();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <Header title="Don't Have Account?" showBack />
-        <View style={styles.content}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={require("@/assets/images/signup.png")}
-              style={styles.image}
-              contentFit="contain"
-            />
+    <AuthGuard requireGuest redirectTo="/(tabs)">
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Header title="Create Account" showBack />
+          <View style={styles.content}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={require("@/assets/images/icon.png")}
+                style={styles.image}
+                contentFit="contain"
+              />
+            </View>
+            <Text style={styles.title}>
+              Buy your <Text style={styles.highlight}>Event ticket</Text> with
+              {"\n"}Agura Platform
+            </Text>
+            <Text style={styles.description}>
+              Sign up to our app and start buying your ticket easily and faster
+            </Text>
+            <View style={styles.socialButtonsContainer}>
+              <SocialLoginButton
+                provider="google"
+                onPress={handleRegisterWithGoogle}
+                style={styles.socialButton}
+              />
+              <SocialLoginButton
+                provider="gmail"
+                onPress={goEmail}
+                style={styles.socialButton}
+              />
+              <SocialLoginButton
+                provider="phone"
+                onPress={goPhone}
+                style={styles.socialButton}
+              />
+            </View>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <TouchableOpacity onPress={goLogin}>
+                <Text style={styles.loginLink}>Login</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.title}>
-            Buy your <Text style={styles.highlight}>Event ticket</Text> with
-            {"\n"}Agura Platform
-          </Text>
-          <Text style={styles.description}>
-            Sign up to our app and start buying your ticket easily and faster
-          </Text>
-          <View style={styles.socialButtonsContainer}>
-            <SocialLoginButton
-              provider="google"
-              onPress={handleRegisterWithGoogle}
-              style={styles.socialButton}
-            />
-            <SocialLoginButton
-              provider="gmail"
-              onPress={goEmail}
-              style={styles.socialButton}
-            />
-            <SocialLoginButton
-              provider="phone"
-              onPress={goPhone}
-              style={styles.socialButton}
-            />
-          </View>
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={goLogin}>
-              <Text style={styles.loginLink}>Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </AuthGuard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: Colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -94,7 +101,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 32,
     alignSelf: "center",
-    backgroundColor: "#111",
+    backgroundColor: Colors.card,
     elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -109,17 +116,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: Colors.text,
     textAlign: "center",
     marginBottom: 16,
     lineHeight: 32,
   },
   highlight: {
-    color: "#E6007E",
+    color: Colors.primary,
   },
   description: {
     fontSize: 15,
-    color: "#aaa",
+    color: Colors.textSecondary,
     textAlign: "center",
     marginBottom: 32,
   },
@@ -129,13 +136,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   socialButton: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     marginBottom: 14,
-    paddingVertical: 6.8, // 15% less than 8
+    paddingVertical: 6.8,
     paddingHorizontal: 18,
     borderRadius: 28,
-    minWidth: 316.8, // 264 * 1.2
-    maxWidth: 460.8, // 384 * 1.2
+    minWidth: 316.8,
+    maxWidth: 460.8,
     alignSelf: "center",
     elevation: 2,
   },
@@ -145,12 +152,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   loginText: {
-    color: "#aaa",
+    color: Colors.textSecondary,
     fontSize: 14,
   },
   loginLink: {
-    color: "#E6007E",
+    color: Colors.primary,
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 });

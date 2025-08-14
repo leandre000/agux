@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
 import CustomSplashScreen from '@/components/CustomSplashScreen';
-import AuthGuard from '@/components/AuthGuard';
+import SecureRoute from '@/components/SecureRoute';
 
 export default function RootLayout() {
   const [isSplashVisible, setIsSplashVisible] = React.useState(true);
@@ -22,7 +22,7 @@ export default function RootLayout() {
 
   const content = (
     <>
-      <StatusBar style="light" backgroundColor="#000000" />
+      <StatusBar style="light" backgroundColor={Colors.background} />
       <CustomSplashScreen visible={isSplashVisible} />
       <Stack
         screenOptions={{
@@ -33,8 +33,10 @@ export default function RootLayout() {
           animation: 'slide_from_right',
         }}
       >
+        {/* Public screens - no authentication required */}
         <Stack.Screen name="index" options={{ animation: 'none' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'none' }} />
+        <Stack.Screen name="welcome" options={{ animation: 'none' }} />
         
         {/* Auth screens - require guest access */}
         <Stack.Screen 
@@ -67,8 +69,8 @@ export default function RootLayout() {
         />
         
         {/* Protected screens - require authentication */}
-        <Stack.Screen name="profile" />
         <Stack.Screen name="(tabs)" options={{ animation: 'none' }} />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="events/user" />
         <Stack.Screen name="event" />
         <Stack.Screen name="notifications" />

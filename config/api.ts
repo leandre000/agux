@@ -1,4 +1,4 @@
-import { clearToken } from "@/lib/authToken";
+import { clearToken, getToken } from "@/lib/authToken";
 import { AppError } from "@/lib/errorHandler";
 import axios, {
     AxiosError,
@@ -23,6 +23,7 @@ export interface ApiClientOptions {
 export interface ApiErrorShape {
   message?: string;
   error?: string;
+  success?: boolean;
   [key: string]: any;
 }
 
@@ -48,6 +49,15 @@ function normalizeError(error: unknown): Error {
       return timeoutError;
     }
     
+    // Check for server errors
+    if (status && status >= 500) {
+      const serverError = new Error('Server error - Please try again later');
+      // @ts-expect-error attach extras for callers if needed
+      serverError.code = 'SERVER_ERROR';
+      serverError.status = status;
+      return serverError;
+    }
+    
     const msg =
       (data && (data.message || data.error)) ||
       axErr.message ||
@@ -68,6 +78,7 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      "User-Agent": "Agura-Mobile/1.0.0",
     },
     // Production timeout - increased for render.com
     timeout: PRODUCTION_CONFIG.API_TIMEOUT,
@@ -75,18 +86,19 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
 
   // Request: inject token
   instance.interceptors.request.use(async (config: any) => {
-    const tokenMaybePromise = options?.getToken?.();
-    const token =
-      tokenMaybePromise && typeof (tokenMaybePromise as any).then === "function"
-        ? await (tokenMaybePromise as Promise<string | null>)
-        : (tokenMaybePromise as string | null);
-
-    if (token) {
-      config.headers = config.headers || {};
-      (config.headers as Record<string, string>)[
-        "Authorization"
-      ] = `Bearer ${token}`;
+    try {
+      const token = await getToken();
+      
+      if (token) {
+        config.headers = config.headers || {};
+        (config.headers as Record<string, string>)[
+          "Authorization"
+        ] = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.warn('Failed to get token for request:', error);
     }
+    
     return config;
   });
 
@@ -101,19 +113,26 @@ export function createApiClient(options?: ApiClientOptions): AxiosInstance {
       
       // Handle specific error cases for production
       if (appError.status === 401) {
-        // Clear token and optionally route to login
+        // Clear token and redirect to login
         try {
           await clearToken();
-        } catch {}
+        } catch (clearError) {
+          console.warn('Failed to clear token:', clearError);
+        }
+        
         try {
           await options?.onUnauthorized?.();
-        } catch {}
-        // Optionally, navigate using deep link to login
+        } catch (unauthError) {
+          console.warn('Failed to handle unauthorized:', unauthError);
+        }
+        
+        // Navigate to login using deep link
         try {
           const url = Linking.createURL("/auth/login");
-          // Fire-and-forget; it's okay if it fails in background
           Linking.openURL(url).catch(() => {});
-        } catch {}
+        } catch (linkError) {
+          console.warn('Failed to navigate to login:', linkError);
+        }
       } else if (appError.status === 404) {
         // Handle 404 errors gracefully
         console.warn('API endpoint not found:', error.config?.url);
