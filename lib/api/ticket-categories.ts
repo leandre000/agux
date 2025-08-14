@@ -1,23 +1,32 @@
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/config/api";
+import { apiGet, apiPost, apiPut, apiPatch } from "@/config/api";
 import {
-    ApiResponse,
-    CreateTicketCategoryRequest,
-    PaginatedResponse,
     TicketCategory,
-    UpdateTicketCategoryRequest
+    CreateTicketCategoryRequest,
+    UpdateTicketCategoryRequest,
+    PaginatedResponse
 } from "@/types/ticketing";
 
-// Get all ticket categories for an event
-export async function getTicketCategoriesByEvent(eventId: string) {
-  return apiGet<TicketCategory[]>(`/api/events/${eventId}/ticket-categories`);
+// Get ticket categories by event
+export async function getTicketCategoriesByEvent(eventId: string, page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  return apiGet<PaginatedResponse<TicketCategory>>(`/api/events/${eventId}/ticket-categories?${params.toString()}`);
 }
 
-// Get ticket category by ID
-export async function getTicketCategoryById(categoryId: string) {
-  return apiGet<TicketCategory>(`/api/ticket-categories/${categoryId}`);
+// Get active ticket categories by event
+export async function getActiveTicketCategoriesByEvent(eventId: string) {
+  return apiGet<TicketCategory[]>(`/api/events/${eventId}/ticket-categories/active`);
 }
 
-// Create new ticket category (Admin only)
+// Get ticket categories with availability
+export async function getTicketCategoriesWithAvailability(eventId: string) {
+  return apiGet<(TicketCategory & { available_quantity: number })[]>(`/api/events/${eventId}/ticket-categories/availability`);
+}
+
+// Create ticket category (Admin only)
 export async function createTicketCategory(categoryData: CreateTicketCategoryRequest) {
   return apiPost<TicketCategory>("/api/ticket-categories", categoryData);
 }
@@ -27,141 +36,110 @@ export async function updateTicketCategory(categoryId: string, categoryData: Upd
   return apiPut<TicketCategory>(`/api/ticket-categories/${categoryId}`, categoryData);
 }
 
-// Patch ticket category (Admin only) - for partial updates
-export async function patchTicketCategory(categoryId: string, categoryData: Partial<UpdateTicketCategoryRequest>) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}`, categoryData);
+// Update ticket category price (Admin only)
+export async function updateTicketCategoryPrice(categoryId: string, price: number, currency: 'RWF' | 'USD' = 'RWF') {
+  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/price`, { price, currency });
 }
 
-// Delete ticket category (Admin only)
-export async function deleteTicketCategory(categoryId: string) {
-  return apiDelete<ApiResponse<{ message: string }>>(`/api/ticket-categories/${categoryId}`);
+// Activate ticket category (Admin only)
+export async function activateTicketCategory(categoryId: string) {
+  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/activate`);
 }
 
-// Get ticket categories by section
-export async function getTicketCategoriesBySection(sectionId: string) {
-  return apiGet<TicketCategory[]>(`/api/sections/${sectionId}/ticket-categories`);
+// Deactivate ticket category (Admin only)
+export async function deactivateTicketCategory(categoryId: string) {
+  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/deactivate`);
 }
 
-// Get ticket categories by admin (Admin only)
-export async function getTicketCategoriesByAdmin(adminId: string, page: number = 1, limit: number = 50) {
+// Add early bird discount (Admin only)
+export async function addEarlyBirdDiscount(categoryId: string, percentage: number, validUntil: string) {
+  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/early-bird`, {
+    percentage,
+    valid_until: validUntil
+  });
+}
+
+// Remove early bird discount (Admin only)
+export async function removeEarlyBirdDiscount(categoryId: string) {
+  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/remove-early-bird`);
+}
+
+// Get ticket category by ID
+export async function getTicketCategoryById(categoryId: string) {
+  return apiGet<TicketCategory>(`/api/ticket-categories/${categoryId}`);
+}
+
+// Get all ticket categories (Admin only)
+export async function getAllTicketCategories(page: number = 1, limit: number = 50, filters?: {
+  event_id?: string;
+  section_id?: string;
+  status?: 'active' | 'inactive';
+  price_min?: number;
+  price_max?: number;
+}) {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString()
   });
   
-  return apiGet<PaginatedResponse<TicketCategory>>(`/api/ticket-categories/admin/${adminId}?${params.toString()}`);
-}
-
-// Get active ticket categories for an event
-export async function getActiveTicketCategoriesByEvent(eventId: string) {
-  return apiGet<TicketCategory[]>(`/api/events/${eventId}/ticket-categories/active`);
-}
-
-// Activate ticket category (Admin only)
-export async function activateTicketCategory(categoryId: string) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/activate`, { is_active: true });
-}
-
-// Deactivate ticket category (Admin only)
-export async function deactivateTicketCategory(categoryId: string) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/deactivate`, { is_active: false });
-}
-
-// Update ticket category price (Admin only)
-export async function updateTicketCategoryPrice(categoryId: string, price: number, currency: 'RWF' | 'USD' = 'RWF') {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/price`, { 
-    price, 
-    currency 
-  });
-}
-
-// Add early bird discount to ticket category (Admin only)
-export async function addEarlyBirdDiscount(
-  categoryId: string, 
-  percentage: number, 
-  validUntil: string
-) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/early-bird`, {
-    early_bird_discount: {
-      percentage,
-      valid_until: validUntil
-    }
-  });
-}
-
-// Remove early bird discount from ticket category (Admin only)
-export async function removeEarlyBirdDiscount(categoryId: string) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/early-bird`, {
-    early_bird_discount: null
-  });
-}
-
-// Get ticket category statistics
-export async function getTicketCategoryStats(categoryId: string) {
-  return apiGet<{
-    total_tickets: number;
-    sold_tickets: number;
-    available_tickets: number;
-    total_revenue: number;
-    currency: 'RWF' | 'USD';
-    average_price: number;
-    sales_percentage: number;
-  }>(`/api/ticket-categories/${categoryId}/stats`);
+  if (filters?.event_id) params.append('event_id', filters.event_id);
+  if (filters?.section_id) params.append('section_id', filters.section_id);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.price_min) params.append('price_min', filters.price_min.toString());
+  if (filters?.price_max) params.append('price_max', filters.price_max.toString());
+  
+  return apiGet<PaginatedResponse<TicketCategory>>(`/api/ticket-categories?${params.toString()}`);
 }
 
 // Bulk create ticket categories (Admin only)
-export async function bulkCreateTicketCategories(eventId: string, categories: CreateTicketCategoryRequest[]) {
-  return apiPost<TicketCategory[]>(`/api/events/${eventId}/ticket-categories/bulk`, { categories });
+export async function bulkCreateTicketCategories(categories: CreateTicketCategoryRequest[]) {
+  return apiPost<TicketCategory[]>("/api/ticket-categories/bulk", { categories });
 }
 
-// Copy ticket category pricing from another event (Admin only)
-export async function copyTicketCategoryPricing(sourceEventId: string, targetEventId: string) {
-  return apiPost<{ message: string }>(`/api/events/${targetEventId}/ticket-categories/copy-pricing`, {
-    source_event_id: sourceEventId
-  });
+// Bulk update ticket categories (Admin only)
+export async function bulkUpdateTicketCategories(updates: { id: string; data: UpdateTicketCategoryRequest }[]) {
+  return apiPut<TicketCategory[]>("/api/ticket-categories/bulk", { updates });
 }
 
-// Get ticket categories with availability
-export async function getTicketCategoriesWithAvailability(eventId: string) {
-  return apiGet<(TicketCategory & { available_quantity: number; sold_quantity: number })[]>(
-    `/api/events/${eventId}/ticket-categories/with-availability`
-  );
-}
-
-// Get ticket categories by price range
-export async function getTicketCategoriesByPriceRange(eventId: string, minPrice: number, maxPrice: number) {
-  const params = new URLSearchParams({
-    min_price: minPrice.toString(),
-    max_price: maxPrice.toString()
-  });
+// Get ticket category analytics (Admin only)
+export async function getTicketCategoryAnalytics(categoryId: string, dateFrom?: string, dateTo?: string) {
+  const params = new URLSearchParams();
+  if (dateFrom) params.append('date_from', dateFrom);
+  if (dateTo) params.append('date_to', dateTo);
   
-  return apiGet<TicketCategory[]>(`/api/events/${eventId}/ticket-categories/price-range?${params.toString()}`);
+  return apiGet<{
+    category_id: string;
+    total_tickets_sold: number;
+    total_revenue: number;
+    currency: 'RWF' | 'USD';
+    average_price: number;
+    conversion_rate: number;
+    daily_sales: {
+      date: string;
+      tickets_sold: number;
+      revenue: number;
+    }[];
+  }>(`/api/ticket-categories/${categoryId}/analytics?${params.toString()}`);
 }
 
-// Get cheapest ticket category for an event
-export async function getCheapestTicketCategory(eventId: string) {
-  return apiGet<TicketCategory>(`/api/events/${eventId}/ticket-categories/cheapest`);
-}
-
-// Get most expensive ticket category for an event
-export async function getMostExpensiveTicketCategory(eventId: string) {
-  return apiGet<TicketCategory>(`/api/events/${eventId}/ticket-categories/most-expensive`);
-}
-
-// Validate ticket category data before creation/update
+// Validate ticket category data
 export function validateTicketCategoryData(data: CreateTicketCategoryRequest | UpdateTicketCategoryRequest): string[] {
   const errors: string[] = [];
   
   if ('name' in data && (!data.name || data.name.trim().length < 2)) {
-    errors.push('Ticket category name must be at least 2 characters long');
+    errors.push('Category name must be at least 2 characters long');
   }
   
-  if ('price' in data && (data.price < 0 || data.price > 1000000)) {
-    errors.push('Price must be between 0 and 1,000,000');
+  if ('description' in data && (!data.description || data.description.trim().length < 5)) {
+    errors.push('Category description must be at least 5 characters long');
   }
   
-  if ('currency' in data && data.currency && !['RWF', 'USD'].includes(data.currency)) {
-    errors.push('Currency must be either RWF or USD');
+  if ('price' in data && (data.price < 0)) {
+    errors.push('Price must be non-negative');
+  }
+  
+  if ('currency' in data && !['RWF', 'USD'].includes(data.currency)) {
+    errors.push('Currency must be RWF or USD');
   }
   
   if ('event_id' in data && !data.event_id) {
@@ -178,31 +156,17 @@ export function validateTicketCategoryData(data: CreateTicketCategoryRequest | U
     }
   }
   
-  // Validate early bird discount
-  if ('early_bird_discount' in data && data.early_bird_discount) {
-    if (data.early_bird_discount.percentage < 1 || data.early_bird_discount.percentage > 100) {
-      errors.push('Early bird discount percentage must be between 1 and 100');
-    }
-    
-    const validUntil = new Date(data.early_bird_discount.valid_until);
-    const now = new Date();
-    
-    if (validUntil <= now) {
-      errors.push('Early bird discount valid until date must be in the future');
-    }
-  }
-  
   return errors;
 }
 
-// Check if early bird discount is still valid
+// Check if early bird discount is valid
 export function isEarlyBirdDiscountValid(category: TicketCategory): boolean {
   if (!category.early_bird_discount) return false;
   
-  const validUntil = new Date(category.early_bird_discount.valid_until);
   const now = new Date();
+  const validUntil = new Date(category.early_bird_discount.valid_until);
   
-  return validUntil > now;
+  return now < validUntil;
 }
 
 // Calculate discounted price
@@ -211,54 +175,23 @@ export function calculateDiscountedPrice(category: TicketCategory): number {
     return category.price;
   }
   
-  const discountPercentage = category.early_bird_discount!.percentage;
+  const discountPercentage = category.early_bird_discount.percentage;
   const discountAmount = (category.price * discountPercentage) / 100;
   
   return Math.max(0, category.price - discountAmount);
 }
 
-// Get ticket categories with pricing tiers
-export async function getTicketCategoriesWithPricingTiers(eventId: string) {
-  return apiGet<{
-    tier: string;
-    categories: TicketCategory[];
-    price_range: {
-      min: number;
-      max: number;
-      currency: 'RWF' | 'USD';
-    };
-  }[]>(`/api/events/${eventId}/ticket-categories/pricing-tiers`);
-}
-
-// Get ticket categories by section for an event
-export async function getTicketCategoriesBySectionForEvent(eventId: string, sectionId: string) {
-  return apiGet<TicketCategory[]>(`/api/events/${eventId}/sections/${sectionId}/ticket-categories`);
-}
-
-// Update ticket category capacity (Admin only)
-export async function updateTicketCategoryCapacity(categoryId: string, maxQuantity: number) {
-  return apiPatch<TicketCategory>(`/api/ticket-categories/${categoryId}/capacity`, {
-    max_quantity: maxQuantity
-  });
-}
-
-// Get ticket category sales analytics (Admin only)
-export async function getTicketCategorySalesAnalytics(categoryId: string, dateFrom?: string, dateTo?: string) {
-  const params = new URLSearchParams();
-  if (dateFrom) params.append('date_from', dateFrom);
-  if (dateTo) params.append('date_to', dateTo);
-  
+// Get ticket category statistics
+export async function getTicketCategoryStats(categoryId: string) {
   return apiGet<{
     category_id: string;
-    category_name: string;
-    total_sales: number;
+    total_available: number;
+    total_sold: number;
     total_revenue: number;
     currency: 'RWF' | 'USD';
-    daily_sales: {
-      date: string;
-      tickets_sold: number;
-      revenue: number;
-    }[];
-    average_tickets_per_purchase: number;
-  }>(`/api/ticket-categories/${categoryId}/sales-analytics?${params.toString()}`);
+    average_price: number;
+    is_early_bird_active: boolean;
+    early_bird_discount_percentage?: number;
+    early_bird_valid_until?: string;
+  }>(`/api/ticket-categories/${categoryId}/stats`);
 }
