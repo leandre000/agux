@@ -36,15 +36,14 @@ Authorization: Bearer <your-jwt-token>
 - `GET /api/sections/{sectionId}/seats` - Get seats by section
 - `GET /api/sections/{sectionId}/seats/availability` - Get seat availability
 - `POST /api/sections/{sectionId}/seats/bulk` - Create bulk seats (Admin only)
-- `POST /api/seats/validate-selection` - Validate seat selection
 
 ### 4. Events API
 - `GET /api/events` - Get all events with filters
 - `GET /api/events/{id}` - Get event by ID
-- `POST /api/events` - Create event (Admin only)
-- `PUT /api/events/{id}` - Update event (Admin only)
-- `PATCH /api/events/{id}/publish` - Publish event (Admin only)
-- `PATCH /api/events/{id}/cancel` - Cancel event (Admin only)
+- `GET /api/events/upcoming` - Get upcoming events
+- `GET /api/events/category/{category}` - Get events by category
+- `GET /api/events/featured` - Get featured events
+- `GET /api/events/popular` - Get popular events
 
 ### 5. Ticket Categories API
 - `GET /api/events/{eventId}/ticket-categories` - Get categories by event

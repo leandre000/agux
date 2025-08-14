@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.card,
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 2,
     borderColor: "transparent",
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     fontSize: 16,
-    color: Colors.text,
+    color: "#000000",
     fontWeight: "500",
   },
   inputWithLeftIcon: {

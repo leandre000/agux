@@ -227,9 +227,7 @@ export function validateTicketPurchase(purchase: TicketPurchaseRequest): string[
     });
   }
   
-  if (purchase.seats && purchase.seats.length !== purchase.quantity) {
-    errors.push('Number of seats must match quantity');
-  }
+
   
   if (!purchase.payment_method) {
     errors.push('Payment method is required');

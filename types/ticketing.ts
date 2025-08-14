@@ -222,7 +222,6 @@ export interface TicketPurchaseRequest {
   category_id: string;
   quantity: number;
   holder_names: string[];
-  seats?: string[]; // Array of seat IDs
   payment_method: 'mobile_money' | 'card' | 'bank_transfer';
   payment_details?: {
     phone_number?: string;

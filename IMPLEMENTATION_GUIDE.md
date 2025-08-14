@@ -143,33 +143,23 @@ if (errors.length > 0) {
 }
 ```
 
-### 4. Event Management (Admin Only)
+### 4. Event Management
 
-#### Step 4.1: Create Event
+#### Step 4.1: Get Available Events
 ```typescript
 import { EventsAPI } from '@/lib/api';
 
-const eventData = {
-  title: "Summer Music Festival 2024",
-  description: "A fantastic music festival featuring local and international artists",
-  date: "2024-07-15",
-  start_time: "18:00",
-  end_time: "23:00",
-  venue_id: venue.id,
-  artist_lineup: ["Artist 1", "Artist 2", "Artist 3"],
-  category: "music",
-  max_tickets_per_user: 5
-};
+// Get all events
+const events = await EventsAPI.getEvents();
 
-const event = await EventsAPI.createEvent(eventData);
-```
+// Get upcoming events
+const upcomingEvents = await EventsAPI.getUpcomingEvents();
 
-#### Step 4.2: Publish Event
-```typescript
-import { EventsAPI } from '@/lib/api';
+// Get events by category
+const musicEvents = await EventsAPI.getEventsByCategory('music');
 
-// Publish the event to make it visible to users
-await EventsAPI.publishEvent(event.id);
+// Get events by venue
+const venueEvents = await EventsAPI.getEventsByVenue(venue.id);
 ```
 
 ### 5. Ticket Categories (Admin Only)
@@ -243,17 +233,16 @@ categories.forEach(category => {
 });
 ```
 
-#### Step 6.2: Check Seat Availability
+#### Step 6.2: Check Ticket Availability
 ```typescript
-import { SeatsAPI } from '@/lib/api';
+import { TicketCategoriesAPI } from '@/lib/api';
 
-// Get seat availability for a section
-const availability = await SeatsAPI.getSeatAvailability(vipSection.id, event.id);
+// Get ticket categories with availability
+const categories = await TicketCategoriesAPI.getTicketCategoriesWithAvailability(event.id);
 
-console.log(`Available seats: ${availability.available_seats}/${availability.total_seats}`);
-
-// Get available seats for a specific category
-const availableSeats = await SeatsAPI.getAvailableSeatsForCategory(vipCategory.id);
+categories.forEach(category => {
+  console.log(`${category.name}: ${category.available_quantity} available`);
+});
 ```
 
 #### Step 6.3: Purchase Tickets
