@@ -29,10 +29,7 @@ export async function getSeatAvailability(sectionId: string, eventId?: string) {
   }>(`/api/sections/${sectionId}/seats/availability?${params.toString()}`);
 }
 
-// Create bulk seats (Admin only)
-export async function createBulkSeats(seatsData: CreateBulkSeatsRequest) {
-  return apiPost<Seat[]>(`/api/sections/${seatsData.section_id}/seats/bulk`, seatsData);
-}
+
 
 // Get seat by ID
 export async function getSeatById(seatId: string) {
@@ -115,40 +112,7 @@ export async function getSeatStats(sectionId: string) {
   }>(`/api/sections/${sectionId}/seats/stats`);
 }
 
-// Validate bulk seat data
-export function validateBulkSeatData(data: CreateBulkSeatsRequest): string[] {
-  const errors: string[] = [];
-  
-  if (!data.section_id) {
-    errors.push('Section ID is required');
-  }
-  
-  if (!data.seat_map_config) {
-    errors.push('Seat map configuration is required');
-  } else {
-    if (!data.seat_map_config.rows || data.seat_map_config.rows < 1) {
-      errors.push('Number of rows must be at least 1');
-    }
-    
-    if (!data.seat_map_config.columns || data.seat_map_config.columns < 1) {
-      errors.push('Number of columns must be at least 1');
-    }
-    
-    if (data.seat_map_config.rows * data.seat_map_config.columns > 10000) {
-      errors.push('Total number of seats cannot exceed 10,000');
-    }
-  }
-  
-  if (!data.seat_type || !['standard', 'vip', 'premium', 'economy'].includes(data.seat_type)) {
-    errors.push('Valid seat type is required');
-  }
-  
-  if (data.price_modifier && data.price_modifier < 0) {
-    errors.push('Price modifier cannot be negative');
-  }
-  
-  return errors;
-}
+
 
 // Generate seat numbers based on configuration
 export function generateSeatNumbers(config: {

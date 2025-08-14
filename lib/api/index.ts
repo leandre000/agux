@@ -1,4 +1,3 @@
-export * as AdminAPI from "./admin";
 export * as AuthAPI from "./auth";
 export * as EventsAPI from "./events";
 export * as SeatsAPI from "./seats";

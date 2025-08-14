@@ -6,141 +6,109 @@ This guide provides step-by-step instructions for implementing the AGURA Ticketi
 
 ## Implementation Flow
 
-### 1. Venue Management (Admin Only)
+### 1. Venue Management
 
-#### Step 1.1: Create Venue
+#### Step 1.1: Browse Venues
 ```typescript
 import { VenuesAPI } from '@/lib/api';
 
-// Create a new venue
-const venueData = {
-  name: "Serena Hotel Kigali",
-  address: "KN 3 Ave, Kigali",
-  city: "Kigali",
-  country: "Rwanda",
-  capacity: 500,
-  description: "Luxury hotel with conference facilities",
-  amenities: ["parking", "wifi", "catering"],
-  parking_available: true,
-  wheelchair_accessible: true
-};
+// Get all venues
+const venues = await VenuesAPI.getVenues();
 
-try {
-  const venue = await VenuesAPI.createVenue(venueData);
-  console.log('Venue created:', venue.id);
-} catch (error) {
-  console.error('Failed to create venue:', error);
-}
+// Get venues by city
+const kigaliVenues = await VenuesAPI.getVenuesByCity('Kigali');
+
+// Get venues by country
+const rwandaVenues = await VenuesAPI.getVenuesByCountry('Rwanda');
+
+// Search venues
+const searchResults = await VenuesAPI.searchVenues('hotel');
+
+// Get popular venues
+const popularVenues = await VenuesAPI.getPopularVenues(10);
 ```
 
-#### Step 1.2: Validate Venue Data
+#### Step 1.2: Get Venue Details
 ```typescript
 import { VenuesAPI } from '@/lib/api';
 
-const errors = VenuesAPI.validateVenueData(venueData);
-if (errors.length > 0) {
-  console.error('Validation errors:', errors);
-  return;
-}
+// Get specific venue
+const venue = await VenuesAPI.getVenueById('venue-123');
+
+// Get venues near location
+const nearbyVenues = await VenuesAPI.getVenuesNearLocation(-1.9441, 30.0619, 10); // Kigali coordinates
 ```
 
-### 2. Section Management (Admin Only)
+### 2. Section Management
 
-#### Step 2.1: Create Section
+#### Step 2.1: Browse Sections
 ```typescript
 import { SectionsAPI } from '@/lib/api';
 
-// Create VIP section
-const vipSectionData = {
-  name: "VIP Section",
-  description: "Premium seating area with exclusive benefits",
-  venue_id: venue.id,
-  capacity: 100,
-  seat_map_config: {
-    rows: 10,
-    columns: 10,
-    row_labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"],
-    column_labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-    blocked_seats: ["A1", "A2"], // Reserved for special guests
-    special_seats: {
-      "A3": {
-        type: "wheelchair",
-        description: "Wheelchair accessible seat"
-      }
-    }
-  },
-  color_code: "#FFD700" // Gold color for VIP
-};
+// Get sections by venue
+const sections = await SectionsAPI.getSectionsByVenue('venue-123');
 
-const vipSection = await SectionsAPI.createSection(vipSectionData);
+// Get sections with availability
+const sectionsWithAvailability = await SectionsAPI.getSectionsByVenueWithAvailability('venue-123', 'event-456');
 
-// Create Regular section
-const regularSectionData = {
-  name: "Regular Section",
-  description: "Standard seating area",
-  venue_id: venue.id,
-  capacity: 400,
-  seat_map_config: {
-    rows: 20,
-    columns: 20,
-    row_labels: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"],
-    column_labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"],
-    blocked_seats: [],
-    special_seats: {}
-  },
-  color_code: "#4CAF50" // Green color for regular
-};
+// Get premium sections
+const premiumSections = await SectionsAPI.getPremiumSections('venue-123');
 
-const regularSection = await SectionsAPI.createSection(regularSectionData);
+// Get accessible sections
+const accessibleSections = await SectionsAPI.getAccessibleSections('venue-123');
 ```
 
-#### Step 2.2: Generate Seat Map Configuration
+#### Step 2.2: Get Section Details
 ```typescript
 import { SectionsAPI } from '@/lib/api';
 
-// Generate seat map for VIP section
-const vipSeatMap = SectionsAPI.generateSeatMapConfig(10, 10);
+// Get specific section
+const section = await SectionsAPI.getSectionById('section-123');
 
-// Generate seat map for regular section
-const regularSeatMap = SectionsAPI.generateSeatMapConfig(20, 20);
+// Get section seat map
+const seatMap = await SectionsAPI.getSectionSeatMap('section-123');
+
+// Get section statistics
+const stats = await SectionsAPI.getSectionStats('section-123', 'event-456');
+
+// Get section pricing
+const pricing = await SectionsAPI.getSectionPricing('section-123');
 ```
 
-### 3. Seat Management (Admin Only)
+### 3. Seat Management
 
-#### Step 3.1: Create Seats in Bulk
+#### Step 3.1: Browse Seats
 ```typescript
 import { SeatsAPI } from '@/lib/api';
 
-// Create VIP seats
-const vipSeatsData = {
-  section_id: vipSection.id,
-  seat_map_config: vipSection.seat_map_config,
-  seat_type: "vip",
-  price_modifier: 50000 // Additional 50,000 RWF for VIP seats
-};
+// Get seats by section
+const seats = await SeatsAPI.getSeatsBySection('section-123');
 
-const vipSeats = await SeatsAPI.createBulkSeats(vipSeatsData);
+// Get seat availability
+const availability = await SeatsAPI.getSeatAvailability('section-123', 'event-456');
 
-// Create regular seats
-const regularSeatsData = {
-  section_id: regularSection.id,
-  seat_map_config: regularSection.seat_map_config,
-  seat_type: "standard",
-  price_modifier: 0
-};
+// Get available seats
+const availableSeats = await SeatsAPI.getAvailableSeatsForSection('section-123', 'event-456');
 
-const regularSeats = await SeatsAPI.createBulkSeats(regularSeatsData);
+// Get occupied seats
+const occupiedSeats = await SeatsAPI.getOccupiedSeatsForSection('section-123', 'event-456');
 ```
 
-#### Step 3.2: Validate Seat Data
+#### Step 3.2: Get Seat Details
 ```typescript
 import { SeatsAPI } from '@/lib/api';
 
-const errors = SeatsAPI.validateBulkSeatData(vipSeatsData);
-if (errors.length > 0) {
-  console.error('Seat validation errors:', errors);
-  return;
-}
+// Get specific seat
+const seat = await SeatsAPI.getSeatById('seat-123');
+
+// Get seat map
+const seatMap = await SeatsAPI.getSeatMap('section-123');
+
+// Get seat statistics
+const stats = await SeatsAPI.getSeatStats('section-123');
+
+// Get special seats
+const specialSeats = await SeatsAPI.getSpecialSeats('section-123', 'wheelchair');
 ```
 
 ### 4. Event Management
@@ -162,54 +130,37 @@ const musicEvents = await EventsAPI.getEventsByCategory('music');
 const venueEvents = await EventsAPI.getEventsByVenue(venue.id);
 ```
 
-### 5. Ticket Categories (Admin Only)
+### 5. Ticket Categories
 
-#### Step 5.1: Create Ticket Categories
+#### Step 5.1: Browse Ticket Categories
 ```typescript
 import { TicketCategoriesAPI } from '@/lib/api';
 
-// Create VIP ticket category
-const vipCategoryData = {
-  name: "VIP Ticket",
-  description: "Premium seating with exclusive benefits",
-  price: 100000, // 100,000 RWF
-  currency: "RWF",
-  event_id: event.id,
-  section_id: vipSection.id,
-  max_quantity_per_user: 2,
-  early_bird_discount: {
-    percentage: 20,
-    valid_until: "2024-06-15T23:59:59Z"
-  }
-};
+// Get ticket categories by event
+const categories = await TicketCategoriesAPI.getTicketCategoriesByEvent('event-123');
 
-const vipCategory = await TicketCategoriesAPI.createTicketCategory(vipCategoryData);
+// Get active ticket categories
+const activeCategories = await TicketCategoriesAPI.getActiveTicketCategoriesByEvent('event-123');
 
-// Create regular ticket category
-const regularCategoryData = {
-  name: "Regular Ticket",
-  description: "Standard seating",
-  price: 50000, // 50,000 RWF
-  currency: "RWF",
-  event_id: event.id,
-  section_id: regularSection.id,
-  max_quantity_per_user: 5,
-  early_bird_discount: {
-    percentage: 15,
-    valid_until: "2024-06-15T23:59:59Z"
-  }
-};
+// Get categories with availability
+const categoriesWithAvailability = await TicketCategoriesAPI.getTicketCategoriesWithAvailability('event-123');
 
-const regularCategory = await TicketCategoriesAPI.createTicketCategory(regularCategoryData);
+// Get specific category
+const category = await TicketCategoriesAPI.getTicketCategoryById('category-123');
 ```
 
-#### Step 5.2: Activate Ticket Categories
+#### Step 5.2: Get Category Details
 ```typescript
 import { TicketCategoriesAPI } from '@/lib/api';
 
-// Activate both categories
-await TicketCategoriesAPI.activateTicketCategory(vipCategory.id);
-await TicketCategoriesAPI.activateTicketCategory(regularCategory.id);
+// Get category statistics
+const stats = await TicketCategoriesAPI.getTicketCategoryStats('category-123');
+
+// Check early bird discount
+if (TicketCategoriesAPI.isEarlyBirdDiscountValid(category)) {
+  const discountedPrice = TicketCategoriesAPI.calculateDiscountedPrice(category);
+  console.log(`Early bird price: ${discountedPrice} ${category.currency}`);
+}
 ```
 
 ### 6. User Ticket Purchase Flow
@@ -284,38 +235,7 @@ try {
 }
 ```
 
-### 7. Admin Dashboard Implementation
 
-#### Step 7.1: Get Dashboard Analytics
-```typescript
-import { AdminAPI } from '@/lib/api';
-
-// Get comprehensive dashboard analytics
-const analytics = await AdminAPI.getAdminDashboardAnalytics();
-
-console.log('Revenue:', analytics.revenue_analytics.total_revenue);
-console.log('Tickets sold:', analytics.ticket_analytics.total_tickets_sold);
-console.log('Active events:', analytics.event_analytics.total_events);
-```
-
-#### Step 7.2: Manage Events
-```typescript
-import { AdminAPI } from '@/lib/api';
-
-// Get all admin events
-const adminEvents = await AdminAPI.getAdminEvents();
-
-// Update event status
-await AdminAPI.updateAdminEvent(event.id, {
-  status: 'published',
-  max_tickets_per_user: 3
-});
-
-// Cancel event if needed
-await AdminAPI.updateAdminEvent(event.id, {
-  status: 'cancelled'
-});
-```
 
 ### 8. Security Implementation
 

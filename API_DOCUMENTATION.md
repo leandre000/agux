@@ -21,21 +21,28 @@ Authorization: Bearer <your-jwt-token>
 ### 1. Venues API
 - `GET /api/venues` - Get all venues with filters
 - `GET /api/venues/{id}` - Get venue by ID
-- `POST /api/venues` - Create venue (Admin only)
-- `PUT /api/venues/{id}` - Update venue (Admin only)
-- `DELETE /api/venues/{id}` - Delete venue (Admin only)
+- `GET /api/venues/city/{city}` - Get venues by city
+- `GET /api/venues/country/{country}` - Get venues by country
+- `GET /api/venues/search` - Search venues
+- `GET /api/venues/popular` - Get popular venues
+- `GET /api/venues/nearby` - Get venues near location
 
 ### 2. Sections API
 - `GET /api/venues/{venueId}/sections` - Get sections by venue
 - `GET /api/sections/{id}` - Get section by ID
-- `POST /api/sections` - Create section (Admin only)
-- `PUT /api/sections/{id}` - Update section (Admin only)
-- `DELETE /api/sections/{id}` - Delete section (Admin only)
+- `GET /api/venues/{venueId}/sections/availability` - Get sections with availability
+- `GET /api/sections/{id}/seat-map` - Get section seat map
+- `GET /api/sections/{id}/stats` - Get section statistics
+- `GET /api/sections/{id}/pricing` - Get section pricing
 
 ### 3. Seats API
 - `GET /api/sections/{sectionId}/seats` - Get seats by section
 - `GET /api/sections/{sectionId}/seats/availability` - Get seat availability
-- `POST /api/sections/{sectionId}/seats/bulk` - Create bulk seats (Admin only)
+- `GET /api/sections/{sectionId}/seats/available` - Get available seats
+- `GET /api/sections/{sectionId}/seats/occupied` - Get occupied seats
+- `GET /api/sections/{sectionId}/seats/special` - Get special seats
+- `GET /api/sections/{sectionId}/seat-map` - Get seat map
+- `GET /api/sections/{sectionId}/seats/stats` - Get seat statistics
 
 ### 4. Events API
 - `GET /api/events` - Get all events with filters
@@ -47,9 +54,10 @@ Authorization: Bearer <your-jwt-token>
 
 ### 5. Ticket Categories API
 - `GET /api/events/{eventId}/ticket-categories` - Get categories by event
-- `POST /api/ticket-categories` - Create category (Admin only)
-- `PUT /api/ticket-categories/{id}` - Update category (Admin only)
-- `PATCH /api/ticket-categories/{id}/activate` - Activate category (Admin only)
+- `GET /api/events/{eventId}/ticket-categories/active` - Get active categories by event
+- `GET /api/events/{eventId}/ticket-categories/availability` - Get categories with availability
+- `GET /api/ticket-categories/{id}` - Get category by ID
+- `GET /api/ticket-categories/{id}/stats` - Get category statistics
 
 ### 6. Tickets API
 - `GET /api/tickets/my-tickets` - Get user tickets
@@ -58,13 +66,7 @@ Authorization: Bearer <your-jwt-token>
 - `PUT /api/tickets/{id}/use` - Use ticket
 - `PUT /api/tickets/{id}/refund` - Refund ticket
 
-### 7. Admin API
-- `GET /api/admin/analytics/dashboard` - Get dashboard analytics
-- `GET /api/admin/venues` - Get admin venues
-- `GET /api/admin/events` - Get admin events
-- `GET /api/admin/tickets` - Get admin tickets
-
-### 8. Security API
+### 7. Security API
 - `GET /api/admin/validate-permission` - Validate admin permission
 - `GET /api/rate-limit/check` - Check rate limit
 - `POST /api/payment/validate-method` - Validate payment method
