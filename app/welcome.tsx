@@ -1,12 +1,12 @@
+import AuthGuard from '@/components/AuthGuard';
 import Button from '@/components/Button';
 import Carousel from '@/components/Carousel';
 import Images from '@/constants/images';
 import { Image } from 'expo-image';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import AuthGuard from '@/components/AuthGuard';
 
 const { height } = Dimensions.get('window');
 
@@ -39,13 +39,15 @@ export default function WelcomeScreen() {
                                 contentFit="cover"
                             />
                         </Carousel>
+                        {/* Progress dot indicator */}
+                        <View style={styles.progressDot} />
                     </View>
                     <View style={styles.contentContainer}>
                         <Text style={styles.title}>
                             Enjoy Endless Events{"\n"}Experiences with <Text style={styles.highlight}>Agura</Text>
                         </Text>
                         <Text style={styles.description}>
-                            Agura ticketing platform is here for your events — grab your tickets and have fun, all in one place.
+                            Agura Ticketing platform is here for your events grab your tickets have fun in one platform
                         </Text>
                         <View style={styles.buttonRow}>
                             <Button
@@ -92,11 +94,19 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginBottom: SPACING,
         backgroundColor: 'transparent',
+        alignItems: 'center',
     },
     image: {
         width: '100%',
         height: '100%',
         borderRadius: 30,
+    },
+    progressDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#ffffff',
+        marginTop: 16,
     },
     contentContainer: {
         flex: 1,
@@ -115,9 +125,9 @@ const styles = StyleSheet.create({
     highlight: {
         color: '#fff',
         fontWeight: 'bold',
-        textShadowColor: '#e6007e',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 8,
+        textDecorationLine: 'underline',
+        textDecorationColor: '#e6007e',
+        textDecorationStyle: 'solid',
     },
     description: {
         fontSize: 15,
