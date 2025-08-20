@@ -4,7 +4,7 @@ import { Event, useEventsStore } from "@/store/events-store";
 import { TicketCategory, useTicketsStore } from "@/store/tickets-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Calendar, ChevronLeft, MapPin } from "lucide-react-native";
+import { Calendar, ChevronLeft, MapPin, Search, Bell, User } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -128,19 +128,30 @@ export default function EventDetailScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="light" />
-      <Header showLogo showProfile showSearch />
+      
+      {/* Custom Header matching the design */}
+      <View style={styles.customHeader}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <ChevronLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{event.title}</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIcon}>
+            <Search size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIcon}>
+            <Bell size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.profileButton}>
+            <User size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <ChevronLeft size={24} color={Colors.text} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{event.title}</Text>
-        </View>
 
         {/* Event Image */}
         <View style={styles.imageContainer}>
@@ -155,34 +166,33 @@ export default function EventDetailScreen() {
           />
         </View>
 
-        {/* Event Details */}
-        <View style={styles.detailsContainer}>
-          {/* Description */}
-          {event.description && (
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Description</Text>
-              <Text style={styles.detailValue}>{event.description}</Text>
-            </View>
-          )}
-
-          {/* Date */}
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date</Text>
-            <View style={styles.detailValueRow}>
-              <Calendar size={16} color={Colors.text} />
-              <Text style={styles.detailValue}>
-                {event.date ? new Date(event.date).toLocaleDateString() : "TBD"}
-              </Text>
-            </View>
+        {/* Event Information */}
+        <View style={styles.infoContainer}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Organizer:</Text>
+            <Text style={styles.infoValue}>Platini</Text>
           </View>
-
-          {/* Venue */}
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Venue</Text>
-            <View style={styles.detailValueRow}>
-              <MapPin size={16} color={Colors.text} />
-              <Text style={styles.detailValue}>{event.location || "TBD"}</Text>
+          
+          <View style={styles.infoRow}>
+            <View style={styles.infoIconRow}>
+              <Calendar size={16} color="#FFFFFF" />
+              <Text style={styles.infoLabel}>Date:</Text>
             </View>
+            <Text style={styles.infoValue}>
+              {event.date ? new Date(event.date).toLocaleDateString('en-US', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              }) : "TBD"}
+            </Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <View style={styles.infoIconRow}>
+              <MapPin size={16} color="#FFFFFF" />
+              <Text style={styles.infoLabel}>Venue:</Text>
+            </View>
+            <Text style={styles.infoValue}>{event.location || "Serena Hotel Kigali"}</Text>
           </View>
         </View>
 
@@ -198,11 +208,13 @@ export default function EventDetailScreen() {
               {categories.map((category, idx) => (
                 <View style={styles.ticketCard} key={idx}>
                   <Text style={styles.ticketType}>{category.name}</Text>
+                  <View style={styles.ticketBadge}>
+                    <Text style={styles.ticketBadgeText}>
+                      {category.available_quantity || 0} left
+                    </Text>
+                  </View>
                   <Text style={styles.ticketPrice}>
                     {formatPrice(category.price, category.currency)}
-                  </Text>
-                  <Text style={styles.ticketLeft}>
-                    {category.available_quantity || 0} left
                   </Text>
                   <TouchableOpacity 
                     style={[
@@ -212,12 +224,7 @@ export default function EventDetailScreen() {
                     onPress={() => handleBuyTicket(category)}
                     disabled={!category.available_quantity || category.available_quantity <= 0}
                   >
-                    <Text style={[
-                      styles.buyButtonText,
-                      (!category.available_quantity || category.available_quantity <= 0) && styles.buyButtonTextDisabled
-                    ]}>
-                      {(!category.available_quantity || category.available_quantity <= 0) ? "Sold Out" : "Buy"}
-                    </Text>
+                    <Text style={styles.buyButtonText}>Buy</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -302,21 +309,39 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  header: {
+  customHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: '#000000',
   },
   backButton: {
-    marginRight: 16,
     padding: 8,
   },
   headerTitle: {
-    color: Colors.text,
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
+    textAlign: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    padding: 8,
+    marginRight: 8,
+  },
+  profileButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   imageContainer: {
     height: 200,
@@ -329,12 +354,32 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  detailsContainer: {
+  infoContainer: {
     backgroundColor: Colors.card,
     marginHorizontal: 20,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  infoLabel: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+    marginRight: 8,
+  },
+  infoValue: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  infoIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   detailRow: {
     marginBottom: 16,
@@ -393,15 +438,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
   },
+  ticketBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  ticketBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   ticketPrice: {
     color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  ticketLeft: {
-    color: Colors.textSecondary,
-    fontSize: 12,
     marginBottom: 12,
   },
   buyButton: {
