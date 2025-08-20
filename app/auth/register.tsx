@@ -10,9 +10,9 @@ import {
     View,
 } from "react-native";
 
+import AuthGuard from "@/components/AuthGuard";
 import Header from "@/components/Header";
 import SocialLoginButton from "@/components/SocialLoginButton";
-import AuthGuard from "@/components/AuthGuard";
 import Colors from "@/constants/Colors";
 
 export default function RegisterScreen() {
@@ -30,7 +30,7 @@ export default function RegisterScreen() {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
-          <Header title="Create Account" showBack />
+          <Header title="Don't Have Account ?" showBack />
           <View style={styles.content}>
             <View style={styles.imageContainer}>
               <Image
@@ -40,8 +40,7 @@ export default function RegisterScreen() {
               />
             </View>
             <Text style={styles.title}>
-              Buy your <Text style={styles.highlight}>Event ticket</Text> with
-              {"\n"}Agura Platform
+              Buy your Event ticket with{"\n"}Agura Platform
             </Text>
             <Text style={styles.description}>
               Sign up to our app and start buying your ticket easily and faster

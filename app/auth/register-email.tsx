@@ -4,8 +4,8 @@ import Header from '@/components/Header';
 import Input from '@/components/Input';
 import SocialLoginButton from '@/components/SocialLoginButton';
 import Colors from '@/constants/Colors';
+import { commonValidations, useFormValidation } from '@/hooks/useFormValidation';
 import { useAuthStore } from '@/store/auth-store';
-import { useFormValidation, commonValidations } from '@/hooks/useFormValidation';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -14,11 +14,9 @@ interface RegisterFormValues {
   email: string;
   phone: string;
   password: string;
-  name: string;
 }
 
 const registerValidationSchema = {
-  name: commonValidations.name,
   email: commonValidations.email,
   phone: commonValidations.phone,
   password: commonValidations.password,
@@ -40,7 +38,6 @@ export default function RegisterEmailScreen() {
       email: '',
       phone: '',
       password: '',
-      name: '',
     },
     registerValidationSchema,
     async (values) => {
@@ -49,7 +46,7 @@ export default function RegisterEmailScreen() {
           email: values.email, 
           phone: values.phone, 
           password: values.password, 
-          username: values.name
+          username: values.email
         });
         // Registration successful, user will be automatically logged in and redirected
         router.replace('/(tabs)');
@@ -74,18 +71,9 @@ export default function RegisterEmailScreen() {
 
   return (
     <AuthLayout>
-      <Header title="Register with Email" showBack />
+      <Header title="Register with Gmail" showBack />
       <View style={styles.content}>
         <View style={styles.inputContainer}>
-          <Input
-            placeholder="Full Name"
-            value={getFieldValue('name')}
-            onChangeText={(text) => setFieldValue('name', text)}
-            onBlur={() => setFieldTouched('name')}
-            error={getFieldError('name')}
-            autoCapitalize="words"
-          />
-
           <Input
             placeholder="Email"
             value={getFieldValue('email')}

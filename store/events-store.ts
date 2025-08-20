@@ -1,7 +1,6 @@
-import { createApiClient } from "@/config/api";
-import { AxiosRequestConfig } from "axios";
+import * as EventsAPI from "@/lib/api/events";
+import { handleError } from "@/lib/errorHandler";
 import { create } from "zustand";
-import { AppError, handleError } from "@/lib/errorHandler";
 
 // Align with minimal fields expected by UI components
 export type EventCategory = "music" | "sports" | "business" | "tech" | "other";
@@ -38,11 +37,12 @@ interface EventsStore extends EventsState {
   setSelectedCategories: (categories: EventCategory[]) => void;
   setSearchQuery: (query: string) => void;
   getFilteredEvents: () => Event[];
-  fetchAll: (config?: AxiosRequestConfig) => Promise<void>;
-  fetchById: (id: string, config?: AxiosRequestConfig) => Promise<Event | null>;
+  fetchAll: () => Promise<void>;
+  fetchById: (id: string) => Promise<Event | null>;
+  fetchFeatured: () => Promise<void>;
+  fetchByCategory: (category: EventCategory) => Promise<void>;
+  searchEvents: (query: string) => Promise<void>;
 }
-
-const api = createApiClient();
 
 function mapBackendEvent(e: any): Event {
   return {
@@ -52,7 +52,7 @@ function mapBackendEvent(e: any): Event {
     date: String(e.date ?? e.start_date ?? e.createdAt ?? "") || "",
     location: e.venue ?? e.location ?? "",
     imageUrl: e.image_url
-      ? `${api.defaults.baseURL}/uploads/${e.image_url}`
+      ? `${process.env.EXPO_PUBLIC_API_URL || 'https://api.agura.com'}/uploads/${e.image_url}`
       : undefined,
     category: (e.category?.toLowerCase?.() as EventCategory) || "other",
     isFeatured: Boolean(e.is_featured ?? e.featured),
@@ -95,15 +95,14 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     });
   },
 
-  fetchAll: async (config) => {
+  fetchAll: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await api.get("/api/events", config);
-      const data = Array.isArray(res.data) ? res.data : res.data?.events || [];
+      const response = await EventsAPI.getAllEvents();
+      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
       const mapped = data.map(mapBackendEvent);
       set({
         allEvents: mapped,
-        featuredEvents: mapped.filter((e: Event) => !!e.isFeatured),
         loading: false,
       });
     } catch (err: any) {
@@ -114,11 +113,11 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchById: async (id, config) => {
+  fetchById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.get(`/api/events/${id}`, config);
-      const raw = res.data?.event ?? res.data;
+      const response = await EventsAPI.getEventById(id);
+      const raw = response.data?.event ?? response.data;
       const mapped = mapBackendEvent(raw);
       set({ loading: false });
       return mapped;
@@ -127,6 +126,60 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
       const appError = handleError(err, 'events-store.fetchById');
       set({ error: appError.getUserFriendlyMessage(), loading: false });
       return null;
+    }
+  },
+
+  fetchFeatured: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await EventsAPI.getFeaturedEvents();
+      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const mapped = data.map(mapBackendEvent);
+      set({
+        featuredEvents: mapped,
+        loading: false,
+      });
+    } catch (err: any) {
+      // Use our new error handler
+      const appError = handleError(err, 'events-store.fetchFeatured');
+      set({ error: appError.getUserFriendlyMessage(), loading: false });
+      throw appError;
+    }
+  },
+
+  fetchByCategory: async (category) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await EventsAPI.getEventsByCategory(category);
+      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const mapped = data.map(mapBackendEvent);
+      set({
+        allEvents: mapped,
+        loading: false,
+      });
+    } catch (err: any) {
+      // Use our new error handler
+      const appError = handleError(err, 'events-store.fetchByCategory');
+      set({ error: appError.getUserFriendlyMessage(), loading: false });
+      throw appError;
+    }
+  },
+
+  searchEvents: async (query) => {
+    set({ loading: true, error: null, searchQuery: query });
+    try {
+      const response = await EventsAPI.searchEvents(query);
+      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const mapped = data.map(mapBackendEvent);
+      set({
+        allEvents: mapped,
+        loading: false,
+      });
+    } catch (err: any) {
+      // Use our new error handler
+      const appError = handleError(err, 'events-store.searchEvents');
+      set({ error: appError.getUserFriendlyMessage(), loading: false });
+      throw appError;
     }
   },
 }));

@@ -164,3 +164,102 @@ export function validateEventData(data: any): string[] {
   
   return errors;
 }
+
+// Get events by venue with mobile optimization
+export async function getEventsByVenueMobile(venueId: string, page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    mobile_optimized: 'true'
+  });
+  
+  return apiGet<PaginatedResponse<Event>>(`/api/venues/${venueId}/events?${params.toString()}`);
+}
+
+// Get event details optimized for mobile
+export async function getEventDetailsMobile(eventId: string) {
+  return apiGet<Event & {
+    venue_details: {
+      name: string;
+      address: string;
+      city: string;
+      parking_info?: string;
+      accessibility_info?: string;
+    };
+    section_summary: {
+      section_id: string;
+      section_name: string;
+      available_seats: number;
+      price_range: {
+        min: number;
+        max: number;
+      };
+    }[];
+    ticket_availability: {
+      total_available: number;
+      categories_count: number;
+      lowest_price: number;
+      highest_price: number;
+    };
+  }>(`/api/events/${eventId}/mobile`);
+}
+
+// Get nearby events based on user location
+export async function getNearbyEvents(latitude: number, longitude: number, radius: number = 50, page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    lat: latitude.toString(),
+    lng: longitude.toString(),
+    radius: radius.toString(),
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  return apiGet<PaginatedResponse<Event>>(`/api/events/nearby?${params.toString()}`);
+}
+
+// Get events by user preferences
+export async function getEventsByUserPreferences(userId: string, page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString()
+  });
+  
+  return apiGet<PaginatedResponse<Event>>(`/api/events/recommendations/${userId}?${params.toString()}`);
+}
+
+// Get event categories for mobile filtering
+export async function getEventCategoriesMobile() {
+  return apiGet<{
+    category: EventCategory;
+    name: string;
+    icon: string;
+    event_count: number;
+    popular_events: Event[];
+  }[]>('/api/events/categories/mobile');
+}
+
+// Search events with mobile-optimized results
+export async function searchEventsMobile(query: string, filters?: {
+  category?: EventCategory;
+  date_from?: string;
+  date_to?: string;
+  price_min?: number;
+  price_max?: number;
+  location?: string;
+}, page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    q: query,
+    page: page.toString(),
+    limit: limit.toString(),
+    mobile_optimized: 'true'
+  });
+  
+  if (filters?.category) params.append('category', filters.category);
+  if (filters?.date_from) params.append('date_from', filters.date_from);
+  if (filters?.date_to) params.append('date_to', filters.date_to);
+  if (filters?.price_min) params.append('price_min', filters.price_min.toString());
+  if (filters?.price_max) params.append('price_max', filters.price_max.toString());
+  if (filters?.location) params.append('location', filters.location);
+  
+  return apiGet<PaginatedResponse<Event>>(`/api/events/search/mobile?${params.toString()}`);
+}

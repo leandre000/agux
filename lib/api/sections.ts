@@ -107,3 +107,123 @@ export async function getSectionPricing(sectionId: string) {
     }[];
   }>(`/api/sections/${sectionId}/pricing`);
 }
+
+// Get section seat map optimized for mobile
+export async function getSectionSeatMapMobile(sectionId: string, eventId?: string) {
+  const params = new URLSearchParams();
+  if (eventId) params.append('event_id', eventId);
+  
+  return apiGet<{
+    section_id: string;
+    section_name: string;
+    rows: number;
+    columns: number;
+    row_labels: string[];
+    column_labels: string[];
+    seat_map: {
+      [rowLabel: string]: {
+        [columnLabel: string]: {
+          seat_id: string;
+          seat_number: string;
+          is_available: boolean;
+          is_blocked: boolean;
+          seat_type: string;
+          price: number;
+          is_selected?: boolean;
+          is_held?: boolean;
+        };
+      };
+    };
+    mobile_optimized: boolean;
+    touch_friendly: boolean;
+    zoom_levels: number[];
+    legend: {
+      available: string;
+      occupied: string;
+      blocked: string;
+      selected: string;
+      held: string;
+      vip: string;
+      wheelchair: string;
+    };
+  }>(`/api/sections/${sectionId}/seat-map/mobile?${params.toString()}`);
+}
+
+// Get section availability for mobile
+export async function getSectionAvailabilityMobile(sectionId: string, eventId: string) {
+  return apiGet<{
+    section_id: string;
+    section_name: string;
+    event_id: string;
+    event_title: string;
+    total_seats: number;
+    available_seats: number;
+    occupied_seats: number;
+    blocked_seats: number;
+    reserved_seats: number;
+    availability_percentage: number;
+    seat_types: {
+      type: string;
+      count: number;
+      price_range: {
+        min: number;
+        max: number;
+      };
+    }[];
+    pricing_summary: {
+      base_price: number;
+      currency: 'RWF' | 'USD';
+      discounts: {
+        early_bird?: {
+          percentage: number;
+          valid_until: string;
+        };
+        bulk?: {
+          min_quantity: number;
+          percentage: number;
+        };
+        group?: {
+          min_quantity: number;
+          percentage: number;
+        };
+      };
+    };
+  }>(`/api/sections/${sectionId}/availability/mobile?event_id=${eventId}`);
+}
+
+// Get sections by venue for mobile display
+export async function getVenueSectionsForMobile(venueId: string, eventId?: string) {
+  const params = new URLSearchParams();
+  if (eventId) params.append('event_id', eventId);
+  
+  return apiGet<{
+    venue_id: string;
+    venue_name: string;
+    sections: (Section & {
+      availability: {
+        total_seats: number;
+        available_seats: number;
+        occupied_seats: number;
+        blocked_seats: number;
+        availability_percentage: number;
+      };
+      pricing: {
+        base_price: number;
+        currency: 'RWF' | 'USD';
+        price_range: {
+          min: number;
+          max: number;
+        };
+        seat_type_modifiers: {
+          [seatType: string]: number;
+        };
+      };
+      features: {
+        wheelchair_accessible: boolean;
+        vip_experience: boolean;
+        premium_view: boolean;
+        exclusive_amenities: string[];
+      };
+    })[];
+  }>(`/api/venues/${venueId}/sections/mobile?${params.toString()}`);
+}

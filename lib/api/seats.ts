@@ -168,3 +168,92 @@ export function getSeatStatusText(status: Seat['status']): string {
     default: return 'Unknown';
   }
 }
+
+// Get seats for mobile selection
+export async function getSeatsForMobileSelection(sectionId: string, eventId: string, categoryId: string) {
+  return apiGet<{
+    section_id: string;
+    event_id: string;
+    category_id: string;
+    seats: Seat[];
+    selection_config: {
+      max_seats_per_user: number;
+      allow_mixed_seat_types: boolean;
+      seat_holding_duration: number;
+      selection_restrictions: string[];
+    };
+    pricing: {
+      base_price: number;
+      currency: 'RWF' | 'USD';
+      seat_type_modifiers: {
+        [seatType: string]: number;
+      };
+      bulk_discounts: {
+        min_quantity: number;
+        percentage: number;
+      }[];
+    };
+  }>(`/api/sections/${sectionId}/seats/mobile-selection?event_id=${eventId}&category_id=${categoryId}`);
+}
+
+// Select seats for mobile purchase
+export async function selectSeatsMobile(seatIds: string[], categoryId: string, eventId: string) {
+  return apiPost<{
+    selection_id: string;
+    selected_seats: Seat[];
+    total_price: number;
+    currency: 'RWF' | 'USD';
+    expires_at: string;
+    seat_details: {
+      seat_id: string;
+      seat_number: string;
+      row: string;
+      column: string;
+      seat_type: string;
+      price: number;
+    }[];
+  }>("/api/seats/select/mobile", {
+    seat_ids: seatIds,
+    category_id: categoryId,
+    event_id: eventId
+  });
+}
+
+// Release selected seats
+export async function releaseSelectedSeats(selectionId: string) {
+  return apiPost<{ success: boolean; message: string }>("/api/seats/release-selection", {
+    selection_id: selectionId
+  });
+}
+
+// Get seat recommendations for mobile
+export async function getSeatRecommendationsMobile(sectionId: string, eventId: string, preferences?: {
+  seat_type?: string;
+  price_range?: {
+    min: number;
+    max: number;
+  };
+  quantity: number;
+  accessibility_needs?: string[];
+}) {
+  const params = new URLSearchParams({
+    section_id: sectionId,
+    event_id: eventId,
+    quantity: preferences?.quantity?.toString() || "1"
+  });
+  
+  if (preferences?.seat_type) params.append('seat_type', preferences.seat_type);
+  if (preferences?.price_range?.min) params.append('price_min', preferences.price_range.min.toString());
+  if (preferences?.price_range?.max) params.append('price_max', preferences.price_range.max.toString());
+  if (preferences?.accessibility_needs) {
+    preferences.accessibility_needs.forEach(need => params.append('accessibility', need));
+  }
+  
+  return apiGet<{
+    recommendations: Seat[];
+    alternative_options: Seat[];
+    reasoning: string;
+    total_price: number;
+    currency: 'RWF' | 'USD';
+  }>(`/api/seats/recommendations/mobile?${params.toString()}`);
+}

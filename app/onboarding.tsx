@@ -1,10 +1,10 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, Text, View } from 'react-native';
-import { useAuthStore } from '@/store/auth-store';
 import AuthGuard from '@/components/AuthGuard';
+import { useAuthStore } from '@/store/auth-store';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -42,19 +42,19 @@ export default function OnboardingScreen() {
             <View style={styles.container}>
                 <StatusBar style="light" />
                 
-                {/* Pink/Magenta gradient background matching the screenshot */}
+                {/* Dark pink gradient background matching the screenshot */}
                 <LinearGradient
-                    colors={['#e91e63', '#c2185b', '#8e0038', '#ad1457']}
+                    colors={['#8e0038', '#ad1457', '#c2185b', '#e91e63']}
                     style={styles.background}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                 />
                 
-                {/* Curved shadow effect */}
-                <View style={styles.shadowContainer}>
+                {/* Soft pink circular gradient in center */}
+                <View style={styles.centerGradient}>
                     <LinearGradient
-                        colors={['rgba(0,0,0,0.4)', 'transparent']}
-                        style={styles.shadowGradient}
+                        colors={['rgba(255, 192, 203, 0.3)', 'rgba(255, 182, 193, 0.1)']}
+                        style={styles.softGradient}
                         start={{ x: 0.5, y: 0 }}
                         end={{ x: 0.5, y: 1 }}
                     />
@@ -67,7 +67,7 @@ export default function OnboardingScreen() {
 
                 {/* Loading indicator at bottom */}
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#ffffff" style={styles.spinner} />
+                    <View style={styles.progressDot} />
                     <Text style={styles.progressText}>{progress}%</Text>
                 </View>
             </View>
@@ -89,20 +89,16 @@ const styles = StyleSheet.create({
         right: 0,
         bottom: 0,
     },
-    shadowContainer: {
+    centerGradient: {
         position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: height * 0.4,
-        borderTopLeftRadius: width * 0.3,
-        borderTopRightRadius: width * 0.3,
+        width: width * 0.8,
+        height: width * 0.8,
+        borderRadius: width * 0.4,
         overflow: 'hidden',
     },
-    shadowGradient: {
+    softGradient: {
         flex: 1,
-        borderTopLeftRadius: width * 0.3,
-        borderTopRightRadius: width * 0.3,
+        borderRadius: width * 0.4,
     },
     logoContainer: {
         zIndex: 10,
@@ -127,7 +123,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         zIndex: 15,
     },
-    spinner: {
+    progressDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#ffffff',
         marginBottom: 8,
     },
     progressText: {

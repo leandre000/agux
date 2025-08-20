@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Search, Bell, User } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -53,14 +53,24 @@ export default function TicketNamesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <StatusBar style="light" />
-      <Header showLogo showProfile showSearch />
       
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Custom Header matching the design */}
+      <View style={styles.customHeader}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={24} color={Colors.text} />
+          <ChevronLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Choose Ticket Names</Text>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIcon}>
+            <Search size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerIcon}>
+            <Bell size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.profileButton}>
+            <User size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -114,22 +124,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  customHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    backgroundColor: '#000000',
   },
   backButton: {
-    marginRight: 16,
     padding: 8,
   },
   headerTitle: {
-    color: Colors.text,
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    padding: 8,
+    marginRight: 8,
+  },
+  profileButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   keyboardContainer: {
     flex: 1,

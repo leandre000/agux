@@ -73,3 +73,112 @@ export async function getTicketCategoryStats(categoryId: string) {
     early_bird_valid_until?: string;
   }>(`/api/ticket-categories/${categoryId}/stats`);
 }
+
+// Get ticket categories for mobile display
+export async function getTicketCategoriesMobile(eventId: string) {
+  return apiGet<{
+    event_id: string;
+    event_title: string;
+    categories: (TicketCategory & {
+      section_info: {
+        section_id: string;
+        section_name: string;
+        section_description?: string;
+        color_code?: string;
+      };
+      availability: {
+        available_quantity: number;
+        sold_quantity: number;
+        reserved_quantity: number;
+        availability_percentage: number;
+      };
+      pricing_details: {
+        base_price: number;
+        currency: 'RWF' | 'USD';
+        early_bird_discount?: {
+          percentage: number;
+          valid_until: string;
+          savings_amount: number;
+        };
+        bulk_discounts?: {
+          min_quantity: number;
+          percentage: number;
+          savings_amount: number;
+        }[];
+        seat_type_modifiers: {
+          [seatType: string]: number;
+        };
+      };
+      features: {
+        includes_amenities: string[];
+        exclusive_benefits: string[];
+        special_access: string[];
+      };
+    })[];
+    purchase_options: {
+      max_tickets_per_user: number;
+      allow_partial_purchase: boolean;
+      require_full_payment: boolean;
+      payment_methods: string[];
+      refund_policy: string;
+    };
+  }>(`/api/events/${eventId}/ticket-categories/mobile`);
+}
+
+// Get ticket category details for mobile purchase
+export async function getTicketCategoryDetailsMobile(categoryId: string, eventId: string) {
+  return apiGet<{
+    category_id: string;
+    category_name: string;
+    description?: string;
+    event_id: string;
+    event_title: string;
+    event_date: string;
+    venue_name: string;
+    section_info: {
+      section_id: string;
+      section_name: string;
+      section_description?: string;
+      capacity: number;
+      color_code?: string;
+    };
+    pricing: {
+      base_price: number;
+      currency: 'RWF' | 'USD';
+      final_price: number;
+      early_bird_discount?: {
+        percentage: number;
+        valid_until: string;
+        savings_amount: number;
+      };
+      bulk_discounts?: {
+        min_quantity: number;
+        percentage: number;
+        savings_amount: number;
+      }[];
+    };
+    availability: {
+      total_quantity: number;
+      available_quantity: number;
+      sold_quantity: number;
+      reserved_quantity: number;
+      availability_percentage: number;
+      low_availability_warning?: boolean;
+    };
+    features: {
+      includes_amenities: string[];
+      exclusive_benefits: string[];
+      special_access: string[];
+      restrictions: string[];
+    };
+    purchase_terms: {
+      max_tickets_per_user: number;
+      min_tickets_per_purchase: number;
+      allow_partial_purchase: boolean;
+      require_full_payment: boolean;
+      payment_methods: string[];
+      refund_policy: string;
+      cancellation_policy: string;
+    };
+  }>(`/api/ticket-categories/${categoryId}/mobile?event_id=${eventId}`);
+}

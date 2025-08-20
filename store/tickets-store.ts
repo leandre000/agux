@@ -1,6 +1,6 @@
+import * as TicketCategoriesAPI from "@/lib/api/ticket-categories";
+import * as TicketsAPI from "@/lib/api/tickets";
 import { create } from "zustand";
-import { createApiClient } from "@/config/api";
-import { getToken as readToken } from "@/lib/authToken";
 
 export interface TicketCategory {
   category_id?: string;
@@ -60,10 +60,6 @@ interface TicketsStore extends TicketsState {
   clearError: () => void;
 }
 
-const api = createApiClient({
-  getToken: async () => await readToken(),
-});
-
 function mapBackendTicket(t: any): Ticket {
   return {
     id: String(t.id ?? t.ticket_id ?? ""),
@@ -110,8 +106,8 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   fetchUserTickets: async () => {
     set({ loading: true, error: null });
     try {
-      const res = await api.get("/api/tickets/my-tickets");
-      const data = Array.isArray(res.data) ? res.data : res.data?.tickets || [];
+      const response = await TicketsAPI.getUserTickets();
+      const data = Array.isArray(response.data) ? response.data : response.data?.tickets || [];
       const mapped = data.map(mapBackendTicket);
       set({ userTickets: mapped, loading: false });
     } catch (err: any) {
@@ -123,8 +119,8 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   fetchTicketCategories: async (eventId: string) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.get(`/api/ticket-categories/event/${eventId}`);
-      const data = Array.isArray(res.data) ? res.data : res.data?.categories || [];
+      const response = await TicketCategoriesAPI.getEventTicketCategories(eventId);
+      const data = Array.isArray(response.data) ? response.data : response.data?.categories || [];
       const mapped = data.map(mapBackendTicketCategory);
       
       const { ticketCategories } = get();
@@ -143,15 +139,8 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   purchaseTickets: async (purchase: TicketPurchase) => {
     set({ purchaseLoading: true, error: null });
     try {
-      const body = {
-        category_id: purchase.category_id,
-        quantity: purchase.quantity,
-        holder_names: purchase.holder_names,
-        seats: purchase.seats,
-      };
-      
-      const res = await api.post("/api/tickets/purchase", body);
-      const data = Array.isArray(res.data?.tickets) ? res.data.tickets : [];
+      const response = await TicketsAPI.purchaseTickets(purchase);
+      const data = Array.isArray(response.data?.tickets) ? response.data.tickets : [];
       const mapped = data.map(mapBackendTicket);
       
       // Add new tickets to user tickets
@@ -175,8 +164,8 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
 
   validateTicket: async (qrCode: string) => {
     try {
-      const res = await api.get(`/api/tickets/validate/${encodeURIComponent(qrCode)}`);
-      return res.data?.valid ?? false;
+      const response = await TicketsAPI.validateTicket(qrCode);
+      return response.data?.valid ?? false;
     } catch (err: any) {
       set({ error: err?.message || "Failed to validate ticket" });
       return false;
@@ -186,7 +175,7 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   useTicket: async (ticketId: string) => {
     set({ loading: true, error: null });
     try {
-      await api.put(`/api/tickets/${ticketId}/use`);
+      await TicketsAPI.useTicket(ticketId);
       
       // Update ticket status in store
       const { userTickets } = get();
@@ -205,7 +194,7 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   refundTicket: async (ticketId: string) => {
     set({ loading: true, error: null });
     try {
-      await api.put(`/api/tickets/${ticketId}/refund`);
+      await TicketsAPI.refundTicket(ticketId);
       
       // Update ticket status in store
       const { userTickets } = get();

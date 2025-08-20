@@ -326,3 +326,138 @@ export async function getTicketPurchaseSummary(purchaseId: string) {
     tickets: Ticket[];
   }>(`/api/tickets/purchases/${purchaseId}/summary`);
 }
+
+// Mobile-optimized ticket purchase with seat selection
+export async function purchaseTicketsMobile(purchaseData: TicketPurchaseRequest & {
+  selected_seats?: string[];
+  payment_confirm?: boolean;
+}) {
+  return apiPost<TicketPurchaseResponse>("/api/tickets/purchase/mobile", purchaseData);
+}
+
+// Get available seats for mobile selection
+export async function getAvailableSeatsMobile(categoryId: string, eventId: string) {
+  return apiGet<{
+    category_id: string;
+    event_id: string;
+    available_seats: Seat[];
+    seat_map: {
+      section_id: string;
+      section_name: string;
+      rows: number;
+      columns: number;
+      seats: {
+        [seatId: string]: {
+          id: string;
+          seat_number: string;
+          row: string;
+          column: string;
+          is_available: boolean;
+          is_blocked: boolean;
+          price: number;
+          seat_type: string;
+        };
+      };
+    };
+    pricing: {
+      base_price: number;
+      currency: 'RWF' | 'USD';
+      seat_type_modifiers: {
+        [seatType: string]: number;
+      };
+    };
+  }>(`/api/tickets/categories/${categoryId}/seats/mobile?event_id=${eventId}`);
+}
+
+// Hold seats temporarily during purchase process
+export async function holdSeatsMobile(seatIds: string[], categoryId: string, duration: number = 15) {
+  return apiPost<{
+    hold_id: string;
+    expires_at: string;
+    held_seats: string[];
+    total_price: number;
+    currency: 'RWF' | 'USD';
+  }>("/api/tickets/seats/hold", {
+    seat_ids: seatIds,
+    category_id: categoryId,
+    duration_minutes: duration
+  });
+}
+
+// Release held seats
+export async function releaseSeatsMobile(holdId: string) {
+  return apiPost<{ success: boolean; message: string }>("/api/tickets/seats/release", {
+    hold_id: holdId
+  });
+}
+
+// Get user's upcoming tickets for mobile
+export async function getUpcomingTicketsMobile(page: number = 1, limit: number = 20) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    mobile_optimized: 'true'
+  });
+  
+  return apiGet<PaginatedResponse<Ticket>>(`/api/tickets/upcoming/mobile?${params.toString()}`);
+}
+
+// Get ticket QR code for mobile display
+export async function getTicketQRCodeMobile(ticketId: string) {
+  return apiGet<{
+    qr_code: string;
+    qr_code_url: string;
+    ticket_details: {
+      ticket_number: string;
+      event_title: string;
+      event_date: string;
+      venue_name: string;
+      section_name: string;
+      seat_number?: string;
+      holder_name: string;
+    };
+    download_options: {
+      pdf_url: string;
+      image_url: string;
+    };
+  }>(`/api/tickets/${ticketId}/qr-code/mobile`);
+}
+
+// Validate ticket for entry (mobile app)
+export async function validateTicketForEntryMobile(qrCode: string, eventId: string) {
+  return apiPost<{
+    valid: boolean;
+    ticket?: Ticket;
+    message: string;
+    entry_details?: {
+      entry_time: string;
+      gate_number?: string;
+      section_name: string;
+      seat_number?: string;
+    };
+  }>("/api/tickets/validate/entry", {
+    qr_code: qrCode,
+    event_id: eventId
+  });
+}
+
+// Get ticket purchase summary for mobile
+export async function getTicketPurchaseSummaryMobile(purchaseId: string) {
+  return apiGet<{
+    purchase_id: string;
+    purchase_date: string;
+    total_amount: number;
+    currency: 'RWF' | 'USD';
+    ticket_count: number;
+    payment_status: 'pending' | 'completed' | 'failed';
+    payment_method: string;
+    event_title: string;
+    event_date: string;
+    venue_name: string;
+    tickets: Ticket[];
+    download_options: {
+      receipt_url: string;
+      tickets_pdf_url: string;
+    };
+  }>(`/api/tickets/purchases/${purchaseId}/summary/mobile`);
+}

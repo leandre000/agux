@@ -1,40 +1,20 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User, AuthState } from "@/types/auth";
-import { createApiClient } from "@/config/api";
+import * as AuthAPI from "@/lib/api/auth";
 import {
-  getToken as readToken,
-  setToken as writeToken,
-  clearToken,
+    clearToken,
+    getToken as readToken,
+    setToken as writeToken,
 } from "@/lib/authToken";
-
-const authedApi = createApiClient({
-  getToken: async () => await readToken(),
-});
+import { AuthState, User } from "@/types/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type RegisterBody = {
   email: string;
   password: string;
-  name: string;
   phone_number?: string;
+  username?: string;
 };
-
-interface BackendUser {
-  user_id: string;
-  email: string;
-  name: string;
-  role?: string;
-  [k: string]: any;
-}
-interface LoginResponse {
-  token: string;
-  user: BackendUser;
-}
-interface RegisterResponse {
-  message?: string;
-  user?: BackendUser;
-}
 
 interface AuthStore extends AuthState {
   login: (credentials: {
@@ -42,6 +22,12 @@ interface AuthStore extends AuthState {
     password: string;
   }) => Promise<void>;
   register: (user: Partial<User> & { password: string }) => Promise<void>;
+  loginWithGoogle: (idToken: string, accessToken?: string) => Promise<void>;
+  loginWithPhone: (phoneNumber: string, verificationCode: string) => Promise<void>;
+  sendPhoneVerification: (phoneNumber: string) => Promise<void>;
+  requestPasswordReset: (identifier: string) => Promise<void>;
+  verifyResetCode: (identifier: string, code: string) => Promise<void>;
+  resetPassword: (identifier: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   setLoading: (isLoading: boolean) => void;
@@ -66,17 +52,24 @@ export const useAuthStore = create<AuthStore>()(
           const token = await readToken();
           if (token) {
             // Verify token with backend
-            const response = await authedApi.get('/api/users/me');
-            if (response.status === 200) {
-              const user = response.data;
-              const mappedUser: User = {
-                id: user.user_id,
-                email: user.email,
-                username: user.name,
-              };
-              set({ user: mappedUser, isAuthenticated: true, isLoading: false });
-            } else {
-              // Token invalid, clear it
+            try {
+              const response = await AuthAPI.verifyToken();
+              if (response.success) {
+                const user = response.user;
+                const mappedUser: User = {
+                  id: user.user_id,
+                  email: user.email,
+                  username: user.name,
+                  phone: user.phone_number,
+                };
+                set({ user: mappedUser, isAuthenticated: true, isLoading: false });
+              } else {
+                // Token invalid, clear it
+                await clearToken();
+                set({ user: null, isAuthenticated: false, isLoading: false });
+              }
+            } catch (error) {
+              // Network error or invalid token
               await clearToken();
               set({ user: null, isAuthenticated: false, isLoading: false });
             }
@@ -84,8 +77,7 @@ export const useAuthStore = create<AuthStore>()(
             set({ user: null, isAuthenticated: false, isLoading: false });
           }
         } catch (error) {
-          // Network error or invalid token
-          await clearToken();
+          // Error reading token
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
@@ -93,41 +85,26 @@ export const useAuthStore = create<AuthStore>()(
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
-          // Backend expects { identifier, password }
-          const body = {
-            identifier: credentials.identifier,
-            password: credentials.password,
-          };
-          const data = (
-            await authedApi.post<LoginResponse>("/api/users/login", body)
-          ).data;
-
-          const { token, user } = data;
-
-          // persist token
-          await writeToken(token);
-
-          const mappedUser: User = {
-            id: user.user_id,
-            email: user.email,
-            username: user.name,
-          };
-          set({ user: mappedUser, isAuthenticated: true, isLoading: false });
-        } catch (error: any) {
-          let errorMessage = "Login failed. Please check your credentials.";
+          const response = await AuthAPI.login(credentials);
           
-          if (error?.response?.status === 401) {
-            errorMessage = "Invalid email/phone or password. Please try again.";
-          } else if (error?.response?.status === 404) {
-            errorMessage = "User not found. Please check your credentials.";
-          } else if (error?.response?.status >= 500) {
-            errorMessage = "Server error. Please try again later.";
-          } else if (error?.message) {
-            errorMessage = error.message;
+          if (response.success && response.token) {
+            // Persist token
+            await writeToken(response.token);
+
+            const mappedUser: User = {
+              id: response.user.user_id,
+              email: response.user.email,
+              username: response.user.name,
+              phone: response.user.phone_number,
+            };
+            
+            set({ user: mappedUser, isAuthenticated: true, isLoading: false });
+          } else {
+            throw new Error(response.message || "Login failed");
           }
-          
+        } catch (error: any) {
           set({
-            error: errorMessage,
+            error: error.message || "Login failed. Please check your credentials.",
             isLoading: false,
           });
           throw error;
@@ -140,54 +117,153 @@ export const useAuthStore = create<AuthStore>()(
           const body: RegisterBody = {
             email: userData.email!,
             password: userData.password!,
-            name: userData.username!,
             phone_number: userData.phone,
+            username: userData.username,
           };
 
-          const data = (
-            await authedApi.post<RegisterResponse>("/api/users/register", body)
-          ).data;
+          const response = await AuthAPI.register(body);
 
-          if (data.user) {
+          if (response.success && response.user) {
             // Registration successful, now login
             await get().login({
               identifier: userData.email!,
               password: userData.password!,
             });
-          } else {
+          } else if (response.requires_verification) {
+            // Handle verification requirement
             set({
-              error: data.message || "Registration failed. Please try again.",
+              error: "Please check your email/phone for verification code",
               isLoading: false,
             });
-            throw new Error(data.message || "Registration failed");
+            throw new Error("Verification required");
+          } else {
+            set({
+              error: response.message || "Registration failed. Please try again.",
+              isLoading: false,
+            });
+            throw new Error(response.message || "Registration failed");
           }
         } catch (error: any) {
-          let errorMessage = "Registration failed. Please try again.";
-          
-          if (error?.response?.status === 409) {
-            errorMessage = "User already exists with this email/phone.";
-          } else if (error?.response?.status === 400) {
-            errorMessage = "Invalid registration data. Please check your information.";
-          } else if (error?.response?.status >= 500) {
-            errorMessage = "Server error. Please try again later.";
-          } else if (error?.message) {
-            errorMessage = error.message;
+          if (error.message !== "Verification required") {
+            set({
+              error: error.message || "Registration failed. Please try again.",
+              isLoading: false,
+            });
           }
+          throw error;
+        }
+      },
+
+      loginWithGoogle: async (idToken: string, accessToken?: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await AuthAPI.loginWithGoogle({ id_token: idToken, access_token: accessToken });
           
+          if (response.success && response.token) {
+            // Persist token
+            await writeToken(response.token);
+
+            const mappedUser: User = {
+              id: response.user.user_id,
+              email: response.user.email,
+              username: response.user.name,
+              phone: response.user.phone_number,
+            };
+            
+            set({ user: mappedUser, isAuthenticated: true, isLoading: false });
+          } else {
+            throw new Error("Google login failed");
+          }
+        } catch (error: any) {
           set({
-            error: errorMessage,
+            error: error.message || "Google login failed. Please try again.",
             isLoading: false,
           });
           throw error;
         }
       },
 
+      loginWithPhone: async (phoneNumber: string, verificationCode: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await AuthAPI.loginWithPhone({ phone_number: phoneNumber, verification_code: verificationCode });
+          
+          if (response.success && response.token) {
+            // Persist token
+            await writeToken(response.token);
+
+            const mappedUser: User = {
+              id: response.user.user_id,
+              email: response.user.email,
+              username: response.user.name,
+              phone: response.user.phone_number,
+            };
+            
+            set({ user: mappedUser, isAuthenticated: true, isLoading: false });
+          } else {
+            throw new Error("Phone login failed");
+          }
+        } catch (error: any) {
+          set({
+            error: error.message || "Phone login failed. Please try again.",
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      sendPhoneVerification: async (phoneNumber: string) => {
+        try {
+          const response = await AuthAPI.sendPhoneVerification({ phone_number: phoneNumber });
+          return response.success;
+        } catch (error: any) {
+          set({ error: error.message || "Failed to send verification code" });
+          throw error;
+        }
+      },
+
+      requestPasswordReset: async (identifier: string) => {
+        try {
+          const response = await AuthAPI.requestPasswordReset({ identifier });
+          return response.success;
+        } catch (error: any) {
+          set({ error: error.message || "Failed to request password reset" });
+          throw error;
+        }
+      },
+
+      verifyResetCode: async (identifier: string, code: string) => {
+        try {
+          const response = await AuthAPI.verifyResetCode({ identifier, verification_code: code });
+          return response.success;
+        } catch (error: any) {
+          set({ error: error.message || "Failed to verify reset code" });
+          throw error;
+        }
+      },
+
+      resetPassword: async (identifier: string, code: string, newPassword: string) => {
+        try {
+          const response = await AuthAPI.resetPassword({ 
+            identifier, 
+            verification_code: code, 
+            new_password: newPassword 
+          });
+          return response.success;
+        } catch (error: any) {
+          set({ error: error.message || "Failed to reset password" });
+          throw error;
+        }
+      },
+
       logout: async () => {
         try {
-          await clearToken();
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          await AuthAPI.logout();
         } catch (error) {
-          // Even if clearing token fails, reset state
+          // Logout should not fail - continue with local cleanup
+        } finally {
+          // Always clear local state
+          await clearToken();
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
