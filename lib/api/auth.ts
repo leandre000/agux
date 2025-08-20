@@ -224,6 +224,21 @@ export async function logout(): Promise<{ success: boolean; message?: string }> 
   }
 }
 
+// Verify token function
+export async function verifyToken(): Promise<{ success: boolean; message?: string; user?: BackendUser }> {
+  try {
+    const response = await apiPost("/api/auth/verify", {});
+    return response.data;
+  } catch (error: any) {
+    if (error.status === 401) {
+      return { success: false, message: "Token is invalid or expired" };
+    } else if (error.message?.includes('Network Error')) {
+      throw new Error("Network error - Please check your connection");
+    }
+    throw error;
+  }
+}
+
 // Validation helpers
 export function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
