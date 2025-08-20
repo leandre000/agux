@@ -136,7 +136,7 @@ export function generateSeatNumbers(config: {
 
 // Check if seat is available
 export function isSeatAvailable(seat: Seat): boolean {
-  return seat.status === 'available';
+  return seat.is_available;
 }
 
 // Get seat price with modifier
@@ -150,23 +150,17 @@ export function formatSeatNumber(seatNumber: string): string {
 }
 
 // Get seat status color
-export function getSeatStatusColor(status: Seat['status']): string {
-  switch (status) {
-    case 'available': return '#10B981'; // green
-    case 'occupied': return '#EF4444'; // red
-    case 'blocked': return '#6B7280'; // gray
-    default: return '#6B7280'; // gray
-  }
+export function getSeatStatusColor(isAvailable: boolean, isBlocked: boolean): string {
+  if (isBlocked) return '#6B7280'; // gray
+  if (isAvailable) return '#10B981'; // green
+  return '#EF4444'; // red
 }
 
 // Get seat status text
-export function getSeatStatusText(status: Seat['status']): string {
-  switch (status) {
-    case 'available': return 'Available';
-    case 'occupied': return 'Occupied';
-    case 'blocked': return 'Blocked';
-    default: return 'Unknown';
-  }
+export function getSeatStatusText(isAvailable: boolean, isBlocked: boolean): string {
+  if (isBlocked) return 'Blocked';
+  if (isAvailable) return 'Available';
+  return 'Occupied';
 }
 
 // Get seats for mobile selection

@@ -168,7 +168,7 @@ export async function sendPhoneVerification(body: PhoneVerificationRequest): Pro
 export async function requestPasswordReset(body: PasswordResetRequestRequest): Promise<{ success: boolean; message?: string }> {
   try {
     const response = await apiPost("/api/auth/password-reset/request", body);
-    return response.data;
+    return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 404) {
       throw new Error("Email or phone number not found");
@@ -184,7 +184,7 @@ export async function requestPasswordReset(body: PasswordResetRequestRequest): P
 export async function verifyResetCode(body: PasswordResetVerifyRequest): Promise<{ success: boolean; message?: string }> {
   try {
     const response = await apiPost("/api/auth/password-reset/verify", body);
-    return response.data;
+    return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 401) {
       throw new Error("Invalid verification code");
@@ -200,7 +200,7 @@ export async function verifyResetCode(body: PasswordResetVerifyRequest): Promise
 export async function resetPassword(body: PasswordResetResetRequest): Promise<{ success: boolean; message?: string }> {
   try {
     const response = await apiPost("/api/auth/password-reset/reset", body);
-    return response.data;
+    return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 401) {
       throw new Error("Invalid verification code");
@@ -217,7 +217,7 @@ export async function resetPassword(body: PasswordResetResetRequest): Promise<{ 
 export async function logout(): Promise<{ success: boolean; message?: string }> {
   try {
     const response = await apiPost("/api/auth/logout", {});
-    return response.data;
+    return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     // Logout should not fail - return success even if API call fails
     return { success: true, message: "Logged out successfully" };
@@ -228,7 +228,7 @@ export async function logout(): Promise<{ success: boolean; message?: string }> 
 export async function verifyToken(): Promise<{ success: boolean; message?: string; user?: BackendUser }> {
   try {
     const response = await apiPost("/api/auth/verify", {});
-    return response.data;
+    return response.data as { success: boolean; message?: string; user?: BackendUser };
   } catch (error: any) {
     if (error.status === 401) {
       return { success: false, message: "Token is invalid or expired" };

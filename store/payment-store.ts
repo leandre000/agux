@@ -278,10 +278,9 @@ export const usePaymentStore = create<PaymentStore>()(
           set({ savedCards: updatedCards });
           
           // TODO: Call API to update default card on backend
-          return true;
         } catch (error: any) {
           set({ cardsError: error.message || "Failed to set default card" });
-          return false;
+          throw error;
         }
       },
 

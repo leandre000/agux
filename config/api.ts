@@ -51,8 +51,7 @@ function normalizeError(error: unknown): Error {
     
     // Check for server errors
     if (status && status >= 500) {
-      const serverError = new Error('Server error - Please try again later');
-      // @ts-expect-error attach extras for callers if needed
+      const serverError = new Error('Server error - Please try again later') as Error & { status?: number; code?: string };
       serverError.code = 'SERVER_ERROR';
       serverError.status = status;
       return serverError;

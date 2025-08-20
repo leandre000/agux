@@ -98,8 +98,8 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   fetchAll: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await EventsAPI.getAllEvents();
-      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const response = await EventsAPI.getEvents();
+      const data = response.data?.data || [];
       const mapped = data.map(mapBackendEvent);
       set({
         allEvents: mapped,
@@ -117,7 +117,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await EventsAPI.getEventById(id);
-      const raw = response.data?.event ?? response.data;
+      const raw = response.data;
       const mapped = mapBackendEvent(raw);
       set({ loading: false });
       return mapped;
@@ -133,7 +133,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await EventsAPI.getFeaturedEvents();
-      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const data = response.data || [];
       const mapped = data.map(mapBackendEvent);
       set({
         featuredEvents: mapped,
@@ -151,7 +151,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await EventsAPI.getEventsByCategory(category);
-      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const data = response.data?.data || [];
       const mapped = data.map(mapBackendEvent);
       set({
         allEvents: mapped,
@@ -169,7 +169,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     set({ loading: true, error: null, searchQuery: query });
     try {
       const response = await EventsAPI.searchEvents(query);
-      const data = Array.isArray(response.data) ? response.data : response.data?.events || [];
+      const data = response.data?.data || [];
       const mapped = data.map(mapBackendEvent);
       set({
         allEvents: mapped,

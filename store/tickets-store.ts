@@ -39,6 +39,7 @@ export interface TicketPurchase {
   quantity: number;
   holder_names: string[];
   seats?: string[];
+  payment_method: 'mobile_money' | 'card' | 'bank_transfer';
 }
 
 interface TicketsState {
@@ -107,7 +108,7 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await TicketsAPI.getUserTickets();
-      const data = Array.isArray(response.data) ? response.data : response.data?.tickets || [];
+      const data = Array.isArray(response.data) ? response.data : response.data?.data || [];
       const mapped = data.map(mapBackendTicket);
       set({ userTickets: mapped, loading: false });
     } catch (err: any) {
@@ -119,8 +120,8 @@ export const useTicketsStore = create<TicketsStore>((set, get) => ({
   fetchTicketCategories: async (eventId: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await TicketCategoriesAPI.getEventTicketCategories(eventId);
-      const data = Array.isArray(response.data) ? response.data : response.data?.categories || [];
+      const response = await TicketCategoriesAPI.getTicketCategoriesByEvent(eventId);
+      const data = response.data?.data || [];
       const mapped = data.map(mapBackendTicketCategory);
       
       const { ticketCategories } = get();

@@ -14,6 +14,7 @@ type RegisterBody = {
   password: string;
   phone_number?: string;
   username?: string;
+  name: string;
 };
 
 interface AuthStore extends AuthState {
@@ -56,6 +57,9 @@ export const useAuthStore = create<AuthStore>()(
               const response = await AuthAPI.verifyToken();
               if (response.success) {
                 const user = response.user;
+                if (!user) {
+                  throw new Error("User data not found");
+                }
                 const mappedUser: User = {
                   id: user.user_id,
                   email: user.email,
@@ -119,6 +123,7 @@ export const useAuthStore = create<AuthStore>()(
             password: userData.password!,
             phone_number: userData.phone,
             username: userData.username,
+            name: userData.username || userData.email!,
           };
 
           const response = await AuthAPI.register(body);
@@ -215,7 +220,9 @@ export const useAuthStore = create<AuthStore>()(
       sendPhoneVerification: async (phoneNumber: string) => {
         try {
           const response = await AuthAPI.sendPhoneVerification({ phone_number: phoneNumber });
-          return response.success;
+          if (!response.success) {
+            throw new Error(response.message || "Failed to send verification code");
+          }
         } catch (error: any) {
           set({ error: error.message || "Failed to send verification code" });
           throw error;
@@ -225,7 +232,9 @@ export const useAuthStore = create<AuthStore>()(
       requestPasswordReset: async (identifier: string) => {
         try {
           const response = await AuthAPI.requestPasswordReset({ identifier });
-          return response.success;
+          if (!response.success) {
+            throw new Error(response.message || "Failed to request password reset");
+          }
         } catch (error: any) {
           set({ error: error.message || "Failed to request password reset" });
           throw error;
@@ -235,7 +244,9 @@ export const useAuthStore = create<AuthStore>()(
       verifyResetCode: async (identifier: string, code: string) => {
         try {
           const response = await AuthAPI.verifyResetCode({ identifier, verification_code: code });
-          return response.success;
+          if (!response.success) {
+            throw new Error(response.message || "Failed to verify reset code");
+          }
         } catch (error: any) {
           set({ error: error.message || "Failed to verify reset code" });
           throw error;
@@ -249,7 +260,9 @@ export const useAuthStore = create<AuthStore>()(
             verification_code: code, 
             new_password: newPassword 
           });
-          return response.success;
+          if (!response.success) {
+            throw new Error(response.message || "Failed to reset password");
+          }
         } catch (error: any) {
           set({ error: error.message || "Failed to reset password" });
           throw error;

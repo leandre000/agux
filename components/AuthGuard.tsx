@@ -35,14 +35,14 @@ export default function AuthGuard({
 
       // Handle guest-only routes (like login/register)
       if (requireGuest && hasToken) {
-        const target = redirectTo || '/(tabs)';
+        const target = redirectTo || '/(tabs)' as any;
         router.replace(target);
         return;
       }
 
       // Handle authenticated routes
       if (!requireGuest && !hasToken) {
-        const target = redirectTo || '/auth/login';
+        const target = redirectTo || '/auth/login' as any;
         router.replace(target);
         return;
       }
@@ -51,7 +51,7 @@ export default function AuthGuard({
       setIsAuthenticated(false);
       
       if (!requireGuest) {
-        const target = redirectTo || '/auth/login';
+        const target = redirectTo || '/auth/login' as any;
         router.replace(target);
       }
     } finally {

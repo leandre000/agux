@@ -3,7 +3,8 @@ import {
     PaginatedResponse,
     Ticket,
     TicketPurchaseRequest,
-    TicketPurchaseResponse
+    TicketPurchaseResponse,
+    Seat
 } from "@/types/ticketing";
 
 // Get user's tickets

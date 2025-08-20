@@ -19,7 +19,7 @@ export default function PaymentSuccessScreen() {
   const router = useRouter();
   const { orderId } = useLocalSearchParams<{ orderId?: string }>();
   
-  const { getOrder, currentOrder, orderLoading } = useOrdersStore();
+  const { getOrder, currentOrder, orderProcessing } = useOrdersStore();
   const { currentPayment, paymentLoading } = usePaymentStore();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -59,7 +59,7 @@ export default function PaymentSuccessScreen() {
     router.push('/');
   };
 
-  if (isLoading || orderLoading || paymentLoading) {
+  if (isLoading || orderProcessing || paymentLoading) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <StatusBar style="light" />

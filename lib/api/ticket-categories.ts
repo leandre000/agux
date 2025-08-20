@@ -53,7 +53,7 @@ export function calculateDiscountedPrice(category: TicketCategory): number {
     return category.price;
   }
   
-  const discountPercentage = category.early_bird_discount.percentage;
+  const discountPercentage = category.early_bird_discount?.percentage || 0;
   const discountAmount = (category.price * discountPercentage) / 100;
   
   return Math.max(0, category.price - discountAmount);

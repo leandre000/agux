@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, Search, Bell, User, CreditCard, Smartphone, PaypalIcon } from "lucide-react-native";
+import { ChevronLeft, Search, Bell, User, CreditCard, Smartphone } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import Colors from "@/constants/Colors";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -384,8 +384,7 @@ export default function PaymentScreen() {
                 style={[styles.methodButton, selectedMethod === 'paypal' && styles.methodButtonActive]}
                 onPress={() => setSelectedMethod('paypal')}
               >
-                <PaypalIcon size={24} color={selectedMethod === 'paypal' ? '#FFFFFF' : Colors.primary} />
-                <Text style={[styles.methodButtonText, selectedMethod === 'paypal' && styles.methodButtonTextActive]}>
+                <Text style={[styles.methodButtonText, selectedMethod === 'paypal' && styles.methodButtonTextActive, { fontSize: 16, fontWeight: 'bold' }]}>
                   PayPal
                 </Text>
               </TouchableOpacity>
@@ -708,5 +707,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-});
 });

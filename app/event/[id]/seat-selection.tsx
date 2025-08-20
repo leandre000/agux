@@ -36,6 +36,7 @@ export default function SeatSelectionScreen() {
           number: seatNum,
           isSelected: false,
           isBooked: Math.random() < 0.1, // 10% chance of being booked
+          isVip: Math.random() < 0.2, // 20% chance of being VIP
         });
       }
     }
