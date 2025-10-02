@@ -154,6 +154,7 @@ export default function LoginScreen() {
         <View style={styles.content}>
           <View style={styles.inputContainer}>
             <Input
+              label="Email or Phone"
               placeholder="Email or Phone Number"
               value={getFieldValue('identifier')}
               onChangeText={(text) => setFieldValue('identifier', text)}
@@ -165,6 +166,7 @@ export default function LoginScreen() {
             />
 
             <Input
+              label="Password"
               placeholder="Password"
               value={getFieldValue('password')}
               onChangeText={(text) => setFieldValue('password', text)}
@@ -219,6 +221,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
+    gap: 12,
   },
   bottomSection: {
     width: "100%",

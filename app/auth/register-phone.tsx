@@ -58,6 +58,7 @@ export default function RegisterPhoneScreen() {
       <View style={styles.content}>
         <View style={styles.inputContainer}>
           <Input
+            label="Phone Number"
             placeholder="Phone Number"
             value={getFieldValue('phone')}
             onChangeText={(text) => setFieldValue('phone', text)}
@@ -66,6 +67,7 @@ export default function RegisterPhoneScreen() {
             keyboardType="phone-pad"
           />
           <Input
+            label="Password"
             placeholder="Password"
             value={getFieldValue('password')}
             onChangeText={(text) => setFieldValue('password', text)}

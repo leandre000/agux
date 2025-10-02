@@ -75,6 +75,7 @@ export default function RegisterEmailScreen() {
       <View style={styles.content}>
         <View style={styles.inputContainer}>
           <Input
+            label="Email"
             placeholder="Email"
             value={getFieldValue('email')}
             onChangeText={(text) => setFieldValue('email', text)}
@@ -85,6 +86,7 @@ export default function RegisterEmailScreen() {
           />
 
           <Input
+            label="Phone Number"
             placeholder="Phone Number"
             value={getFieldValue('phone')}
             onChangeText={(text) => setFieldValue('phone', text)}
@@ -94,6 +96,7 @@ export default function RegisterEmailScreen() {
           />
 
           <Input
+            label="Password"
             placeholder="Password"
             value={getFieldValue('password')}
             onChangeText={(text) => setFieldValue('password', text)}
