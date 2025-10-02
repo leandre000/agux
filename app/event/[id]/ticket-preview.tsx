@@ -89,7 +89,7 @@ export default function TicketPreviewScreen() {
         }
         Alert.alert('Ticket Saved', 'Your ticket PDF has been saved to your Downloads folder.');
       } else if (Platform.OS === 'ios') {
-        const dest = `${FileSystem.documentDirectory}ticket_${eventId}_${Date.now()}.pdf`;
+        const dest = `ticket_${eventId}_${Date.now()}.pdf`;
         await FileSystem.copyAsync({ from: uri, to: dest });
         await Sharing.shareAsync(dest);
       } else {
