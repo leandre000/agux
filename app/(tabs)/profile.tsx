@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import {
     Bell,
     Calendar,
@@ -39,7 +40,7 @@ const { width } = Dimensions.get("window");
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
 
   // Helper function to check if a date is today
   const isToday = (date: Date): boolean => {
@@ -63,6 +64,26 @@ export default function ProfileScreen() {
       router.replace("/auth/login");
     } catch (error) {
       console.error("Logout failed:", error);
+    }
+  };
+
+  const handleEditAvatar = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]?.uri) {
+        updateUser({ profileImage: result.assets[0].uri });
+      }
+    } catch (e) {
+      // no-op
     }
   };
 
@@ -327,10 +348,10 @@ export default function ProfileScreen() {
         <Animated.View style={[styles.profileHeader, { opacity: fadeAnim }]}>
           <View style={styles.avatarContainer}>
             <Image
-              source={require("@/assets/images/profile.jpg")}
+              source={user?.profileImage ? { uri: user.profileImage } : require("@/assets/images/profile.jpg")}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.editAvatarButton}>
+            <TouchableOpacity style={styles.editAvatarButton} onPress={handleEditAvatar}>
               <Edit3 size={16} color="#ffffff" />
             </TouchableOpacity>
           </View>
