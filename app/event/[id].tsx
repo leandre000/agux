@@ -19,6 +19,7 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { spacing, radius } from "@/constants/spacing";
+import { typeScale } from "@/constants/typography";
 
 export const options = {
   headerShown: false,
@@ -326,8 +327,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: typeScale.h3.size,
+    fontWeight: typeScale.h3.weight,
     flex: 1,
     textAlign: 'center',
   },
@@ -378,12 +379,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: typeScale.caption.size,
     marginRight: 8,
   },
   infoValue: {
     color: Colors.text,
-    fontSize: 16,
+    fontSize: typeScale.body.size,
     fontWeight: '500',
   },
   infoIconRow: {
@@ -395,12 +396,12 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     color: Colors.textSecondary,
-    fontSize: 14,
+    fontSize: typeScale.caption.size,
     marginBottom: 4,
   },
   detailValue: {
     color: Colors.text,
-    fontSize: 16,
+    fontSize: typeScale.body.size,
   },
   detailValueRow: {
     flexDirection: 'row',
@@ -412,8 +413,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: typeScale.h3.size,
+    fontWeight: typeScale.h3.weight,
     marginBottom: spacing.md,
   },
   noTicketsContainer: {

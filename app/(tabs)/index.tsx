@@ -4,6 +4,7 @@ import SectionHeader from "@/components/SectionHeader";
 import Skeleton from "@/components/Skeleton";
 import Colors from "@/constants/Colors";
 import { spacing, radius } from "@/constants/spacing";
+import { typeScale } from "@/constants/typography";
 import { useAuthStore } from "@/store/auth-store";
 import { useEventsStore } from "@/store/events-store";
 import { useRouter } from "expo-router";
@@ -302,13 +303,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greeting: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: typeScale.h1.size,
+    fontWeight: typeScale.h1.weight,
     color: Colors.text,
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: typeScale.subtitle.size,
     color: Colors.textSecondary,
   },
   notificationButton: {
@@ -331,8 +332,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: typeScale.h3.size,
+    fontWeight: typeScale.h3.weight,
     color: Colors.text,
     marginBottom: spacing.md,
   },
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryName: {
-    fontSize: 16,
+    fontSize: typeScale.subtitle.size,
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'center',
