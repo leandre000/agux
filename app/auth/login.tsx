@@ -1,19 +1,19 @@
+import AuthGuard from "@/components/AuthGuard";
 import Button from "@/components/Button";
 import Header from "@/components/Header";
 import Input from "@/components/Input";
 import NetworkError from "@/components/NetworkError";
-import AuthGuard from "@/components/AuthGuard";
 import { API_BASE_URL } from "@/config/api";
 import Colors from "@/constants/Colors";
-import { login, loginWithGoogle, validateEmail, validatePhone } from "@/lib/api/auth";
+import { commonValidations, useFormValidation } from "@/hooks/useFormValidation";
+import { login, validateEmail, validatePhone } from "@/lib/api/auth";
 import { setToken } from "@/lib/authToken";
-import { useFormValidation, commonValidations } from "@/hooks/useFormValidation";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
 import React, { useState } from "react";
-import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface LoginFormValues {
   identifier: string;
@@ -185,6 +185,8 @@ export default function LoginScreen() {
               onPress={handleSubmit}
               loading={isSubmitting || isLoading}
               style={styles.loginButton}
+              fullWidth
+              size="large"
               disabled={!formik.isValid || !formik.dirty}
             />
 
@@ -192,6 +194,8 @@ export default function LoginScreen() {
               title="Continue with Google"
               onPress={handleGoogleLogin}
               style={styles.googleButton}
+              fullWidth
+              size="large"
               disabled={isLoading}
             />
 

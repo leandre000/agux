@@ -1,14 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/auth-store';
-import Colors from '@/constants/Colors';
-import Button from '@/components/Button';
-import Input from '@/components/Input';
-import Header from '@/components/Header';
-import SocialLoginButton from '@/components/SocialLoginButton';
 import AuthLayout from '@/components/AuthLayout';
-import { useFormValidation, commonValidations } from '@/hooks/useFormValidation';
+import Button from '@/components/Button';
+import Header from '@/components/Header';
+import Input from '@/components/Input';
+import SocialLoginButton from '@/components/SocialLoginButton';
+import Colors from '@/constants/Colors';
+import { commonValidations, useFormValidation } from '@/hooks/useFormValidation';
+import { useAuthStore } from '@/store/auth-store';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface PhoneRegisterFormValues {
   phone: string;
@@ -82,6 +82,8 @@ export default function RegisterPhoneScreen() {
           onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           style={styles.signUpButton}
+          fullWidth
+          size="large"
           disabled={!formik.isValid || !formik.dirty}
         />
         <View style={styles.socialContainer}>

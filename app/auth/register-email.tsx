@@ -111,6 +111,8 @@ export default function RegisterEmailScreen() {
           onPress={handleSubmit}
           loading={isSubmitting || isLoading}
           style={styles.signUpButton}
+          fullWidth
+          size="large"
           disabled={!formik.isValid || !formik.dirty}
         />
 
