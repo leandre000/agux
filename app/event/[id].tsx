@@ -364,6 +364,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 20,
     marginBottom: spacing.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
   infoRow: {
     flexDirection: 'row',
@@ -416,6 +421,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: 32,
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
   noTicketsText: {
     color: Colors.textSecondary,
