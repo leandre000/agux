@@ -85,7 +85,7 @@ export interface PasswordResetResetRequest {
 // Authentication functions
 export async function login(body: LoginRequest): Promise<LoginResponse> {
   try {
-    const response = await apiPost<LoginResponse, LoginRequest>("/api/auth/login", body);
+    const response = await apiPost<LoginResponse, LoginRequest>("/api/users/login", body);
     return response.data;
   } catch (error: any) {
     // Handle specific login errors
@@ -102,7 +102,7 @@ export async function login(body: LoginRequest): Promise<LoginResponse> {
 
 export async function register(body: RegisterRequest): Promise<RegisterResponse> {
   try {
-    const response = await apiPost<RegisterResponse, RegisterRequest>("/api/auth/register", body);
+    const response = await apiPost<RegisterResponse, RegisterRequest>("/api/users/register", body);
     return response.data;
   } catch (error: any) {
     // Handle specific registration errors
@@ -167,7 +167,7 @@ export async function sendPhoneVerification(body: PhoneVerificationRequest): Pro
 // Password reset functions
 export async function requestPasswordReset(body: PasswordResetRequestRequest): Promise<{ success: boolean; message?: string }> {
   try {
-    const response = await apiPost("/api/auth/password-reset/request", body);
+    const response = await apiPost("/api/password-reset/request", body);
     return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 404) {
@@ -183,7 +183,7 @@ export async function requestPasswordReset(body: PasswordResetRequestRequest): P
 
 export async function verifyResetCode(body: PasswordResetVerifyRequest): Promise<{ success: boolean; message?: string }> {
   try {
-    const response = await apiPost("/api/auth/password-reset/verify", body);
+    const response = await apiPost("/api/password-reset/verify", body);
     return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 401) {
@@ -199,7 +199,7 @@ export async function verifyResetCode(body: PasswordResetVerifyRequest): Promise
 
 export async function resetPassword(body: PasswordResetResetRequest): Promise<{ success: boolean; message?: string }> {
   try {
-    const response = await apiPost("/api/auth/password-reset/reset", body);
+    const response = await apiPost("/api/password-reset/reset", body);
     return response.data as { success: boolean; message?: string };
   } catch (error: any) {
     if (error.status === 401) {
