@@ -32,7 +32,9 @@
       "typedRoutes": true
     },
     "extra": {
-      "apiUrl": "https://agura-ticketing-backend.onrender.com"
+      "apiUrl": "https://agura-ticketing-backend.onrender.com",
+      "EXPO_PUBLIC_API_URL": "https://agura-ticketing-backend.onrender.com",
+      "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547461485128-k5brbqjl0klrkn331plsjb5rjmuvqja0.apps.googleusercontent.com"
     }
   }
 }
