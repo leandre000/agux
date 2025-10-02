@@ -1,6 +1,7 @@
 import EventCard from "@/components/EventCard";
 import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
+import Skeleton from "@/components/Skeleton";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
 import { useEventsStore } from "@/store/events-store";
@@ -8,7 +9,7 @@ import { useRouter } from "expo-router";
 import {
     Bell
 } from "lucide-react-native";
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
     Alert,
     Dimensions,
@@ -199,24 +200,31 @@ export default function HomeScreen() {
             showSeeAll={true}
             onSeeAllPress={handleViewAllEvents}
           />
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScroll}
-          >
-            {featuredEvents.map((event) => (
-              <View key={event.id} style={styles.featuredEventContainer}>
-                <EventCard
-                  event={event}
-                  variant="detailed"
-                  onPress={() => handleEventPress(event.id)}
-                  onFavorite={() => Alert.alert("Favorite", "Added to favorites")}
-                  onShare={() => Alert.alert("Share", "Sharing event...")}
-                  onBookmark={() => Alert.alert("Bookmark", "Bookmarked event")}
-                />
-              </View>
-            ))}
-          </ScrollView>
+          {loading ? (
+            <View style={[styles.horizontalScroll, { flexDirection: 'row' }]}> 
+              <View style={styles.featuredEventContainer}><Skeleton height={200} radius={16} /></View>
+              <View style={styles.featuredEventContainer}><Skeleton height={200} radius={16} /></View>
+            </View>
+          ) : (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalScroll}
+            >
+              {featuredEvents.map((event) => (
+                <View key={event.id} style={styles.featuredEventContainer}>
+                  <EventCard
+                    event={event}
+                    variant="detailed"
+                    onPress={() => handleEventPress(event.id)}
+                    onFavorite={() => Alert.alert("Favorite", "Added to favorites")}
+                    onShare={() => Alert.alert("Share", "Sharing event...")}
+                    onBookmark={() => Alert.alert("Bookmark", "Bookmarked event")}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         {/* Upcoming Events */}
@@ -227,15 +235,23 @@ export default function HomeScreen() {
             showSeeAll={true}
             onSeeAllPress={handleViewAllUpcoming}
           />
-          {upcomingEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              variant="default"
-              onPress={() => handleEventPress(event.id)}
-              onFavorite={() => Alert.alert("Favorite", "Added to favorites")}
-            />
-          ))}
+          {loading ? (
+            <View style={{ gap: 12, paddingHorizontal: 20 }}>
+              <Skeleton height={92} radius={12} />
+              <Skeleton height={92} radius={12} />
+              <Skeleton height={92} radius={12} />
+            </View>
+          ) : (
+            upcomingEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                variant="default"
+                onPress={() => handleEventPress(event.id)}
+                onFavorite={() => Alert.alert("Favorite", "Added to favorites")}
+              />
+            ))
+          )}
         </View>
 
         {/* Event Categories */}

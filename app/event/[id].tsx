@@ -1,20 +1,20 @@
 import Header from "@/components/Header";
+import Skeleton from "@/components/Skeleton";
 import Colors from "@/constants/Colors";
 import { Event, useEventsStore } from "@/store/events-store";
 import { TicketCategory, useTicketsStore } from "@/store/tickets-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Calendar, ChevronLeft, MapPin, Search, Bell, User } from "lucide-react-native";
+import { Bell, Calendar, ChevronLeft, MapPin, Search, User } from "lucide-react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Image as RNImage,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -97,9 +97,12 @@ export default function EventDetailScreen() {
       <SafeAreaView style={styles.container} edges={["top"]}>
         <StatusBar style="light" />
         <Header showLogo showProfile showSearch />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading event details...</Text>
+        <View style={{ padding: 20, gap: 16 }}>
+          <Skeleton height={220} radius={16} />
+          <Skeleton height={28} radius={8} />
+          <Skeleton height={20} radius={8} />
+          <Skeleton height={120} radius={12} />
+          <Skeleton height={44} radius={22} />
         </View>
       </SafeAreaView>
     );
