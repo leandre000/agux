@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { spacing, radius } from "@/constants/spacing";
 
 export const options = {
   headerShown: false,
@@ -321,7 +322,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   backButton: {
-    padding: 8,
+    padding: spacing.sm,
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -349,9 +350,9 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 200,
     marginHorizontal: 20,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     overflow: 'hidden',
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
   eventImage: {
     width: '100%',
@@ -360,15 +361,15 @@ const styles = StyleSheet.create({
   infoContainer: {
     backgroundColor: Colors.card,
     marginHorizontal: 20,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 20,
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   infoLabel: {
     color: Colors.textSecondary,
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailRow: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   detailLabel: {
     color: Colors.textSecondary,
@@ -402,17 +403,17 @@ const styles = StyleSheet.create({
   },
   ticketsSection: {
     paddingHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
   sectionTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   noTicketsContainer: {
     backgroundColor: Colors.card,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 32,
     alignItems: 'center',
   },

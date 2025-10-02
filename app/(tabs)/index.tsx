@@ -3,6 +3,7 @@ import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
 import Skeleton from "@/components/Skeleton";
 import Colors from "@/constants/Colors";
+import { spacing, radius } from "@/constants/spacing";
 import { useAuthStore } from "@/store/auth-store";
 import { useEventsStore } from "@/store/events-store";
 import { useRouter } from "expo-router";
@@ -312,8 +313,8 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: 'relative',
-    padding: 8,
-    borderRadius: 20,
+    padding: spacing.sm,
+    borderRadius: radius.lg,
     backgroundColor: Colors.card,
   },
   notificationBadge: {
@@ -327,23 +328,23 @@ const styles = StyleSheet.create({
   },
   quickActionsContainer: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: spacing.md,
   },
   quickActionButton: {
     width: '48%',
-    padding: 16,
-    borderRadius: 16,
+    padding: spacing.md,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 80,
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    marginBottom: 32,
+    marginBottom: spacing.xl,
   },
   horizontalScroll: {
     paddingHorizontal: 20,
@@ -371,13 +372,13 @@ const styles = StyleSheet.create({
   categoriesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: spacing.md,
     paddingHorizontal: 20,
   },
   categoryButton: {
     width: '48%',
     padding: 20,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 100,
