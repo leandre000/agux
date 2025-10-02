@@ -69,6 +69,7 @@
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
     "babel-plugin-module-resolver": "^5.0.2",
+    "eas-cli": "^16.20.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
     "rimraf": "^6.0.1",

@@ -1,71 +1,38 @@
-import React from "react";
+import Button from "@/components/Button";
+import Header from "@/components/Header";
+import Skeleton from "@/components/Skeleton";
+import Colors from "@/constants/Colors";
+import { useTicketsStore } from "@/store/tickets-store";
+import { useRouter } from "expo-router";
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  Image,
+    ArrowRight,
+    Calendar,
+    Clock3,
+    Download,
+    MapPin,
+    Share2,
+    Ticket
+} from "lucide-react-native";
+import React, { useEffect } from "react";
+import {
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { 
-  Ticket, 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  QrCode,
-  Download,
-  Share2,
-  ArrowRight,
-  Clock3
-} from "lucide-react-native";
-import Header from "@/components/Header";
-import Button from "@/components/Button";
-import Colors from "@/constants/Colors";
 
 export default function TicketsScreen() {
   const router = useRouter();
+  const { userTickets, loading, fetchUserTickets } = useTicketsStore();
 
-  // Mock ticket data - replace with actual data from your store
-  const tickets = [
-    {
-      id: "1",
-      eventTitle: "Agura Launch Event",
-      eventDate: "2025-01-15T18:00:00.000Z",
-      eventLocation: "Downtown Convention Center",
-      ticketType: "VIP Pass",
-      ticketNumber: "AGU-001-2025",
-      qrCode: "https://example.com/qr/1",
-      status: "active",
-      price: 25,
-    },
-    {
-      id: "2",
-      eventTitle: "Summer Music Festival",
-      eventDate: "2025-01-20T19:00:00.000Z",
-      eventLocation: "Central Park",
-      ticketType: "General Admission",
-      ticketNumber: "SMF-002-2025",
-      qrCode: "https://example.com/qr/2",
-      status: "active",
-      price: 45,
-    },
-    {
-      id: "3",
-      eventTitle: "Tech Startup Meetup",
-      eventDate: "2025-01-10T18:30:00.000Z",
-      eventLocation: "Innovation Hub",
-      ticketType: "Free Entry",
-      ticketNumber: "TSM-003-2025",
-      qrCode: "https://example.com/qr/3",
-      status: "expired",
-      price: 0,
-    },
-  ];
+  useEffect(() => {
+    fetchUserTickets().catch(() => {});
+  }, [fetchUserTickets]);
 
-  const activeTickets = tickets.filter(ticket => ticket.status === "active");
-  const expiredTickets = tickets.filter(ticket => ticket.status === "expired");
+  const activeTickets = userTickets.filter(ticket => ticket.status === "active");
+  const expiredTickets = userTickets.filter(ticket => ticket.status === "expired");
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -113,7 +80,7 @@ export default function TicketsScreen() {
       <View style={styles.ticketHeader}>
         <View style={styles.ticketTypeContainer}>
           <Ticket size={20} color={Colors.primary} />
-          <Text style={styles.ticketType}>{ticket.ticketType}</Text>
+          <Text style={styles.ticketType}>{ticket.category_name || "Standard"}</Text>
         </View>
         <View style={styles.ticketStatus}>
           <View style={[
@@ -129,19 +96,19 @@ export default function TicketsScreen() {
         </View>
       </View>
 
-      <Text style={styles.eventTitle}>{ticket.eventTitle}</Text>
+      <Text style={styles.eventTitle}>{ticket.event_title || "Event"}</Text>
       
       <View style={styles.eventDetails}>
         <View style={styles.detailRow}>
           <Calendar size={16} color={Colors.textSecondary} />
           <Text style={styles.detailText}>
-            {formatDate(ticket.eventDate)} at {formatTime(ticket.eventDate)}
+            {formatDate(ticket.event_date)} at {formatTime(ticket.event_date)}
           </Text>
         </View>
         
         <View style={styles.detailRow}>
           <MapPin size={16} color={Colors.textSecondary} />
-          <Text style={styles.detailText}>{ticket.eventLocation}</Text>
+          <Text style={styles.detailText}>{ticket.venue || ""}</Text>
         </View>
         
         <View style={styles.detailRow}>
@@ -155,7 +122,7 @@ export default function TicketsScreen() {
       <View style={styles.ticketFooter}>
         <View style={styles.ticketNumber}>
           <Text style={styles.ticketNumberLabel}>Ticket #</Text>
-          <Text style={styles.ticketNumberValue}>{ticket.ticketNumber}</Text>
+          <Text style={styles.ticketNumberValue}>{ticket.ticket_id}</Text>
         </View>
         
         <View style={styles.ticketActions}>
@@ -211,8 +178,18 @@ export default function TicketsScreen() {
           </Text>
         </View>
 
+        {/* Loading state */}
+        {loading && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Loading Tickets</Text>
+            <Skeleton height={120} radius={16} style={{ marginBottom: 12 }} />
+            <Skeleton height={120} radius={16} style={{ marginBottom: 12 }} />
+            <Skeleton height={120} radius={16} style={{ marginBottom: 12 }} />
+          </View>
+        )}
+
         {/* Active Tickets */}
-        {activeTickets.length > 0 && (
+        {!loading && activeTickets.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Active Tickets</Text>
             {activeTickets.map(renderTicketCard)}
@@ -220,7 +197,7 @@ export default function TicketsScreen() {
         )}
 
         {/* Expired Tickets */}
-        {expiredTickets.length > 0 && (
+        {!loading && expiredTickets.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Past Events</Text>
             {expiredTickets.map(renderTicketCard)}
@@ -228,7 +205,7 @@ export default function TicketsScreen() {
         )}
 
         {/* Empty State */}
-        {tickets.length === 0 && (
+        {!loading && userTickets.length === 0 && (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
               <Ticket size={48} color={Colors.textSecondary} />
@@ -249,7 +226,7 @@ export default function TicketsScreen() {
         )}
 
         {/* Call to Action */}
-        {tickets.length > 0 && (
+        {!loading && userTickets.length > 0 && (
           <View style={styles.ctaSection}>
             <Button
               title="Browse More Events"

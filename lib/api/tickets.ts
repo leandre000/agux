@@ -1,10 +1,10 @@
 import { apiGet, apiPost, apiPut } from "@/config/api";
 import {
     PaginatedResponse,
+    Seat,
     Ticket,
     TicketPurchaseRequest,
-    TicketPurchaseResponse,
-    Seat
+    TicketPurchaseResponse
 } from "@/types/ticketing";
 
 // Get user's tickets
@@ -14,7 +14,7 @@ export async function getUserTickets(page: number = 1, limit: number = 20) {
     limit: limit.toString()
   });
   
-  return apiGet<PaginatedResponse<Ticket>>(`/api/tickets/my-tickets?${params.toString()}`);
+  return apiGet<PaginatedResponse<Ticket>>(`/api/tickets/my?${params.toString()}`);
 }
 
 // Get ticket by ID
@@ -34,7 +34,7 @@ export async function getTicketsByEvent(eventId: string, page: number = 1, limit
     limit: limit.toString()
   });
   
-  return apiGet<PaginatedResponse<Ticket>>(`/api/events/${eventId}/tickets?${params.toString()}`);
+  return apiGet<PaginatedResponse<Ticket>>(`/api/tickets/event/${eventId}?${params.toString()}`);
 }
 
 // Get tickets by user for specific event
