@@ -3,35 +3,35 @@ import EventCard from "@/components/EventCard";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import SectionHeader from "@/components/SectionHeader";
+import Skeleton from "@/components/Skeleton";
 import Colors from "@/constants/Colors";
 import { useAuthStore } from "@/store/auth-store";
 import { useEventsStore } from "@/store/events-store";
 import { useRouter } from "expo-router";
 import {
-    Calendar,
-    ChevronDown,
-    DollarSign,
-    Filter,
-    Grid3X3,
-    List,
-    Sliders,
-    Star,
-    Users,
-    X
+  Calendar,
+  ChevronDown,
+  DollarSign,
+  Filter,
+  Grid3X3,
+  List,
+  Sliders,
+  Star,
+  Users,
+  X
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    FlatList,
-    Modal,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Skeleton from "@/components/Skeleton";
 
 type FilterOption = {
   id: string;
@@ -61,7 +61,7 @@ export default function EventsUserScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isDebouncing, setIsDebouncing] = useState(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showFilters, setShowFilters] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
