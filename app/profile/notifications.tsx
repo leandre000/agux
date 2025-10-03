@@ -1,11 +1,84 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
-import { StatusBar } from 'expo-status-bar';
-import Colors from '@/constants/Colors';
 import Header from '@/components/Header';
+import Colors from '@/constants/Colors';
+import React, { useState } from 'react';
+import { StyleSheet, Switch, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export default function NotificationSettingsScreen() {
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [promotionsEnabled, setPromotionsEnabled] = useState(true);
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <Header title="Notifications" showBack />
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>General</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Push Notifications</Text>
+          <Switch value={pushEnabled} onValueChange={setPushEnabled} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Email Notifications</Text>
+          <Switch value={emailEnabled} onValueChange={setEmailEnabled} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>SMS Notifications</Text>
+          <Switch value={smsEnabled} onValueChange={setSmsEnabled} />
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Promotions & Offers</Text>
+          <Switch value={promotionsEnabled} onValueChange={setPromotionsEnabled} />
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  section: {
+    backgroundColor: Colors.card,
+    marginHorizontal: 20,
+    marginTop: 24,
+    borderRadius: 16,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
+  },
+  label: {
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+});
+
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { ChevronLeft } from 'lucide-react-native';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 
 interface NotificationSettingProps {
   title: string;

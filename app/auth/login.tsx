@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Input from "@/components/Input";
 import NetworkError from "@/components/NetworkError";
 import { API_BASE_URL } from "@/config/api";
+import { useToast } from "@/components/ToastProvider";
 import Colors from "@/constants/Colors";
 import { commonValidations, useFormValidation } from "@/hooks/useFormValidation";
 import { login, validateEmail, validatePhone } from "@/lib/api/auth";
@@ -31,6 +32,7 @@ const loginValidationSchema = {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState(false);
@@ -58,6 +60,7 @@ export default function LoginScreen() {
         
         if (response.success && response.token) {
           await setToken(response.token);
+          showToast("Welcome back!", { type: 'success' });
           router.replace("/(tabs)");
         } else {
           setError(response.message || "Login failed. Please try again.");

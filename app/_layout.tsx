@@ -1,12 +1,12 @@
+import CustomSplashScreen from '@/components/CustomSplashScreen';
+import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
+import { ToastProvider } from '@/components/ToastProvider';
 import Colors from '@/constants/Colors';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ProductionErrorBoundary } from '@/components/ProductionErrorBoundary';
-import CustomSplashScreen from '@/components/CustomSplashScreen';
-import SecureRoute from '@/components/SecureRoute';
 
 export default function RootLayout() {
   const [isSplashVisible, setIsSplashVisible] = React.useState(true);
@@ -24,7 +24,8 @@ export default function RootLayout() {
     <>
       <StatusBar style="light" backgroundColor={Colors.background} />
       <CustomSplashScreen visible={isSplashVisible} />
-      <Stack
+      <ToastProvider>
+        <Stack
         screenOptions={{
           headerShown: false,
           contentStyle: {
@@ -75,7 +76,8 @@ export default function RootLayout() {
         <Stack.Screen name="event" />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="modal" />
-      </Stack>
+        </Stack>
+      </ToastProvider>
     </>
   );
 
