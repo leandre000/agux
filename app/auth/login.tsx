@@ -89,7 +89,7 @@ export default function LoginScreen() {
       setNetworkError(false);
       
       const redirectUrl = Linking.createURL("/auth/login");
-      const authUrl = `${API_BASE_URL}/auth/google`;
+      const authUrl = `${API_BASE_URL}/api/users/google?redirect_uri=${encodeURIComponent(redirectUrl)}`;
       
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
