@@ -19,9 +19,8 @@ import {
     Users,
     X
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
     FlatList,
     Modal,
     RefreshControl,
@@ -32,6 +31,7 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Skeleton from "@/components/Skeleton";
 
 type FilterOption = {
   id: string;
@@ -59,6 +59,9 @@ export default function EventsUserScreen() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isDebouncing, setIsDebouncing] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showFilters, setShowFilters] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
@@ -79,6 +82,24 @@ export default function EventsUserScreen() {
     loadData();
   }, [loadData]);
 
+  // Debounce search query updates
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    setIsDebouncing(true);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+      setIsDebouncing(false);
+    }, 350);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
@@ -86,9 +107,9 @@ export default function EventsUserScreen() {
   }, [loadData]);
 
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      // For now, just update local state since we don't have a dedicated search screen
-      console.log('Searching for:', searchQuery.trim());
+    if (debouncedQuery) {
+      // In future, trigger remote search endpoint here
+      console.log('Searching for:', debouncedQuery);
     }
   };
 
@@ -164,9 +185,11 @@ export default function EventsUserScreen() {
 
   const filteredAndSortedEvents = useMemo(() => {
     let filtered = allEvents.filter((event) => {
-      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (event.description?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase());
+      const query = debouncedQuery.toLowerCase();
+      const matchesSearch = query.length === 0 ||
+        event.title.toLowerCase().includes(query) ||
+        (event.description?.toLowerCase() || "").includes(query) ||
+        event.location.toLowerCase().includes(query);
 
       if (!matchesSearch) return false;
 
@@ -206,7 +229,17 @@ export default function EventsUserScreen() {
     });
 
     return sortedEvents;
-  }, [allEvents, searchQuery, selectedFilters, selectedSort, priceRange, selectedDate, isToday]);
+  }, [allEvents, debouncedQuery, selectedFilters, selectedSort, priceRange, selectedDate, isToday]);
+
+  const renderLoadingSkeletons = () => (
+    <View style={{ paddingHorizontal: 20 }}>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <View key={idx} style={{ marginBottom: 16 }}>
+          <Skeleton height={180} radius={16} />
+        </View>
+      ))}
+    </View>
+  );
 
   const renderEventItem = ({ item }: { item: any }) => (
     <EventCard
@@ -320,17 +353,7 @@ export default function EventsUserScreen() {
     </Modal>
   );
 
-  if (loading && !refreshing) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <Header title="Events" showBack />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Loading events...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const isSearching = isDebouncing && searchQuery.length > 0;
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -349,6 +372,11 @@ export default function EventsUserScreen() {
             recentSearches={recentSearches}
             popularSearches={popularSearches}
           />
+          {(isSearching || (loading && !refreshing)) && (
+            <Text style={styles.loadingText}>
+              {isSearching ? "Searching..." : "Loading events..."}
+            </Text>
+          )}
         </View>
 
         {/* Controls Section */}
@@ -421,22 +449,25 @@ export default function EventsUserScreen() {
             }
             showSeeAll={false}
           />
-          
-          <FlatList
-            data={filteredAndSortedEvents}
-            keyExtractor={(item) => item.id}
-            renderItem={renderEventItem}
-            key={viewMode}
-            numColumns={viewMode === "grid" ? 2 : 1}
-            columnWrapperStyle={viewMode === "grid" ? styles.gridRow : undefined}
-            contentContainerStyle={styles.eventsList}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            ListEmptyComponent={renderEmptyState}
-            ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
-          />
+          {loading && !refreshing ? (
+            renderLoadingSkeletons()
+          ) : (
+            <FlatList
+              data={filteredAndSortedEvents}
+              keyExtractor={(item) => item.id}
+              renderItem={renderEventItem}
+              key={viewMode}
+              numColumns={viewMode === "grid" ? 2 : 1}
+              columnWrapperStyle={viewMode === "grid" ? styles.gridRow : undefined}
+              contentContainerStyle={styles.eventsList}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              ListEmptyComponent={renderEmptyState}
+              ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+            />
+          )}
         </View>
       </View>
 
