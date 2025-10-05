@@ -1,5 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
+ext {
+  // Force NDK 26 for local Windows builds to avoid libc++ link errors
+  ndkVersion = "26.1.10909125"
+}
+
 buildscript {
   repositories {
     google()
