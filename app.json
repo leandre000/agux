@@ -34,7 +34,11 @@
     "extra": {
       "apiUrl": "https://agura-ticketing-backend.onrender.com",
       "EXPO_PUBLIC_API_URL": "https://agura-ticketing-backend.onrender.com",
-      "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547461485128-k5brbqjl0klrkn331plsjb5rjmuvqja0.apps.googleusercontent.com"
+      "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547461485128-k5brbqjl0klrkn331plsjb5rjmuvqja0.apps.googleusercontent.com",
+      "router": {},
+      "eas": {
+        "projectId": "75ed3943-daf2-473e-bc2f-6637c1986ab7"
+      }
     }
   }
 }
