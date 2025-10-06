@@ -7,12 +7,14 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "credentialsSource": "local",
       "android": {
         "buildType": "apk"
       }
     },
     "preview": {
       "distribution": "internal",
+      "credentialsSource": "local",
       "android": {
         "buildType": "apk"
       },
@@ -22,6 +24,7 @@
       }
     },
     "production": {
+      "credentialsSource": "local",
       "android": {
         "buildType": "app-bundle"
       }
