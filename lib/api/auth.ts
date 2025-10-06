@@ -85,7 +85,8 @@ export interface PasswordResetResetRequest {
 // Authentication functions
 export async function login(body: LoginRequest): Promise<LoginResponse> {
   try {
-    const response = await apiPost<LoginResponse, LoginRequest>("/api/users/login", body);
+    // Align with backend routes documented in README (Authentication API)
+    const response = await apiPost<LoginResponse, LoginRequest>("/api/auth/login", body);
     return response.data;
   } catch (error: any) {
     // Handle specific login errors
@@ -102,7 +103,8 @@ export async function login(body: LoginRequest): Promise<LoginResponse> {
 
 export async function register(body: RegisterRequest): Promise<RegisterResponse> {
   try {
-    const response = await apiPost<RegisterResponse, RegisterRequest>("/api/users/register", body);
+    // Align with backend routes documented in README (Authentication API)
+    const response = await apiPost<RegisterResponse, RegisterRequest>("/api/auth/register", body);
     return response.data;
   } catch (error: any) {
     // Handle specific registration errors
