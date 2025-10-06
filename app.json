@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "agura",
-    "slug": "agura",
+    "slug": "agura-s6mf9xnxfaugacv3hs37",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,7 +37,7 @@
       "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547461485128-k5brbqjl0klrkn331plsjb5rjmuvqja0.apps.googleusercontent.com",
       "router": {},
       "eas": {
-        "projectId": "515b1fad-2646-4ddd-9a8e-026198acea9c"
+        "projectId": "c57cc72e-e9d2-4357-8108-67121b0bc3fe"
       }
     },
     "owner": "fliicky"
